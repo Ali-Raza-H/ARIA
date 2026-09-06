@@ -1,0 +1,98 @@
+# Copy this file to config.yaml and set what ARIA should use.
+
+# --- The assistant you talk to -------------------------------------------
+provider: gemini          # gemini | nvidia | openrouter | openai | mistral | ollama
+model: gemini-2.5-flash
+persona: jarvis           # ARIA's personality (see src/aria/prompts.py)
+
+# --- Providers ------------------------------------------------------------
+# Every OpenAI-compatible provider just needs base_url + api_key_env.
+# The key itself lives in .env (never in this file). See .env.example.
+# Each provider keeps its own model list; /models shows it, /model switches.
+providers:
+  gemini:
+    api_key_env: GEMINI_API_KEY
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+    models: [gemini-2.5-flash, gemini-2.5-pro]
+  nvidia:
+    api_key_env: NVIDIA_API_KEY
+    base_url: https://integrate.api.nvidia.com/v1
+    models: [meta/llama-3.3-70b-instruct]
+  openrouter:
+    api_key_env: OPENROUTER_API_KEY
+    base_url: https://openrouter.ai/api/v1
+    models: [anthropic/claude-sonnet-4.5, openai/gpt-4.1-mini]
+  openai:
+    api_key_env: OPENAI_API_KEY
+    base_url: https://api.openai.com/v1
+    models: [gpt-4.1, gpt-4.1-mini]
+  mistral:
+    api_key_env: MISTRAL_API_KEY
+    base_url: https://api.mistral.ai/v1
+    models: [mistral-large-latest, mistral-small-latest, codestral-latest]
+  ollama:
+    host: http://127.0.0.1:11434
+    # Most Ollama models do not support native tools; ARIA's custom
+    # <tool_call> protocol is used by default. Set true only when supported.
+    native_tools: false
+    models: [gemma2:9b, qwen2.5-coder:7b]
+
+# --- The independent coding agent -----------------------------------------
+# ARIA deploys it via the deploy_coder tool. It runs with its own memory,
+# its own model session, and a much higher iteration budget so massive
+# multi-file operations don't bloat ARIA's conversational context.
+coder:
+  provider: ollama        # optional; defaults to ARIA's provider above
+  model: qwen2.5-coder:7b # optional; defaults to ARIA's model above
+  max_iterations: 60      # coding agent gets a far bigger budget than ARIA
+  max_output_chars: 12000 # per-command output cap inside deployments
+
+# --- LifeOS (personal-life API) ---------------------------------------------
+# The user's tasks, projects, goals, habits, calendar, journal, health, gym,
+# finance, and more. Requires LIFEOS_API_KEY in .env; left unconfigured ARIA
+# simply answers "not configured" instead of failing.
+lifeos:
+  base_url: ""             # e.g. http://127.0.0.1:5000
+  api_key_env: LIFEOS_API_KEY
+  timeout_seconds: 15
+  max_retries: 1           # extra attempts on 5xx/network errors
+  retry_backoff_seconds: 0.4
+
+# --- Speech (text-to-speech) ----------------------------------------------
+# Choose kokoro_hf for Hugging Face-hosted inference or kokoro_local for the
+# local KPipeline backend. Install --extra voice or --extra voice-local.
+# chatterbox runs locally for custom voice cloning.
+speech:
+  enabled: false          # /tts on|off at runtime
+  engine: kokoro_hf      # kokoro_hf | kokoro_local | chatterbox
+  voice: af_sarah         # Kokoro voice, or an audio path for chatterbox
+  speed: 1.0
+  lang_code: a            # Kokoro language code ('a' = American English)
+  hf_api_key_env: HF_TOKEN
+  hf_model: hexgrad/Kokoro-82M
+  hf_provider: auto       # or a specific inference provider (novita, fal-ai, ...)
+
+# --- Logging ---------------------------------------------------------------
+# debug.log holds DEBUG+ (full data flow), info.log INFO+, error.log ERROR+.
+logging:
+  directory: data/logs
+  console_level: WARNING
+  max_bytes: 5242880      # 5 MiB per file before rotation
+  backup_count: 3
+
+# --- Workspace & limits ----------------------------------------------------
+# All paths are resolved from the directory where aria starts.
+# Runtime changes made with /provider, /model, /workspace, /iterations, /agent,
+# /tts, and /cot are saved separately in data/aria-state.yaml.
+workspace: .
+
+# --- UI --------------------------------------------------------------------
+ui:
+  show_cot: true
+
+# The conversational loop stops after this many model/tool rounds as an emergency guard.
+max_iterations: 20
+
+# Leave these null for no subprocess timeout/output truncation.
+command_timeout_seconds: null
+max_command_output_chars: null

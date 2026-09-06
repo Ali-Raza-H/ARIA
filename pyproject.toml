@@ -1,0 +1,56 @@
+[project]
+name = "aria-assistant"
+version = "0.2.0"
+description = "ARIA - Adaptive Reasoning and Intelligence Assistant: a terminal personal assistant with an independent coding agent."
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "ollama>=0.4.7",
+    "openai>=1.68.0",
+    "pyyaml>=6.0.2",
+    "rich>=13.9.4",
+    "python-dotenv>=1.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.5",
+    "pyright>=1.1.390",
+]
+# Speech engines are optional extras; install only what you use.
+# 'voice' covers hosted Kokoro (audio playback only, no local model).
+voice = [
+    "huggingface_hub>=0.30.0",
+    "sounddevice>=0.5.1",
+    "soundfile>=0.12.1",
+]
+# Local Kokoro uses KPipeline and requires espeak-ng on the host OS.
+voice-local = [
+    "kokoro>=0.9.4",
+    "sounddevice>=0.5.1",
+]
+voice-chatterbox = [
+    "chatterbox-tts>=0.1.0",
+    "sounddevice>=0.5.1",
+    "soundfile>=0.12.1",
+]
+
+[project.scripts]
+aria = "aria.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aria"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.pyright]
+include = ["src", "tests"]
+pythonVersion = "3.11"
+typeCheckingMode = "basic"
+reportMissingImports = false
