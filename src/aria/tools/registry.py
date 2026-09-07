@@ -27,6 +27,13 @@ class ToolRegistry:
     def schemas(self) -> list[dict[str, Any]]:
         return [tool.schema() for tool in self._tools.values()]
 
+    def begin_turn(self) -> None:
+        """Reset optional stateful tools before a new user request."""
+        for tool in self._tools.values():
+            reset = getattr(tool.handler, "begin_turn", None)
+            if callable(reset):
+                reset()
+
     def execute(self, name: str, arguments: dict[str, Any], context: ToolContext) -> ToolResult:
         tool = self._tools.get(name)
         if tool is None:

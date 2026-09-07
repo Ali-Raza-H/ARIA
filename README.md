@@ -11,8 +11,9 @@ much larger iteration budget, so ARIA's conversation stays clean.
 - **Persona & behavior** - ARIA greets, chats, plans, and answers like a
   personal assistant; work on your machine is delegated to the coding agent
   through the `deploy_coder` tool and reported back in plain language.
-- **Multi-provider** - Gemini, Mistral, NVIDIA NIM, OpenRouter, OpenAI (all
-  through one OpenAI-compatible adapter: base URL + key), and local Ollama.
+- **Multi-provider** - Cerebras, Groq, Gemini, Mistral, NVIDIA NIM, OpenRouter,
+  OpenAI (all through one OpenAI-compatible adapter: base URL + key), and local
+  Ollama.
   Ollama uses
   ARIA's custom `<tool_call>` protocol by default so models without native tool
   calling still work; native tools are opt-in per provider configuration.
@@ -20,8 +21,9 @@ much larger iteration budget, so ARIA's conversation stays clean.
   `/providers`, `/models`, `/model`, `/provider` switch at runtime. Runtime
   preferences survive restarts in the ignored `data/aria-state.yaml` file;
   the main `config.yaml` is never rewritten.
-- **`.env` based secrets** - API keys and `ARIA_*` settings overrides live in
-  `.env` (see `.env.example`), loaded with `python-dotenv`.
+- **`.env` based secrets** - Each hosted provider has separate ARIA and coder
+  credentials (`aria_api_key_env` / `coder_api_key_env`); secrets and `ARIA_*`
+  settings overrides live in `.env` (see `.env.example`).
 - **Full rotating logging** - `data/logs/debug.log` (everything, the complete
   data flow: function calls, arguments, results, errors), `info.log` (INFO+),
   and `error.log` (ERROR only). 5 MiB per file, 3 rotated backups. Secrets are
@@ -29,13 +31,17 @@ much larger iteration budget, so ARIA's conversation stays clean.
 - **Live chain of thought** - watch ARIA's reasoning as it happens: every
   round, tool call with arguments, and tool result streams inside the response
   panel. `/cot on|off` toggles it.
-- **Chat-style TUI** - the conversation tail fills the screen from the top and
-  the prompt box stays pinned to the bottom row, chat-app style. `/save`
-  exports the session transcript to a text file.
+- **Chat-style TUI** - the conversation fills the screen with a visible
+  scrollbar; PageUp/PageDown browse older/newer messages and Home/End jump to
+  either end while the prompt stays pinned. `/save` exports the transcript.
+- **Human-like three-tier memory** - persistent Tier 1 hard facts in SQLite,
+  Tier 2 semantic summaries in Chroma, and Tier 3 cross-session chat history in
+  a separate Chroma collection. Memory warms the first prompt with facts,
+  relevant semantic memories, and one recent exchange.
 - **Switchable speech** - Kokoro through Hugging Face (`kokoro_hf`) or the
   local `KPipeline` backend (`kokoro_local`), plus Chatterbox for local custom
   voice cloning; off by default, `/tts on|off|kokoro_hf|kokoro_local|chatterbox`.
-- **LifeOS connection** - manage your real life through the LifeOS API
+- **Self-hosted web research** - bounded `web_search` and `open_webpage` tools backed by local SearXNG, with source tracking, citations, extraction, caching, retries, and SSRF protection; no search API key is required.
   (tasks, projects, goals, habits, calendar, journal, health, gym, finance...)
   via the `lifeos` tool; enabled by simply setting `lifeos.base_url` and
   `LIFEOS_API_KEY`, silently inert otherwise.
@@ -65,7 +71,13 @@ uv run aria
 The independent coding agent can use a different backend from ARIA. Set these
 under `coder` in `config.yaml`; either value may be omitted. If both are
 omitted, the coder uses ARIA's provider and model. If only `provider` is set,
-the first model listed for that provider is selected.
+the first model listed for that provider is selected. Hosted providers require
+separate credentials: ARIA uses `aria_api_key_env`, while the coder uses
+`coder_api_key_env`; the coder never falls back to ARIA's key.
+
+For Ollama, `/ollama clear-vram` unloads all currently running models. If a
+request reports an out-of-memory error, ARIA automatically runs the same cleanup
+and retries the request once.
 
 ```yaml
 coder:
@@ -76,6 +88,76 @@ coder:
 ```
 
 No runtime command is required; restart ARIA after changing these settings.
+
+### Persistent memory
+
+Persistent memory is enabled by default and requires the local `chromadb`
+package. ARIA stores SQLite metadata/facts in `data/memory/memory.sqlite3` and
+uses two local Chroma collections under `data/memory/chroma`:
+
+- **Tier 1 — hard facts:** structured namespaced facts with confidence,
+  importance, provenance, and replacement history.
+- **Tier 2 — semantic memory:** concise session summaries and extracted facts.
+- **Tier 3 — chat history:** raw cross-session messages, indexed eagerly in the
+  background and ranked with similarity, recency, frequency, importance, and
+  explicit-reference signals.
+
+After each turn, raw history and a summarization job are queued. A background
+worker retries failed jobs every 60 seconds. The active ARIA model performs
+summary/fact extraction. Facts are promoted automatically only when they meet
+the configurable balanced defaults (confidence `0.80`, importance `0.70`, and
+at least two supporting sessions); newer qualifying facts replace older active
+values while the previous value remains in fact history.
+
+Embedding setup is local-first. The optional OpenAI-compatible embedding
+endpoint is tried first when configured; otherwise Ollama models are tried in
+this order:
+
+1. `qwen3-embedding:0.6b` — recommended default for an 8 GB GPU
+2. `nomic-embed-text` — lightweight general-purpose alternative
+3. `mxbai-embed-large` — stronger but heavier retrieval model
+4. `bge-m3` — multilingual, larger/slower option
+5. `snowflake-arctic-embed` — efficient model family
+
+Install Chroma with `uv sync`, install Ollama separately, and pull at least one
+embedding model, for example:
+
+```bash
+ollama pull qwen3-embedding:0.6b
+uv sync
+```
+
+Remote embedding requests receive redacted text: likely credentials, bearer
+tokens, API keys, and machine-specific paths are removed before transmission.
+If every embedding backend is unavailable, chat continues and records remain
+queued in SQLite for retry; vector retrieval is temporarily empty rather than
+blocking the assistant.
+
+The default retention policy keeps raw Tier 3 content for 30 days, archives it
+with lower retrieval priority, and removes archived records after one year.
+Tier 2 summaries are retained for two years; Tier 1 facts are retained until
+explicitly wiped. Change `memory.detail_mode` to `raw` or
+`delete_after_summary` when appropriate.
+
+Memory commands:
+
+```text
+/memory                         Show persistent memory status
+/memory facts                   List active hard facts
+/memory search <text>           Search Tier 2 and Tier 3
+/memory summarize              Process pending summaries/promotions now
+/memory promote                Alias for manual promotion processing
+/memory retention              Apply retention immediately
+/memory wipe session DELETE    Delete the current session's persistent records
+/memory wipe 1 DELETE          Delete Tier 1 facts
+/memory wipe 2 DELETE          Delete Tier 2 summaries
+/memory wipe 3 DELETE          Delete Tier 3 history
+/memory wipe all DELETE        Delete all persistent memory
+/clear                         Clear only the current session; retain facts
+```
+
+Every destructive wipe requires the exact uppercase `DELETE` confirmation.
+The old ephemeral JSON session files are not migrated automatically.
 
 ### Runtime settings persistence
 
@@ -109,7 +191,7 @@ src/aria/
 │   └── coder.py         CoderAgent + CoderService: independent deployments
 ├── llm/
 │   ├── base.py          Provider protocol and normalized message types
-│   ├── openai_compat.py One adapter for Gemini/Mistral/NVIDIA/OpenRouter/OpenAI
+│   ├── openai_compat.py One adapter for Cerebras/Groq/Gemini/Mistral/NVIDIA/OpenRouter/OpenAI
 │   ├── ollama_provider.py  Local Ollama adapter
 │   └── factory.py       ProviderManager: model lists, runtime switching
 ├── tools/
@@ -137,12 +219,16 @@ src/aria/
 | `/agent [n]` | The coding agent's iteration limit (default 60) |
 | `/cot [on\|off]` | Show/hide the live chain of thought (default on) |
 | `/tts on\|off\|kokoro_hf\|kokoro_local\|chatterbox` | Speech on/off or engine switch |
-| `/memory` | Session memory statistics |
-| `/clear` | Fresh conversation (rebuilds the system prompt) |
+| `/memory [action]` | Persistent memory status, search, facts, summarization, retention, or wipe |
+| `/clear` | Clear the current persistent session while retaining long-term facts |
 | `/save [path]` | Export the session transcript to a text file |
 | `/status` | Full configuration overview |
 | `/logs` | Log file locations and sizes |
+| `/ollama clear-vram` | Unload all currently running Ollama models |
 | `/quit`, `/exit` | Leave |
+
+When entering a message, use PageUp/PageDown to scroll one viewport and
+Home/End to jump to the oldest/newest transcript position.
 
 ## Custom Tool Protocol
 

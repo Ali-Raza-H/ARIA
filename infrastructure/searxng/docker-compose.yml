@@ -1,0 +1,22 @@
+services:
+  searxng:
+    image: searxng/searxng:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${SEARXNG_PORT:-8080}:8080"
+    volumes:
+      - ./core-config:/etc/searxng:rw
+    environment:
+      SEARXNG_BASE_URL: ${SEARXNG_BASE_URL:-http://127.0.0.1:8080/}
+    depends_on:
+      - valkey
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    restart: unless-stopped
+    command: valkey-server --save 60 1 --loglevel warning
+    volumes:
+      - valkey-data:/data
+
+volumes:
+  valkey-data:

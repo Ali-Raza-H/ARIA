@@ -1,33 +1,48 @@
 # Copy this file to config.yaml and set what ARIA should use.
 
 # --- The assistant you talk to -------------------------------------------
-provider: gemini          # gemini | nvidia | openrouter | openai | mistral | ollama
+provider: gemini          # cerebras | gemini | groq | nvidia | openrouter | openai | mistral | ollama
 model: gemini-2.5-flash
 persona: jarvis           # ARIA's personality (see src/aria/prompts.py)
 
 # --- Providers ------------------------------------------------------------
-# Every OpenAI-compatible provider just needs base_url + api_key_env.
-# The key itself lives in .env (never in this file). See .env.example.
+# Every OpenAI-compatible provider needs base_url plus separate keys for ARIA
+# and the coder. The keys themselves live in .env (never in this file).
 # Each provider keeps its own model list; /models shows it, /model switches.
 providers:
+  cerebras:
+    aria_api_key_env: ARIA_CEREBRAS_API_KEY
+    coder_api_key_env: CODER_CEREBRAS_API_KEY
+    base_url: https://api.cerebras.ai/v1
+    models: [qwen-3.8-27b, gpt-oss-120b]
   gemini:
-    api_key_env: GEMINI_API_KEY
+    aria_api_key_env: ARIA_GEMINI_API_KEY
+    coder_api_key_env: CODER_GEMINI_API_KEY
     base_url: https://generativelanguage.googleapis.com/v1beta/openai/
     models: [gemini-2.5-flash, gemini-2.5-pro]
+  groq:
+    aria_api_key_env: ARIA_GROQ_API_KEY
+    coder_api_key_env: CODER_GROQ_API_KEY
+    base_url: https://api.groq.com/openai/v1
+    models: [llama-3.1-8b-instant, openai/gpt-oss-120b]
   nvidia:
-    api_key_env: NVIDIA_API_KEY
+    aria_api_key_env: ARIA_NVIDIA_API_KEY
+    coder_api_key_env: CODER_NVIDIA_API_KEY
     base_url: https://integrate.api.nvidia.com/v1
     models: [meta/llama-3.3-70b-instruct]
   openrouter:
-    api_key_env: OPENROUTER_API_KEY
+    aria_api_key_env: ARIA_OPENROUTER_API_KEY
+    coder_api_key_env: CODER_OPENROUTER_API_KEY
     base_url: https://openrouter.ai/api/v1
     models: [anthropic/claude-sonnet-4.5, openai/gpt-4.1-mini]
   openai:
-    api_key_env: OPENAI_API_KEY
+    aria_api_key_env: ARIA_OPENAI_API_KEY
+    coder_api_key_env: CODER_OPENAI_API_KEY
     base_url: https://api.openai.com/v1
     models: [gpt-4.1, gpt-4.1-mini]
   mistral:
-    api_key_env: MISTRAL_API_KEY
+    aria_api_key_env: ARIA_MISTRAL_API_KEY
+    coder_api_key_env: CODER_MISTRAL_API_KEY
     base_url: https://api.mistral.ai/v1
     models: [mistral-large-latest, mistral-small-latest, codestral-latest]
   ollama:
@@ -47,7 +62,29 @@ coder:
   max_iterations: 60      # coding agent gets a far bigger budget than ARIA
   max_output_chars: 12000 # per-command output cap inside deployments
 
-# --- LifeOS (personal-life API) ---------------------------------------------
+# --- Web search (local SearXNG) ------------------------------------------
+# Start the bundled deployment from infrastructure/searxng with:
+#   docker compose up -d
+# Webpage fetching blocks private/local destinations by default. Add exact
+# hostnames only when you intentionally need an internal source.
+web:
+  enabled: true
+  searxng_url: http://127.0.0.1:8080
+  search_timeout: 10
+  page_timeout: 15
+  max_results: 5
+  max_search_calls: 4
+  max_page_fetches: 8
+  max_total_web_calls: 12
+  max_page_chars: 30000
+  max_snippet_chars: 2000
+  max_concurrent_page_fetches: 3
+  max_retries: 2
+  search_cache_ttl: 300
+  page_cache_ttl: 1800
+  allowed_hosts: []
+  user_agent: ARIA/1.0
+
 # The user's tasks, projects, goals, habits, calendar, journal, health, gym,
 # finance, and more. Requires LIFEOS_API_KEY in .env; left unconfigured ARIA
 # simply answers "not configured" instead of failing.
@@ -79,6 +116,50 @@ logging:
   console_level: WARNING
   max_bytes: 5242880      # 5 MiB per file before rotation
   backup_count: 3
+
+# --- Persistent three-tier memory ------------------------------------------
+# Tier 1 facts and job/session metadata use SQLite. Tiers 2 and 3 use two
+# local Chroma collections under data/memory/chroma. Chroma is required.
+#
+# The optional OpenAI-compatible endpoint is tried first. If it is absent or
+# unavailable, ARIA tries the Ollama models below in order. Install Ollama and
+# pull at least one model before starting ARIA:
+#   ollama pull qwen3-embedding:0.6b
+# Other supported choices: nomic-embed-text, mxbai-embed-large, bge-m3,
+# snowflake-arctic-embed. qwen3-embedding:0.6b is the comfortable 8 GB default.
+memory:
+  enabled: true
+  directory: data/memory
+  chroma_directory: data/memory/chroma
+  embedding_base_url: ""          # optional OpenAI-compatible embeddings URL
+  embedding_model: ""             # optional model at that URL
+  embedding_api_key_env: MEMORY_EMBEDDING_API_KEY
+  embedding_ollama_host: http://127.0.0.1:11434
+  embedding_fallback_models:
+    - qwen3-embedding:0.6b
+    - nomic-embed-text
+    - mxbai-embed-large
+    - bge-m3
+    - snowflake-arctic-embed
+  raw_retention_days: 30
+  archive_retention_days: 365
+  tier2_retention_days: 730
+  detail_mode: raw_then_summary    # raw | raw_then_summary | delete_after_summary
+  context_token_budget: 4000
+  tier2_limit: 8
+  tier3_limit: 8
+  # Importance-first ranking profile; values may be changed per deployment.
+  rank_similarity: 0.25
+  rank_recency: 0.15
+  rank_frequency: 0.10
+  rank_importance: 0.35
+  rank_explicit: 0.15
+  promotion_confidence: 0.80
+  promotion_importance: 0.70
+  promotion_repetitions: 2
+  promotion_recency_days: 365
+  retry_interval_seconds: 60
+  warmup_turns: 1
 
 # --- Workspace & limits ----------------------------------------------------
 # All paths are resolved from the directory where aria starts.

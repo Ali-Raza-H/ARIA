@@ -16,6 +16,7 @@ from __future__ import annotations
 import functools
 import logging
 import os
+import re
 from collections.abc import Callable
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
@@ -30,6 +31,10 @@ _configured: bool = False
 _REDACTED_KEYS = {"api_key", "apikey", "key", "token", "authorization", "password", "secret"}
 _REDACTED_SUBSTRINGS = ("AIza", "sk-", "nvapi-", "Bearer ")
 _TAIL_KEEP = 4
+_SECRET_VALUE = re.compile(
+    r"(?i)\b(api[ _-]?key|token|password|secret|authorization)\s*[:=]\s*([^\s,;]+)"
+)
+_BEARER_VALUE = re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]+")
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -39,6 +44,8 @@ def _redact(value: Any, _depth: int = 0) -> Any:
     if _depth > 4:
         return "..."
     if isinstance(value, str):
+        value = _SECRET_VALUE.sub(r"\1=[REDACTED]", value)
+        value = _BEARER_VALUE.sub("Bearer [REDACTED]", value)
         if value.startswith(_REDACTED_SUBSTRINGS):
             return "***" + value[-_TAIL_KEEP:] if len(value) > _TAIL_KEEP else "***"
         return value
@@ -69,6 +76,10 @@ def configure_logging(
         handler.close()
 
     directory.mkdir(parents=True, exist_ok=True)
+    try:
+        os.chmod(directory, 0o700)
+    except OSError:
+        pass
     formatter = logging.Formatter(_FORMAT)
     for filename, level in (
         ("debug.log", logging.DEBUG),
@@ -78,6 +89,10 @@ def configure_logging(
         handler = RotatingFileHandler(
             directory / filename, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8"
         )
+        try:
+            os.chmod(directory / filename, 0o600)
+        except OSError:
+            pass
         handler.setLevel(level)
         handler.setFormatter(formatter)
         logger.addHandler(handler)
@@ -106,7 +121,7 @@ def _get_logger() -> logging.Logger:
 def log(level: str, message: str) -> None:
     """Log *message* at *level* ('debug', 'info', 'error') - CIEL-style helper."""
     numeric = getattr(logging, level.upper(), logging.DEBUG)
-    _get_logger().log(numeric, message)
+    _get_logger().log(numeric, _redact(message))
 
 
 def log_debug(message: str) -> None:
@@ -122,7 +137,7 @@ def log_error(message: str) -> None:
 
 
 def _summarize(value: Any, limit: int = 160) -> str:
-    text = repr(value)
+    text = repr(_redact(value))
     if len(text) > limit:
         text = text[:limit] + f"...({len(text)} chars total)"
     return text

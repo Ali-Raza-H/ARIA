@@ -12,7 +12,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import Protocol
+from typing import Protocol, cast
 
 from ..llm.base import Provider
 from ..logging_setup import log_debug, log_error, log_info
@@ -127,7 +127,14 @@ class CoderService:
             )
         started = time.monotonic()
         try:
-            provider = self.provider_manager.create(self.provider_name, self.model)
+            create_coder = getattr(self.provider_manager, "create_coder", None)
+            if callable(create_coder):
+                provider = cast(Provider, create_coder(self.provider_name, self.model))
+            else:
+                # Small test doubles and third-party factories from older
+                # integrations may only expose create(). The real
+                # ProviderManager always takes the dedicated coder path.
+                provider = self.provider_manager.create(self.provider_name, self.model)
             coder_context = replace(
                 context,
                 max_command_output_chars=(

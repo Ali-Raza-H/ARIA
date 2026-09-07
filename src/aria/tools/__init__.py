@@ -6,6 +6,7 @@ from .lifeos import LifeOSConfig, LifeOSTool, register_lifeos_tool
 from .registry import ToolRegistry
 from .router import CustomToolRouter, RoutedResponse
 from .shell import register_shell_tool
+from .web import WebToolService, register_web_tools
 
 __all__ = [
     "Tool",
@@ -19,4 +20,6 @@ __all__ = [
     "register_filesystem_tools",
     "register_lifeos_tool",
     "register_shell_tool",
+    "WebToolService",
+    "register_web_tools",
 ]

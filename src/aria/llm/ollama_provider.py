@@ -41,33 +41,52 @@ class OllamaProvider:
         on_text: Callable[[str], None] | None = None,
     ) -> AssistantMessage:
         log_debug(f"OllamaProvider: request model={self.model} messages={len(messages)}")
-        try:
-            request: dict[str, Any] = {
-                "model": self.model,
-                "messages": list(messages),
-                "stream": True,
-            }
-            if tools and self.native_tools:
-                request["tools"] = list(tools)
-            response = self.client.chat(**request)
-        except Exception as exc:
-            log_error(f"OllamaProvider: chat failed: {type(exc).__name__}: {exc}")
-            raise
+        request: dict[str, Any] = {
+            "model": self.model,
+            "messages": list(messages),
+            "stream": True,
+        }
+        if tools and self.native_tools:
+            request["tools"] = list(tools)
 
-        content_parts: list[str] = []
-        raw_calls: list[Any] = []
-        for chunk in response:
-            message = _get(chunk, "message")
-            if message is None:
-                continue
-            text = _get(message, "content", "")
-            if text:
-                content_parts.append(text)
-                # In custom-protocol mode, wait until the complete response is
-                # available so <tool_call> tags are never partially rendered.
+        for attempt in range(2):
+            try:
+                # Buffer callbacks until the stream finishes. This prevents a
+                # partial response from being rendered twice if the first
+                # attempt runs out of VRAM and is retried.
+                pending_text: list[str] = []
+                content_parts: list[str] = []
+                raw_calls: list[Any] = []
+                response = self.client.chat(**request)
+                for chunk in response:
+                    message = _get(chunk, "message")
+                    if message is None:
+                        continue
+                    text = _get(message, "content", "")
+                    if text:
+                        content_parts.append(text)
+                        if on_text and self.native_tools:
+                            pending_text.append(text)
+                    raw_calls.extend(_get(message, "tool_calls", None) or [])
                 if on_text and self.native_tools:
-                    on_text(text)
-            raw_calls.extend(_get(message, "tool_calls", None) or [])
+                    for text in pending_text:
+                        on_text(text)
+                break
+            except Exception as exc:
+                if attempt == 0 and self._is_oom(exc):
+                    log_error("OllamaProvider: out of memory; clearing VRAM before one retry")
+                    try:
+                        self.clear_vram()
+                    except Exception as clear_exc:
+                        log_error(
+                            f"OllamaProvider: VRAM cleanup failed: "
+                            f"{type(clear_exc).__name__}: {clear_exc}"
+                        )
+                    continue
+                log_error(f"OllamaProvider: chat failed: {type(exc).__name__}: {exc}")
+                raise
+        else:  # pragma: no cover - the loop either returns or raises
+            raise RuntimeError("Ollama request failed without an exception")
 
         calls: list[ToolCall] = []
         for index, raw_call in enumerate(raw_calls):
@@ -88,6 +107,28 @@ class OllamaProvider:
             )
         log_info(f"OllamaProvider: completed model={self.model}, {len(calls)} tool call(s)")
         return AssistantMessage("".join(content_parts), calls)
+
+    @staticmethod
+    def _is_oom(error: Exception) -> bool:
+        """Return whether Ollama reported a GPU/CPU out-of-memory failure."""
+        message = str(error).lower()
+        return "out of memory" in message or "outofmemory" in message or "oom" in message
+
+    def clear_vram(self) -> int:
+        """Unload every currently running Ollama model and return its count."""
+        response = self.client.ps()
+        models = _get(response, "models", []) or []
+        unloaded = 0
+        for model in models:
+            name = _get(model, "name") or _get(model, "model")
+            if not name:
+                continue
+            # Ollama unloads a model when an empty generate request uses
+            # keep_alive=0 (the supported API equivalent of `ollama stop`).
+            self.client.generate(model=str(name), prompt="", keep_alive=0)
+            unloaded += 1
+        log_info(f"OllamaProvider: unloaded {unloaded} model(s) from VRAM")
+        return unloaded
 
     def list_models(self) -> list[str]:
         """Return locally installed Ollama models."""

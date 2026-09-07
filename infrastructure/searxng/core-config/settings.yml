@@ -1,0 +1,18 @@
+# SearXNG configuration for ARIA's local Compose deployment.
+# Keep this file independently editable when changing search engines.
+use_default_settings: true
+
+server:
+  bind_address: 0.0.0.0
+  secret_key: change-this-local-secret-key
+  limiter: false
+
+search:
+  formats:
+    - html
+    - json
+  safe_search: 1
+  language: en
+
+redis:
+  url: valkey://valkey:6379/0

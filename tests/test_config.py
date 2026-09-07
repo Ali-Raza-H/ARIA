@@ -44,7 +44,7 @@ def test_mistral_provider_and_kokoro_modes_are_loaded(tmp_path: Path) -> None:
     path = write_config(
         tmp_path,
         "speech:\n  engine: kokoro_local\n"
-        "providers:\n  mistral:\n    api_key_env: MISTRAL_API_KEY\n    base_url: https://api.mistral.ai/v1\n",
+        "providers:\n  mistral:\n    aria_api_key_env: ARIA_MISTRAL_API_KEY\n    coder_api_key_env: CODER_MISTRAL_API_KEY\n    base_url: https://api.mistral.ai/v1\n",
     )
     config = load_config(path, tmp_path)
 

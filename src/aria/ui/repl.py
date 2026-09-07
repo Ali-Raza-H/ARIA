@@ -8,6 +8,7 @@ the prompt never moves below the output.
 
 from __future__ import annotations
 
+import os
 import sys
 import termios
 import tty
@@ -15,12 +16,14 @@ from collections.abc import Callable, Iterable
 from dataclasses import replace as dataclass_replace
 from datetime import datetime
 from pathlib import Path
+from typing import Any, cast
 
 from rich import box
 from rich.console import Console, Group, RenderableType
 from rich.live import Live
 from rich.markdown import Markdown
 from rich.panel import Panel
+from rich.segment import Segment, Segments
 from rich.text import Text
 
 from ..agent.aria import AriaAgent, DeployCoderTool
@@ -29,8 +32,9 @@ from ..agent.coder import CoderService
 from ..config import AppConfig, save_runtime_state
 from ..llm.factory import ProviderManager
 from ..logging_setup import log_error, log_info
-from ..memory import SessionMemory
+from ..memory import MemoryStore, SessionMemory
 from ..speech import SpeechController
+from ..tools.web import WebToolService
 
 HELP_TEXT = """\
 [bold cyan]ARIA commands[/bold cyan]
@@ -44,12 +48,19 @@ HELP_TEXT = """\
   /agent [n]               Show or set the coder agent's iteration limit
   /cot [on|off]            Show/hide the live chain of thought (tool calls + results)
   /tts [on|off|engine]     Toggle speech or switch engine (kokoro_hf|kokoro_local|chatterbox)
-  /memory                  Show session memory statistics
-  /clear                   Start a fresh conversation
+  /memory                  Show memory status (status|search|facts|summarize|promote|retention)
+  /memory search <text>    Search semantic memories and chat history
+  /memory wipe <scope> DELETE  Wipe all, session, or tier 1/2/3 memory
+  /clear                   Start a fresh conversation and clear its persistent session
   /save [path]             Export the session transcript to a text file
   /status                  Overview of the current configuration
+  /web                     Check local SearXNG web-search health
   /logs                    Show log file locations
+  /ollama clear-vram       Unload all Ollama models from VRAM
   /quit, /exit             Leave (alias: Ctrl+C, Ctrl+D)
+
+While the prompt is active, PageUp/PageDown scroll the transcript by a page;
+Home jumps to the oldest messages and End returns to the newest messages.
 Anything else is a message to ARIA."""
 
 _LOGO_LINES = (
@@ -61,11 +72,7 @@ _LOGO_LINES = (
     "    ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝",
 )
 
-# The layout deliberately uses the complete terminal width. Keeping this in
-# one place makes panels, dividers, and the prompt resize together.
 _MIN_TERMINAL_WIDTH = 8
-
-# Transcript entries are rendered newest-first into the available middle region.
 
 
 def _aria_panel(content: RenderableType, streaming: bool = False, width: int | None = None) -> Panel:
@@ -106,6 +113,7 @@ class Repl:
         speech: SpeechController | None = None,
         coder_service: CoderService | None = None,
         deploy_handler: DeployCoderTool | None = None,
+        web_service: WebToolService | None = None,
         show_cot: bool = True,
     ) -> None:
         self.agent = agent
@@ -115,14 +123,17 @@ class Repl:
         self.speech = speech
         self.coder_service = coder_service
         self._deploy_handler = deploy_handler
+        self.web_service = web_service
         self.show_cot = config.show_cot if config is not None else show_cot
         self._transcript: list[RenderableType] = []
         self._streaming_body: RenderableType | None = None
         self._input_history: list[str] = []
         self._history_index: int | None = None
+        self._scroll_offset = 0
+        self._visible_transcript_count = 1  # rendered terminal rows, not messages
+        self._max_scroll_offset = 0
 
     def _persist_runtime_state(self) -> None:
-        """Save interactive preferences without modifying config.yaml."""
         if not self.config:
             return
         try:
@@ -142,8 +153,24 @@ class Repl:
             )
 
     def _layout_width(self) -> int:
-        """Return the current terminal width used by every frame element."""
-        return max(_MIN_TERMINAL_WIDTH, self.console.width)
+        """Return the current terminal width, always querying the real terminal
+        size directly so that raw-mode writes and Rich output agree."""
+        try:
+            width = os.get_terminal_size().columns
+        except OSError:
+            width = self.console.width
+        return max(_MIN_TERMINAL_WIDTH, width)
+
+    def _sync_console_width(self) -> None:
+        """Force Rich's console to use the real terminal width.
+
+        Rich caches its width measurement. After raw-mode escape sequences
+        have been written directly to stdout the cached value can diverge from
+        the actual terminal width, causing panels to be rendered at the wrong
+        size and producing the split-screen effect visible when scrolling.
+        Calling this before every frame build keeps the two in sync.
+        """
+        self.console._width = self._layout_width()  # type: ignore[attr-defined]
 
     # ------------------------------------------------------------------ run
     def run(self) -> None:
@@ -159,7 +186,6 @@ class Repl:
                     continue
                 if not self._input_history or self._input_history[-1] != user_text:
                     self._input_history.append(user_text)
-                # Keep history useful without letting it grow forever.
                 self._input_history = self._input_history[-100:]
                 if user_text.lower() in {"/quit", "/exit"}:
                     break
@@ -182,7 +208,6 @@ class Repl:
 
     # -------------------------------------------------------- screen layout
     def _chat_header(self) -> RenderableType:
-        """Render a compact, resize-safe header."""
         stamp = datetime.now().strftime("%a %d %b %Y")
         logo = Group(
             *(Text(line, style="bold bright_cyan", justify="center") for line in _LOGO_LINES),
@@ -199,7 +224,6 @@ class Repl:
         )
 
     def _status_bar(self) -> Text:
-        """Render the single-line status/footer between header and chat."""
         model = self.agent.model_name or "unknown model"
         speech = "TTS on" if self.speech and self.speech.enabled else "TTS off"
         cot = "CoT on" if self.show_cot else "CoT off"
@@ -215,64 +239,113 @@ class Repl:
             ("  │  /help", "bright_black"),
         )
 
-    def _renderable_height(self, renderable: RenderableType) -> int:
-        """Measure the number of terminal rows a renderable will occupy."""
-        options = self.console.options.update(width=self._layout_width())
+    def _renderable_height(self, renderable: RenderableType, width: int | None = None) -> int:
+        options = self.console.options.update(width=width or self._layout_width())
         return len(list(self.console.render_lines(renderable, options=options)))
 
+    def _transcript_content_width(self) -> int:
+        return self._layout_width()
+
     def _render_transcript(self, available: int) -> tuple[list[RenderableType], int]:
-        """Return the newest transcript entries that fit the output region."""
-        shown: list[RenderableType] = []
-        used = 0
-        for entry in reversed(self._transcript):
-            height = self._renderable_height(entry)
-            if shown and used + height > available:
-                break
-            shown.append(entry)
-            used += height
-        shown.reverse()
-        if len(shown) < len(self._transcript) and available > 0:
-            omitted = len(self._transcript) - len(shown)
-            hint = Text(
-                f"  ↑ {omitted} earlier message{'' if omitted == 1 else 's'}",
-                style="bright_black italic",
-            )
-            shown.insert(0, hint)
-            used += 1
-        return shown, used
+        if not self._transcript:
+            self._visible_transcript_count = 0
+            return [], 0
+
+        options = self.console.options.update(width=self._transcript_content_width())
+        lines: list[list[Segment]] = []
+        for entry in self._transcript:
+            lines.extend(self.console.render_lines(entry, options=options))
+        total = len(lines)
+        self._max_scroll_offset = max(total - available, 0)
+        self._scroll_offset = min(max(self._scroll_offset, 0), self._max_scroll_offset)
+        end = total - self._scroll_offset
+        start = max(0, end - available)
+        selected = lines[start:end]
+        flattened: list[Segment] = []
+        for line in selected:
+            flattened.extend(line)
+            flattened.append(Segment.line())
+        self._visible_transcript_count = max(len(selected), 1)
+        return ([Segments(flattened)] if flattened else []), len(selected)
+
+    def _scroll_transcript(self, destination: str) -> None:
+        """Move the transcript viewport.
+
+        The scroll offset is floored at zero here but intentionally NOT clamped
+        against _max_scroll_offset because that value is stale until the next
+        call to _render_transcript.  The authoritative upper-bound clamp runs
+        inside _render_transcript so it always uses a freshly computed limit.
+        """
+        count = len(self._transcript)
+        if not count:
+            return
+        if destination == "older":
+            self._scroll_offset += max(self._visible_transcript_count, 1)
+        elif destination == "newer":
+            self._scroll_offset -= max(self._visible_transcript_count, 1)
+        elif destination == "oldest":
+            self._scroll_offset = self._max_scroll_offset
+        else:  # "newest"
+            self._scroll_offset = 0
+        # Floor only — ceiling is enforced by _render_transcript.
+        self._scroll_offset = max(self._scroll_offset, 0)
 
     def _frame(self) -> Group:
-        """Build the complete screen so output never pushes the prompt down."""
+        """Build the complete screen frame.
+
+        _sync_console_width() must be called before this so that Rich uses the
+        same width as the raw TTY escape sequences written by the editor.
+        """
         width = self._layout_width()
         height = self.console.size.height
         header = self._chat_header()
         status = self._status_bar()
         prompt = self._prompt_box()
-        fixed_height = sum(self._renderable_height(renderable) for renderable in (header, status, prompt))
+        fixed_height = sum(self._renderable_height(r) for r in (header, status, prompt))
         available = max(height - fixed_height, 1)
 
         entries, used = self._render_transcript(available)
-        if self._streaming_body is not None:
-            live_entry = _aria_panel(self._streaming_body, streaming=True, width=width)
-            live_height = self._renderable_height(live_entry)
+        content_width = self._transcript_content_width()
+        if self._streaming_body is not None and self._scroll_offset == 0:
+            live_entry = _aria_panel(self._streaming_body, streaming=True, width=content_width)
+            live_height = self._renderable_height(live_entry, content_width)
             if used + live_height <= available or not entries:
                 entries.append(live_entry)
                 used += live_height
 
-        output = Group(
-            *entries,
-            *[Text("") for _ in range(max(available - used, 0))],
-        )
+        output = Group(*entries, *[Text("") for _ in range(max(available - used, 0))])
         return Group(header, status, output, prompt)
 
     def _redraw_screen(self) -> None:
         """Clear and paint one full terminal frame with a bottom-pinned prompt."""
+        self._sync_console_width()
         self.console.clear()
         self.console.print(self._frame(), end="")
 
+    def _redraw_tty_frame(self, text: str, cursor: int) -> None:
+        """Repaint the full frame then restore the raw input line.
+
+        Flush stdout before and after the Rich print so that the ANSI clear
+        sequence and the Rich output arrive at the terminal in the correct
+        order and do not interleave, which is what caused the split-screen
+        corruption when scrolling.
+        """
+        stream = sys.stdout
+        self._sync_console_width()
+        # Flush any pending raw bytes before Rich takes over stdout.
+        stream.flush()
+        stream.write("\x1b[2J\x1b[H")
+        stream.flush()
+        self.console.print(self._frame(), end="")
+        # Flush Rich's output before we write raw cursor-positioning escapes.
+        stream.flush()
+        # The prompt panel is three rows tall. Move up to the content row so
+        # the raw editor line lands inside the panel, not below it.
+        stream.write("\x1b[2A\r")
+        self._draw_input_line(text, cursor)
+
     # ------------------------------------------------------------- prompt
     def _prompt_box(self) -> Panel:
-        """Render the fixed input area used by the raw TTY editor."""
         return Panel(
             Text("›  Type a message, or /help for commands", style="bright_white"),
             title="YOU",
@@ -284,12 +357,9 @@ class Repl:
         )
 
     def _draw_input_line(self, text: str, cursor: int) -> None:
-        """Paint one editable row without allowing input to overwrite borders."""
         stream = sys.stdout
         width = self._layout_width()
         content_width = max(width - 6, 1)
-        # Keep the right edge and both panel borders intact. The visible slice
-        # follows the cursor when a message is wider than the available row.
         start = max(0, min(cursor - content_width + 1, len(text) - content_width))
         visible = text[start : start + content_width]
         cursor_column = min(max(cursor - start, 0), content_width)
@@ -299,7 +369,6 @@ class Repl:
         stream.flush()
 
     def _read_tty_prompt(self) -> str:
-        """Read a single editable line while keeping the prompt pinned."""
         stream = sys.stdout
         input_stream = sys.stdin
         try:
@@ -312,10 +381,6 @@ class Repl:
         cursor = 0
         self._history_index = None
 
-        # Rich leaves the cursor immediately *after* the panel.
-        # A Panel is three rows here: top border, content, bottom border.
-        # Move up two rows so the raw editor draws over the content row,
-        # not the bottom border.
         stream.write("\x1b[2A\r")
         self._draw_input_line("", 0)
 
@@ -328,52 +393,59 @@ class Repl:
                 key = input_stream.read(1)
 
                 if key in {"\r", "\n"}:
-                    # Return to column 1, then move from the content row past
-                    # the bottom border so the next frame starts cleanly.
                     stream.write("\r\x1b[2B")
                     stream.flush()
                     return "".join(chars)
 
                 if key == "\x03":  # Ctrl+C
+                    termios.tcsetattr(fd, termios.TCSADRAIN, original)
                     raise KeyboardInterrupt
                 if key == "\x04":  # Ctrl+D
                     if not chars:
+                        termios.tcsetattr(fd, termios.TCSADRAIN, original)
                         raise EOFError
                     continue
                 if key == "\x0c":  # Ctrl+L
-                    # Clear and redraw the full frame while staying in raw mode.
-                    stream.write("\x1b[2J\x1b[H")
-                    self.console.print(self._frame(), end="")
-                    stream.write("\x1b[2A\r")
-                    self._draw_input_line("".join(chars), cursor)
+                    self._redraw_tty_frame("".join(chars), cursor)
                     continue
 
                 if key == "\x1b":
                     sequence = input_stream.read(2)
-                    if sequence == "[D" and cursor:
+                    if sequence in {"[5", "[6"}:
+                        input_stream.read(1)  # trailing '~'
+                        self._scroll_transcript("older" if sequence == "[5" else "newer")
+                        self._redraw_tty_frame("".join(chars), cursor)
+                    elif sequence == "[H":
+                        self._scroll_transcript("oldest")
+                        self._redraw_tty_frame("".join(chars), cursor)
+                    elif sequence == "[F":
+                        self._scroll_transcript("newest")
+                        self._redraw_tty_frame("".join(chars), cursor)
+                    elif sequence == "[D" and cursor:
                         cursor -= 1
+                        self._draw_input_line("".join(chars), cursor)
                     elif sequence == "[C" and cursor < len(chars):
                         cursor += 1
-                    elif sequence == "[H":
-                        cursor = 0
-                    elif sequence == "[F":
-                        cursor = len(chars)
+                        self._draw_input_line("".join(chars), cursor)
                     elif sequence in {"[1", "[4", "[3"}:
-                        # Home, End, and Delete use ESC [ 1/4/3 ~.
-                        input_stream.read(1)
+                        input_stream.read(1)  # trailing '~'
                         if sequence == "[1":
-                            cursor = 0
+                            self._scroll_transcript("oldest")
+                            self._redraw_tty_frame("".join(chars), cursor)
                         elif sequence == "[4":
-                            cursor = len(chars)
-                        elif cursor < len(chars):
+                            self._scroll_transcript("newest")
+                            self._redraw_tty_frame("".join(chars), cursor)
+                        elif sequence == "[3" and cursor < len(chars):
                             del chars[cursor]
-                    elif sequence == "[A":  # history up
+                            self._draw_input_line("".join(chars), cursor)
+                    elif sequence == "[A":  # Up — history older
                         if self._input_history:
                             if self._history_index is None:
                                 self._history_index = len(self._input_history)
                             self._history_index = max(0, self._history_index - 1)
                             chars, cursor = replace_line(self._input_history[self._history_index])
-                    elif sequence == "[B":  # history down
+                        self._draw_input_line("".join(chars), cursor)
+                    elif sequence == "[B":  # Down — history newer
                         if self._history_index is not None:
                             self._history_index += 1
                             if self._history_index >= len(self._input_history):
@@ -381,7 +453,10 @@ class Repl:
                                 chars, cursor = [], 0
                             else:
                                 chars, cursor = replace_line(self._input_history[self._history_index])
-                    self._draw_input_line("".join(chars), cursor)
+                        self._draw_input_line("".join(chars), cursor)
+                    else:
+                        # Unknown escape sequence — ignore without redrawing.
+                        pass
                     continue
 
                 if key in {"\x7f", "\b"}:
@@ -399,13 +474,13 @@ class Repl:
             stream.flush()
 
     def _prompt(self) -> str:
-        """Read input inside the prompt row; non-TTY streams stay testable."""
         if sys.stdin.isatty() and sys.stdout.isatty():
             return self._read_tty_prompt()
         return self.console.input("[bold green]You ›[/bold green] ")
 
     # --------------------------------------------------------- transcript
     def _remember_input(self, text: str) -> None:
+        self._scroll_offset = 0
         self._transcript.append(
             Panel(
                 Text(text),
@@ -418,9 +493,11 @@ class Repl:
         )
 
     def _remember_response(self, body: RenderableType) -> None:
+        self._scroll_offset = 0
         self._transcript.append(_aria_panel(body))
 
     def _remember_command(self, command: str, output: RenderableType | None = None) -> None:
+        self._scroll_offset = 0
         self._transcript.append(
             Panel(
                 output if output is not None else Text(""),
@@ -434,10 +511,9 @@ class Repl:
 
     # ------------------------------------------------------------ chat turn
     def _run_turn(self, user_text: str) -> None:
-        """One conversational turn with a live-updating ARIA panel."""
         chunks: list[str] = []
         result = ""
-        steps: list[Text] = []  # rendered chain-of-thought lines
+        steps: list[Text] = []
         coder_notes: list[str] = []
         self._streaming_body = Text("")
 
@@ -461,8 +537,6 @@ class Repl:
                 update()
 
             def on_coder(text: str) -> None:
-                # The coder's streaming output is shown as a nested progress
-                # note; the final report is rendered by ARIA afterwards.
                 if coder_notes:
                     coder_notes[-1] += text
                 else:
@@ -488,8 +562,6 @@ class Repl:
                     self._deploy_handler.set_stream_hook(None, None)
                 self._streaming_body = None
 
-        # Commit the finished panel to the transcript so the next screen
-        # repaint includes it (the transient Live display erased itself).
         self._remember_response(self._render_aria_body(result))
         if self.speech:
             self.speech.say(result)
@@ -500,7 +572,6 @@ class Repl:
                 )
 
     def _render_event(self, event: AgentEvent) -> Text | None:
-        """One chain-of-thought line per agent event."""
         if event.kind == "round":
             return Text(f"◦ round {event.round}", style="bright_black italic")
         if event.kind == "tool_call":
@@ -517,7 +588,7 @@ class Repl:
             return Text.assemble((f"{mark} ", style), (event.name, style), (f" {shown}", "bright_black"))
         if event.kind == "limit":
             return Text(f"⚠ {event.detail}", style="yellow")
-        return None  # "text" events are rendered as the answer body itself
+        return None
 
     def _render_aria_body(self, text: str) -> RenderableType:
         if not text.strip():
@@ -556,10 +627,11 @@ class Repl:
             "/clear": self._cmd_clear,
             "/save": self._cmd_save,
             "/status": self._cmd_status,
+            "/web": self._cmd_web,
             "/logs": self._cmd_logs,
+            "/ollama": self._cmd_ollama,
         }
         handler = handlers.get(command)
-        # The loop's next _redraw_screen shows whatever the command recorded.
         if handler is None:
             self._remember_command(line, Text(f"Unknown command: {command}. Try /help.", style="yellow"))
             return
@@ -610,6 +682,9 @@ class Repl:
         self.provider_manager.set_active_model(argument, model)
         self.config = dataclass_replace(self.config, provider=argument, model=model)
         self.agent.provider = provider
+        set_memory_provider = getattr(self.agent.memory, "set_provider", None)
+        if callable(set_memory_provider):
+            set_memory_provider(provider)
         if self.coder_service and self.config.coder.provider is None:
             self.coder_service.set_model(argument, model)
         self._persist_runtime_state()
@@ -647,6 +722,9 @@ class Repl:
         self.provider_manager.set_active_model(provider_name, argument)
         self.config = dataclass_replace(self.config, model=argument)
         self.agent.provider = provider
+        set_memory_provider = getattr(self.agent.memory, "set_provider", None)
+        if callable(set_memory_provider):
+            set_memory_provider(provider)
         if self.coder_service and self.config.coder.provider is None:
             self.coder_service.set_model(provider_name, argument)
         self._persist_runtime_state()
@@ -750,8 +828,6 @@ class Repl:
                     Text("Engine must be kokoro_hf, kokoro_local, or chatterbox.", style="yellow"),
                 )
                 return
-            # Selecting an engine is an explicit request to use speech, so
-            # enable it even when the YAML default is disabled.
             new_speech = dataclass_replace(current, engine=canonical_engine, enabled=True)
         else:
             self._remember_command(
@@ -767,22 +843,107 @@ class Repl:
             detail += f"\nlast error: {self.speech.last_error}"
         self._remember_command("/tts", Text(detail))
 
-    def _cmd_memory(self, _argument: str) -> None:
-        messages = self.agent.memory.messages
-        roles = [message.get("role", "?") for message in messages]
-        stats = ", ".join(f"{role}: {roles.count(role)}" for role in sorted(set(roles)))
-        body = Text(
-            f"Session memory: {len(messages)} messages ({stats})\nFile: {self.agent.memory.path}"
-        )
-        self._remember_command("/memory", body)
+    def _cmd_ollama(self, argument: str) -> None:
+        if argument.lower() not in {"clear", "clear-vram", "unload"}:
+            self._remember_command("/ollama", Text("Usage: /ollama clear-vram", style="yellow"))
+            return
+        clear_vram = getattr(self.agent.provider, "clear_vram", None)
+        coder_uses_ollama = self.coder_service and self.coder_service.provider_name == "ollama"
+        aria_uses_ollama = self.config and self.config.provider == "ollama"
+        if not callable(clear_vram) and self.provider_manager and (aria_uses_ollama or coder_uses_ollama):
+            clear_vram = self.provider_manager.clear_ollama_vram
+        if not callable(clear_vram):
+            self._remember_command("/ollama", Text("The active provider is not Ollama.", style="yellow"))
+            return
+        try:
+            unloaded = clear_vram()
+            self._remember_command("/ollama clear-vram", Text(f"Unloaded {unloaded} Ollama model(s) from VRAM."))
+        except Exception as exc:
+            log_error(f"Repl: Ollama VRAM cleanup failed: {type(exc).__name__}: {exc}")
+            self._error_panel(f"Could not clear Ollama VRAM: {type(exc).__name__}: {exc}")
+
+    def _cmd_memory(self, argument: str) -> None:
+        memory = self.agent.memory
+        persistent = cast("Any", memory)
+        status = getattr(persistent, "status", None)
+        if not callable(status):
+            messages = memory.messages
+            roles = [message.get("role", "?") for message in messages]
+            stats = ", ".join(f"{role}: {roles.count(role)}" for role in sorted(set(roles)))
+            self._remember_command(
+                "/memory",
+                Text(f"Session memory: {len(messages)} messages ({stats})\nFile: {memory.path}"),
+            )
+            return
+
+        parts = argument.split(maxsplit=1)
+        action = parts[0].lower() if parts else "status"
+        value = parts[1].strip() if len(parts) > 1 else ""
+        if action == "status":
+            details = cast(dict[str, object], status())
+            self._remember_command(
+                "/memory",
+                Text("Persistent memory\n" + "\n".join(f"  {k}: {v}" for k, v in details.items())),
+            )
+        elif action == "facts":
+            self._remember_command("/memory facts", Text(str(persistent.facts_text())))
+        elif action == "search":
+            if not value:
+                self._remember_command("/memory search", Text("Usage: /memory search <text>", style="yellow"))
+                return
+            semantic = cast(list[dict[str, Any]], persistent.search(value, tier="semantic"))
+            history = cast(list[dict[str, Any]], persistent.search(value, tier="history"))
+            lines = ["SEMANTIC MEMORIES"] + [f"- {item['document']}" for item in semantic]
+            lines += ["", "CHAT HISTORY"] + [
+                f"- {item['metadata'].get('role', '?')}: {item['document']}" for item in history
+            ]
+            self._remember_command("/memory search", Text("\n".join(lines) or "No matches."))
+        elif action in {"summarize", "promote"}:
+            count = int(persistent.summarize_now())
+            self._remember_command(f"/memory {action}", Text(f"Processed {count} pending memory job(s)."))
+        elif action == "retention":
+            result = cast(dict[str, int], persistent.retention())
+            self._remember_command(
+                "/memory retention",
+                Text("Retention complete: " + ", ".join(f"{k}={v}" for k, v in result.items())),
+            )
+        elif action == "wipe":
+            scope_parts = value.split()
+            if (
+                len(scope_parts) != 2
+                or scope_parts[1] != "DELETE"
+                or scope_parts[0].lower() not in {"all", "session", "1", "2", "3", "tier1", "tier2", "tier3"}
+            ):
+                self._remember_command(
+                    "/memory wipe",
+                    Text("Usage: /memory wipe <all|session|1|2|3> DELETE", style="yellow"),
+                )
+                return
+            scope = scope_parts[0].lower().removeprefix("tier")
+            persistent.wipe(scope)
+            self._remember_command("/memory wipe", Text(f"Deleted memory scope: {scope}."))
+        else:
+            self._remember_command(
+                "/memory",
+                Text("Usage: /memory [status|search|facts|summarize|promote|retention|wipe]", style="yellow"),
+            )
 
     def _cmd_clear(self, _argument: str) -> None:
-        self.agent.memory.cleanup()
-        self.agent.memory = SessionMemory(self.agent.memory.path.parent, label="aria")
-        self.agent.ensure_system_prompt()
+        clear_session = getattr(self.agent.memory, "clear_current_session", None)
+        if callable(clear_session):
+            clear_session()
+            self.agent.ensure_system_prompt()
+        else:
+            self.agent.memory.cleanup()
+            self.agent.memory = SessionMemory(self.agent.memory.path.parent, label="aria")
+            self.agent.ensure_system_prompt()
         log_info("Repl: conversation cleared")
         self._transcript.clear()
-        self._remember_command("/clear", Text("Fresh start. Memory cleared and system prompt rebuilt."))
+        self._scroll_offset = 0
+        self._remember_command(
+            "/clear",
+            Text("Fresh start. Current session memory cleared; persistent facts retained."),
+        )
 
     def _cmd_status(self, _argument: str) -> None:
         if not self.config:
@@ -799,9 +960,25 @@ class Repl:
             f" (coder: {self.coder_service.max_iterations if self.coder_service else 'n/a'})\n"
             f"  speech         : {speech_state}\n"
             f"  coder agent    : {'running' if busy else 'idle'}\n"
+            f"  ARIA key env   : {self.provider_manager.credential_env(self.config.provider, 'aria') if self.provider_manager else 'n/a'}\n"
+            f"  coder key env  : {self.provider_manager.credential_env(self.coder_service.provider_name, 'coder') if self.provider_manager and self.coder_service else 'n/a'}\n"
             f"  session memory : {len(self.agent.memory.messages)} messages"
         )
         self._remember_command("/status", body)
+
+    def _cmd_web(self, _argument: str) -> None:
+        if not self.config:
+            return
+        if not self.config.web.enabled or self.web_service is None:
+            self._remember_command("/web", Text("Web search is disabled.", style="yellow"))
+            return
+        online = self.web_service.health_check()
+        status = "ONLINE" if online else "OFFLINE"
+        detail = (
+            f"Web Search\\n  SearXNG URL: {self.config.web.searxng_url}\\n"
+            f"  Status: {status}\\n  JSON API: {'OK' if online else 'unavailable'}"
+        )
+        self._remember_command("/web", Text(detail, style="green" if online else "yellow"))
 
     def _cmd_logs(self, _argument: str) -> None:
         if not self.config:
@@ -815,17 +992,21 @@ class Repl:
         self._remember_command("/logs", lines)
 
     def _cmd_save(self, argument: str) -> None:
-        """Export the session transcript to a text file."""
         target = (
             Path(argument).expanduser()
             if argument
             else Path(f"aria-session-{datetime.now().strftime('%Y%m%d-%H%M%S')}.txt")
         )
-        width = self._layout_width()
-        with open(target, "w", encoding="utf-8") as handle:
-            console = Console(width=width, file=handle)
-            console.print(self._chat_header())
-            for entry in self._transcript:
-                console.print(entry)
-            console.print(Text(f"  {len(self._transcript)} entries · exported {datetime.now():%Y-%m-%d %H:%M}"))
-        self._remember_command("/save", Text(f"Session exported to {target.resolve()}"))
+        try:
+            width = self._layout_width()
+            with open(target, "w", encoding="utf-8") as handle:
+                console = Console(width=width, file=handle)
+                console.print(self._chat_header())
+                for entry in self._transcript:
+                    console.print(entry)
+                console.print(
+                    Text(f"  {len(self._transcript)} entries · exported {datetime.now():%Y-%m-%d %H:%M}")
+                )
+            self._remember_command("/save", Text(f"Session exported to {target.resolve()}"))
+        except OSError as exc:
+            self._error_panel(f"Could not save session: {exc}")

@@ -1,7 +1,7 @@
-"""OpenAI-compatible adapter shared by Gemini, NVIDIA NIM, OpenRouter and OpenAI.
+"""OpenAI-compatible adapter shared by hosted model providers.
 
 All of these services speak the OpenAI chat-completions protocol; switching
-between them only swaps the base URL and the API key.
+between them only swaps the base URL, model, and API key.
 """
 
 from __future__ import annotations
@@ -22,12 +22,27 @@ class OpenAICompatProvider:
 
     name = "openai_compat"
 
-    def __init__(self, provider_name: str, model: str, settings: dict[str, Any]) -> None:
-        api_key_env = str(settings.get("api_key_env", ""))
-        api_key = os.getenv(api_key_env) if api_key_env else settings.get("api_key")
+    def __init__(
+        self,
+        provider_name: str,
+        model: str,
+        settings: dict[str, Any],
+        *,
+        credential_role: str = "aria",
+    ) -> None:
+        if credential_role == "coder":
+            api_key_env = str(settings.get("coder_api_key_env", ""))
+            # Coder credentials are intentionally independent: never fall back
+            # to ARIA's key when the dedicated variable is missing.
+            api_key = os.getenv(api_key_env) if api_key_env else None
+        else:
+            api_key_env = str(settings.get("aria_api_key_env", ""))
+            api_key = os.getenv(api_key_env) if api_key_env else None
         if not api_key:
+            role_name = "coder" if credential_role == "coder" else "ARIA"
             raise ValueError(
-                f"Provider '{provider_name}' needs an API key: set {api_key_env or 'api_key'} in .env"
+                f"Provider '{provider_name}' needs an API key for {role_name}: "
+                f"set {api_key_env or 'the provider credential'} in .env"
             )
         base_url = str(settings.get("base_url", ""))
         if not base_url:

@@ -17,7 +17,16 @@ class ConfigError(ValueError):
     """Raised when the assistant configuration is missing or invalid."""
 
 
-KNOWN_PROVIDERS = {"gemini", "nvidia", "openrouter", "openai", "mistral", "ollama"}
+KNOWN_PROVIDERS = {
+    "cerebras",
+    "gemini",
+    "groq",
+    "nvidia",
+    "openrouter",
+    "openai",
+    "mistral",
+    "ollama",
+}
 
 
 @dataclass(frozen=True)
@@ -60,6 +69,28 @@ class CoderConfig:
 
 
 @dataclass(frozen=True)
+class WebConfig:
+    """Local SearXNG and bounded webpage research settings."""
+
+    enabled: bool = True
+    searxng_url: str = "http://127.0.0.1:8080"
+    search_timeout: float = 10.0
+    page_timeout: float = 15.0
+    max_results: int = 5
+    max_search_calls: int = 4
+    max_page_fetches: int = 8
+    max_total_web_calls: int = 12
+    max_page_chars: int = 30_000
+    max_snippet_chars: int = 2_000
+    max_concurrent_page_fetches: int = 3
+    max_retries: int = 2
+    search_cache_ttl: int = 300
+    page_cache_ttl: int = 1_800
+    allowed_hosts: tuple[str, ...] = ()
+    user_agent: str = "ARIA/1.0"
+
+
+@dataclass(frozen=True)
 class LifeOSConfig:
     """Connection to LifeOS, the personal-life API (tasks, projects, goals...).
 
@@ -73,6 +104,44 @@ class LifeOSConfig:
     timeout_seconds: float = 15.0
     max_retries: int = 1
     retry_backoff_seconds: float = 0.4
+
+
+@dataclass(frozen=True)
+class MemoryConfig:
+    """Persistent three-tier memory settings."""
+
+    enabled: bool = True
+    directory: Path = Path("data/memory")
+    chroma_directory: Path = Path("data/memory/chroma")
+    embedding_base_url: str = ""
+    embedding_model: str = ""
+    embedding_api_key_env: str = "MEMORY_EMBEDDING_API_KEY"
+    embedding_ollama_host: str = "http://127.0.0.1:11434"
+    embedding_fallback_models: tuple[str, ...] = (
+        "qwen3-embedding:0.6b",
+        "nomic-embed-text",
+        "mxbai-embed-large",
+        "bge-m3",
+        "snowflake-arctic-embed",
+    )
+    raw_retention_days: int = 30
+    archive_retention_days: int = 365
+    tier2_retention_days: int = 730
+    detail_mode: str = "raw_then_summary"
+    context_token_budget: int = 4000
+    tier2_limit: int = 8
+    tier3_limit: int = 8
+    rank_similarity: float = 0.25
+    rank_recency: float = 0.15
+    rank_frequency: float = 0.10
+    rank_importance: float = 0.35
+    rank_explicit: float = 0.15
+    promotion_confidence: float = 0.80
+    promotion_importance: float = 0.70
+    promotion_repetitions: int = 2
+    promotion_recency_days: int = 365
+    retry_interval_seconds: int = 60
+    warmup_turns: int = 1
 
 
 @dataclass(frozen=True)
@@ -91,6 +160,8 @@ class AppConfig:
     speech: SpeechConfig = field(default_factory=SpeechConfig)
     coder: CoderConfig = field(default_factory=CoderConfig)
     lifeos: LifeOSConfig = field(default_factory=LifeOSConfig)
+    web: WebConfig = field(default_factory=WebConfig)
+    memory: MemoryConfig = field(default_factory=MemoryConfig)
     show_cot: bool = True
     runtime_state_path: Path = Path("data/aria-state.yaml")
 
@@ -198,7 +269,7 @@ def _env_path(key: str) -> tuple[str, str] | None:
     suffix = key.removeprefix("ARIA_")
     if suffix == "LOG_DIR":
         return "logging", "directory"
-    sections = {"CODER", "SPEECH", "LIFEOS", "LOGGING"}
+    sections = {"CODER", "SPEECH", "LIFEOS", "LOGGING", "MEMORY"}
     first, separator, remainder = suffix.partition("_")
     if separator and first in sections and remainder:
         return first.lower(), remainder.lower()
@@ -368,6 +439,133 @@ def load_config(path: Path, launch_directory: Path | None = None) -> AppConfig:
 
     persona = str(raw.get("persona", "jarvis"))
 
+    web_section = raw.get("web", {}) or {}
+    if not isinstance(web_section, dict):
+        raise ConfigError("web must be a YAML object")
+    web_timeout = web_section.get("search_timeout", 10)
+    page_timeout = web_section.get("page_timeout", 15)
+    if not isinstance(web_timeout, (int, float)) or web_timeout <= 0:
+        raise ConfigError("web.search_timeout must be a positive number")
+    if not isinstance(page_timeout, (int, float)) or page_timeout <= 0:
+        raise ConfigError("web.page_timeout must be a positive number")
+    web_int_defaults = {
+        "max_results": 5,
+        "max_search_calls": 4,
+        "max_page_fetches": 8,
+        "max_total_web_calls": 12,
+        "max_page_chars": 30_000,
+        "max_snippet_chars": 2_000,
+        "max_concurrent_page_fetches": 3,
+        "max_retries": 2,
+        "search_cache_ttl": 300,
+        "page_cache_ttl": 1_800,
+    }
+    web_ints: dict[str, int] = {}
+    for name, default in web_int_defaults.items():
+        value = web_section.get(name, default)
+        minimum = 0 if name.endswith("ttl") else 1
+        if not isinstance(value, int) or value < minimum:
+            raise ConfigError(f"web.{name} must be an integer >= {minimum}")
+        web_ints[name] = value
+    raw_allowed_hosts = web_section.get("allowed_hosts", [])
+    if not isinstance(raw_allowed_hosts, list) or not all(isinstance(item, str) and item.strip() for item in raw_allowed_hosts):
+        raise ConfigError("web.allowed_hosts must be a list of hostnames")
+    searxng_url = str(web_section.get("searxng_url", "http://127.0.0.1:8080")).strip().rstrip("/")
+    if not searxng_url:
+        raise ConfigError("web.searxng_url must be a non-empty URL")
+    web_config = WebConfig(
+        enabled=bool(web_section.get("enabled", True)),
+        searxng_url=searxng_url,
+        search_timeout=float(web_timeout),
+        page_timeout=float(page_timeout),
+        allowed_hosts=tuple(item.strip() for item in raw_allowed_hosts),
+        user_agent=str(web_section.get("user_agent", "ARIA/1.0")),
+        **web_ints,
+    )
+
+    memory_section = raw.get("memory", {}) or {}
+    if not isinstance(memory_section, dict):
+        raise ConfigError("memory must be a YAML object")
+    memory_directory = Path(str(memory_section.get("directory", "data/memory")))
+    chroma_directory = Path(str(memory_section.get("chroma_directory", "data/memory/chroma")))
+    fallback_models = memory_section.get(
+        "embedding_fallback_models",
+        [
+            "qwen3-embedding:0.6b",
+            "nomic-embed-text",
+            "mxbai-embed-large",
+            "bge-m3",
+            "snowflake-arctic-embed",
+        ],
+    )
+    if not isinstance(fallback_models, list) or not all(isinstance(item, str) and item.strip() for item in fallback_models):
+        raise ConfigError("memory.embedding_fallback_models must be a non-empty list of model names")
+    int_defaults = {
+        "raw_retention_days": 30,
+        "archive_retention_days": 365,
+        "tier2_retention_days": 730,
+        "context_token_budget": 4000,
+        "tier2_limit": 8,
+        "tier3_limit": 8,
+        "promotion_repetitions": 2,
+        "promotion_recency_days": 365,
+        "retry_interval_seconds": 60,
+        "warmup_turns": 1,
+    }
+    memory_ints: dict[str, int] = {}
+    for name, default in int_defaults.items():
+        value = memory_section.get(name, default)
+        if not isinstance(value, int) or value <= 0:
+            raise ConfigError(f"memory.{name} must be a positive integer")
+        memory_ints[name] = value
+    detail_mode = str(memory_section.get("detail_mode", "raw_then_summary")).lower()
+    if detail_mode not in {"raw", "raw_then_summary", "delete_after_summary"}:
+        raise ConfigError("memory.detail_mode must be 'raw', 'raw_then_summary', or 'delete_after_summary'")
+    rank_names = ("rank_similarity", "rank_recency", "rank_frequency", "rank_importance", "rank_explicit")
+    ranks: dict[str, float] = {}
+    for name in rank_names:
+        value = memory_section.get(name, getattr(MemoryConfig, name))
+        if not isinstance(value, (int, float)) or value < 0:
+            raise ConfigError(f"memory.{name} must be a non-negative number")
+        ranks[name] = float(value)
+    if sum(ranks.values()) <= 0:
+        raise ConfigError("memory ranking weights must not all be zero")
+    threshold_names = ("promotion_confidence", "promotion_importance")
+    thresholds: dict[str, float] = {}
+    for name in threshold_names:
+        value = memory_section.get(name, getattr(MemoryConfig, name))
+        if not isinstance(value, (int, float)) or not 0 <= value <= 1:
+            raise ConfigError(f"memory.{name} must be between 0 and 1")
+        thresholds[name] = float(value)
+    memory_config = MemoryConfig(
+        enabled=bool(memory_section.get("enabled", True)),
+        directory=memory_directory,
+        chroma_directory=chroma_directory,
+        embedding_base_url=str(memory_section.get("embedding_base_url", "")).strip().rstrip("/"),
+        embedding_model=str(memory_section.get("embedding_model", "")).strip(),
+        embedding_api_key_env=str(memory_section.get("embedding_api_key_env", "MEMORY_EMBEDDING_API_KEY")),
+        embedding_ollama_host=str(memory_section.get("embedding_ollama_host", "http://127.0.0.1:11434")),
+        embedding_fallback_models=tuple(fallback_models),
+        detail_mode=detail_mode,
+        rank_similarity=ranks["rank_similarity"],
+        rank_recency=ranks["rank_recency"],
+        rank_frequency=ranks["rank_frequency"],
+        rank_importance=ranks["rank_importance"],
+        rank_explicit=ranks["rank_explicit"],
+        promotion_confidence=thresholds["promotion_confidence"],
+        promotion_importance=thresholds["promotion_importance"],
+        raw_retention_days=memory_ints["raw_retention_days"],
+        archive_retention_days=memory_ints["archive_retention_days"],
+        tier2_retention_days=memory_ints["tier2_retention_days"],
+        context_token_budget=memory_ints["context_token_budget"],
+        tier2_limit=memory_ints["tier2_limit"],
+        tier3_limit=memory_ints["tier3_limit"],
+        promotion_repetitions=memory_ints["promotion_repetitions"],
+        promotion_recency_days=memory_ints["promotion_recency_days"],
+        retry_interval_seconds=memory_ints["retry_interval_seconds"],
+        warmup_turns=memory_ints["warmup_turns"],
+    )
+
     ui_section = raw.get("ui", {}) or {}
     if not isinstance(ui_section, dict):
         raise ConfigError("ui must be a YAML object")
@@ -413,6 +611,8 @@ def load_config(path: Path, launch_directory: Path | None = None) -> AppConfig:
         speech=speech_config,
         coder=coder_config,
         lifeos=lifeos_config,
+        web=web_config,
+        memory=memory_config,
         show_cot=show_cot,
         runtime_state_path=state_path,
     )

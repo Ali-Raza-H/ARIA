@@ -6,9 +6,23 @@ import json
 import os
 import uuid
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 from .logging_setup import log_debug, log_error
+
+
+class MemoryStore(Protocol):
+    """Minimal message-store contract shared by ARIA and the coder agent."""
+
+    messages: list[dict[str, Any]]
+    @property
+    def path(self) -> Path: ...
+
+    def add(self, message: dict[str, Any]) -> None: ...
+
+    def extend(self, messages: list[dict[str, Any]]) -> None: ...
+
+    def cleanup(self) -> None: ...
 
 
 class SessionMemory:

@@ -1,0 +1,31 @@
+{
+  "schema_version": 2,
+  "name": "ARIA",
+  "display_name": "ARIA",
+  "description": "Adavanced Reasoning & Intelligence Assistant",
+  "type": "python",
+  "category": "ai",
+  "stage": "inProgress",
+  "environment": {
+    "type": "python-venv",
+    "mode": "local",
+    "path": ".venv"
+  },
+  "commands": {
+    "run": "uv run aria",
+    "install": "uv pip install -e .",
+    "test": "pytest"
+  },
+  "git": {
+    "enabled": true
+  },
+  "tags": [
+    "AI",
+    "python",
+    "active",
+    "assistant",
+    "experimental"
+  ],
+  "created_at": "2026-09-06",
+  "updated_at": "2026-09-06"
+}

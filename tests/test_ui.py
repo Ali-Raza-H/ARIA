@@ -1,7 +1,7 @@
-from types import SimpleNamespace
 from typing import cast
 
 from rich.console import Console
+from rich.text import Text
 
 from aria.agent.aria import AriaAgent
 from aria.ui.repl import _LOGO_LINES, Repl
@@ -40,6 +40,30 @@ def test_frame_contains_logo_and_pinned_prompt() -> None:
 
     # The prompt panel is the last rendered block, below the conversation.
     assert rendered.rfind("YOU") > rendered.rfind("Welcome back.")
+
+
+def test_transcript_paging_keeps_a_single_full_width_frame() -> None:
+    repl = make_repl(width=80, height=24)
+    for index in range(12):
+        repl._remember_response(Text(f"message {index}"))
+
+    repl._frame()
+    assert repl._scroll_offset == 0
+    assert repl._transcript_content_width() == 80
+
+    repl._scroll_transcript("oldest")
+    assert repl._scroll_offset == repl._max_scroll_offset
+    # Scrolling is measured in rendered terminal rows, allowing long panels
+    # to be read a page at a time rather than jumping whole messages.
+    assert repl._scroll_offset > 0
+    repl._scroll_transcript("newest")
+    assert repl._scroll_offset == 0
+    repl._scroll_transcript("older")
+    assert repl._scroll_offset > 0
+
+    repl._redraw_screen()
+    for line in repl.console.export_text(clear=False).splitlines():
+        assert len(line) <= 80
 
 
 def test_streaming_frame_keeps_prompt_below_live_output() -> None:

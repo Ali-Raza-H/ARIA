@@ -9,7 +9,7 @@ from typing import Any
 
 from ..llm.base import AssistantMessage, Provider, ToolCall
 from ..logging_setup import log_debug, log_error, log_info
-from ..memory import SessionMemory
+from ..memory import MemoryStore, SessionMemory
 from ..tools.base import ToolContext, ToolResult
 from ..tools.registry import ToolRegistry
 from ..tools.router import CustomToolRouter, RoutedResponse
@@ -34,7 +34,7 @@ class BaseAgent:
         provider: Provider,
         registry: ToolRegistry,
         context: ToolContext,
-        memory: SessionMemory,
+        memory: MemoryStore,
         max_iterations: int = 20,
     ) -> None:
         self.provider = provider
@@ -70,6 +70,10 @@ class BaseAgent:
                 on_event(event)
 
         log_info(f"BaseAgent.run: starting turn with {len(user_text)} chars of user input")
+        prepare_context = getattr(self.memory, "prepare_context", None)
+        if callable(prepare_context):
+            prepare_context(user_text)
+        self.registry.begin_turn()
         self.memory.add({"role": "user", "content": user_text})
         final_content = ""
 
@@ -108,7 +112,7 @@ class BaseAgent:
                 on_text(chunk)
 
             response = self.provider.complete(
-                self.memory.messages,
+                self._messages_for_provider(),
                 self.registry.schemas(),
                 on_text=on_provider_text,
             )
@@ -133,6 +137,9 @@ class BaseAgent:
 
             if not calls and not routed.errors:
                 log_info("BaseAgent.run: turn complete")
+                complete_turn = getattr(self.memory, "turn_completed", None)
+                if callable(complete_turn):
+                    complete_turn(user_text, final_content)
                 return final_content
 
             native_results: list[dict[str, Any]] = []
@@ -187,7 +194,33 @@ class BaseAgent:
         log_error("BaseAgent.run: hit the iteration safety limit")
         emit(AgentEvent(kind="limit", detail=message))
         self.memory.add({"role": "assistant", "content": message})
+        complete_turn = getattr(self.memory, "turn_completed", None)
+        if callable(complete_turn):
+            complete_turn(user_text, message)
         return message
+
+    def _messages_for_provider(self, max_chars: int = 80_000) -> list[dict[str, Any]]:
+        """Keep requests bounded even when a session remains open for days.
+
+        The durable memory layer supplies retrieved continuity; sending every
+        historic tool payload again is both expensive and a common cause of
+        context-window failures. Keep the system prompt and newest complete
+        messages, replacing dropped history with an explicit notice.
+        """
+        messages = self.memory.messages
+        if sum(len(str(message.get("content", ""))) for message in messages) <= max_chars:
+            return list(messages)
+        system = messages[:1] if messages and messages[0].get("role") == "system" else []
+        kept: list[dict[str, Any]] = []
+        used = sum(len(str(message.get("content", ""))) for message in system)
+        for message in reversed(messages[len(system) :]):
+            size = len(str(message.get("content", "")))
+            if kept and used + size > max_chars:
+                break
+            kept.append(message)
+            used += size
+        notice = {"role": "system", "content": "Earlier turn/tool details were compacted; use persistent memory or tools to re-check facts."}
+        return [*system, notice, *reversed(kept)]
 
     @staticmethod
     def _assistant_message(

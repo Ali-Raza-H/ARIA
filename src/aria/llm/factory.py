@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from ..logging_setup import log_debug, log_error, log_info
 from .base import Provider, list_models
@@ -10,32 +10,57 @@ from .ollama_provider import OllamaProvider
 from .openai_compat import OpenAICompatProvider
 
 # Providers that ride the shared OpenAI-compatible adapter.
-OPENAI_COMPATIBLE = {"gemini", "nvidia", "openrouter", "openai", "mistral"}
+OPENAI_COMPATIBLE = {
+    "cerebras",
+    "gemini",
+    "groq",
+    "nvidia",
+    "openrouter",
+    "openai",
+    "mistral",
+}
 
 # Well-known defaults; config.yaml can override or extend any of them.
 DEFAULT_PROVIDER_SETTINGS: dict[str, dict[str, Any]] = {
+    "cerebras": {
+        "aria_api_key_env": "ARIA_CEREBRAS_API_KEY",
+        "coder_api_key_env": "CODER_CEREBRAS_API_KEY",
+        "base_url": "https://api.cerebras.ai/v1",
+        "models": ["qwen-3.8-27b", "gpt-oss-120b"],
+    },
     "gemini": {
-        "api_key_env": "GEMINI_API_KEY",
+        "aria_api_key_env": "ARIA_GEMINI_API_KEY",
+        "coder_api_key_env": "CODER_GEMINI_API_KEY",
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
         "models": ["gemini-2.5-flash", "gemini-2.5-pro"],
     },
+    "groq": {
+        "aria_api_key_env": "ARIA_GROQ_API_KEY",
+        "coder_api_key_env": "CODER_GROQ_API_KEY",
+        "base_url": "https://api.groq.com/openai/v1",
+        "models": ["llama-3.1-8b-instant", "openai/gpt-oss-120b"],
+    },
     "nvidia": {
-        "api_key_env": "NVIDIA_API_KEY",
+        "aria_api_key_env": "ARIA_NVIDIA_API_KEY",
+        "coder_api_key_env": "CODER_NVIDIA_API_KEY",
         "base_url": "https://integrate.api.nvidia.com/v1",
         "models": ["meta/llama-3.3-70b-instruct", "nvidia/llama-3.3-nemotron-super-49b-v1"],
     },
     "openrouter": {
-        "api_key_env": "OPENROUTER_API_KEY",
+        "aria_api_key_env": "ARIA_OPENROUTER_API_KEY",
+        "coder_api_key_env": "CODER_OPENROUTER_API_KEY",
         "base_url": "https://openrouter.ai/api/v1",
         "models": ["anthropic/claude-sonnet-4.5", "openai/gpt-4.1-mini"],
     },
     "openai": {
-        "api_key_env": "OPENAI_API_KEY",
+        "aria_api_key_env": "ARIA_OPENAI_API_KEY",
+        "coder_api_key_env": "CODER_OPENAI_API_KEY",
         "base_url": "https://api.openai.com/v1",
         "models": ["gpt-4.1", "gpt-4.1-mini", "o4-mini"],
     },
     "mistral": {
-        "api_key_env": "MISTRAL_API_KEY",
+        "aria_api_key_env": "ARIA_MISTRAL_API_KEY",
+        "coder_api_key_env": "CODER_MISTRAL_API_KEY",
         "base_url": "https://api.mistral.ai/v1",
         "models": ["mistral-large-latest", "mistral-small-latest", "codestral-latest"],
     },
@@ -97,15 +122,40 @@ class ProviderManager:
         log_info(f"ProviderManager: active model for {provider} set to {model}")
 
     def create(self, provider: str, model: str) -> Provider:
-        """Instantiate the adapter for *provider*/*model*."""
+        """Instantiate an ARIA provider using the assistant credential."""
+        return self._create(provider, model, credential_role="aria")
+
+    def create_coder(self, provider: str, model: str) -> Provider:
+        """Instantiate a coder provider using its dedicated credential."""
+        return self._create(provider, model, credential_role="coder")
+
+    def _create(self, provider: str, model: str, *, credential_role: str) -> Provider:
         if provider not in self._settings:
             raise ValueError(f"Unknown provider: {provider}. Available: {', '.join(self.names())}")
         settings = self._settings[provider]
         if provider == "ollama":
             return OllamaProvider(model, settings)
         if provider in OPENAI_COMPATIBLE:
-            return OpenAICompatProvider(provider, model, settings)
+            return OpenAICompatProvider(provider, model, settings, credential_role=credential_role)
         raise ValueError(f"Provider '{provider}' has no adapter implementation")
+
+    def credential_env(self, provider: str, role: str = "aria") -> str:
+        """Return the environment variable assigned to a provider role."""
+        settings = self._settings.get(provider, {})
+        if role == "coder":
+            return str(settings.get("coder_api_key_env", ""))
+        return str(settings.get("aria_api_key_env", ""))
+
+    def clear_ollama_vram(self) -> int:
+        """Unload all models currently held by the configured Ollama server."""
+        if "ollama" not in self._settings:
+            raise ValueError("Ollama is not configured")
+        model = self.active_model("ollama") or (self.models_for("ollama") or ["default"])[0]
+        provider = self.create("ollama", model)
+        clear_vram = getattr(provider, "clear_vram", None)
+        if not callable(clear_vram):
+            raise ValueError("The Ollama provider does not support VRAM cleanup")
+        return int(cast(int, clear_vram()))
 
     def describe(self) -> str:
         lines = []

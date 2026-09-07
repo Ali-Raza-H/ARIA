@@ -7,7 +7,7 @@ from collections.abc import Callable
 from ..agent.base import AgentEvent as _AgentEvent
 from ..llm.base import Provider
 from ..logging_setup import log_debug, log_info
-from ..memory import SessionMemory
+from ..memory import MemoryStore
 from ..prompts import build_system_prompt
 from ..tools.base import Tool, ToolContext, ToolResult
 from ..tools.registry import ToolRegistry
@@ -87,7 +87,7 @@ class AriaAgent(BaseAgent):
         provider: Provider,
         registry: ToolRegistry,
         context: ToolContext,
-        memory: SessionMemory,
+        memory: MemoryStore,
         max_iterations: int = 20,
         persona: str = "jarvis",
         user_name: str = "the user",

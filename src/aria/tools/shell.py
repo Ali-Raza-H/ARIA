@@ -17,6 +17,14 @@ def _run_shell(arguments: dict[str, Any], context: ToolContext) -> ToolResult:
         return ToolResult("command must be a non-empty string", is_error=True)
 
     shell_executable = os.environ.get("COMSPEC") if os.name == "nt" else os.environ.get("SHELL")
+    # Tools do not need provider credentials. Do not make `env` an API-key
+    # exfiltration primitive for the model or put those values in its context.
+    child_env = {
+        key: value
+        for key, value in os.environ.items()
+        if not any(word in key.upper() for word in ("API_KEY", "TOKEN", "SECRET", "PASSWORD", "AUTHORIZATION"))
+    }
+    timeout = context.command_timeout_seconds or 60.0
     log_debug(f"Shell: running {command!r} in {context.workspace}")
     try:
         completed = subprocess.run(
@@ -26,8 +34,8 @@ def _run_shell(arguments: dict[str, Any], context: ToolContext) -> ToolResult:
             cwd=context.workspace,
             capture_output=True,
             text=True,
-            timeout=context.command_timeout_seconds,
-            env=os.environ.copy(),
+            timeout=timeout,
+            env=child_env,
         )
         output = completed.stdout
         if completed.stderr:
@@ -42,7 +50,7 @@ def _run_shell(arguments: dict[str, Any], context: ToolContext) -> ToolResult:
         return ToolResult(prefix + output, is_error=completed.returncode != 0)
     except subprocess.TimeoutExpired as exc:
         return ToolResult(
-            f"Command timed out after {context.command_timeout_seconds}s: {exc.cmd}",
+            f"Command timed out after {timeout}s: {exc.cmd}",
             is_error=True,
         )
 

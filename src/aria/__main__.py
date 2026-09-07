@@ -13,6 +13,7 @@ from .agent.coder import CoderService
 from .config import ConfigError, load_config
 from .llm.factory import ProviderManager
 from .logging_setup import configure_logging, log_error, log_info
+from .persistent_memory import MemoryError, PersistentMemory
 from .memory import SessionMemory
 from .speech import SpeechController
 from .tools import (
@@ -21,7 +22,10 @@ from .tools import (
     register_filesystem_tools,
     register_lifeos_tool,
     register_shell_tool,
+    WebToolService,
+    register_web_tools,
 )
+from .tools.web import SearXNGProvider
 from .ui.repl import Repl
 
 
@@ -74,6 +78,20 @@ def main() -> int:
     # LifeOS connection (ported from CIEL): personal-life API for tasks,
     # projects, goals, habits, journal, etc. Self-disables when unconfigured.
     register_lifeos_tool(registry, config.lifeos)
+    web_service: WebToolService | None = None
+    if config.web.enabled:
+        web_provider = SearXNGProvider(
+            config.web.searxng_url,
+            timeout=config.web.search_timeout,
+            max_retries=config.web.max_retries,
+            user_agent=config.web.user_agent,
+        )
+        web_service = WebToolService(web_provider, config.web)
+        register_web_tools(registry, web_service)
+        log_info(f"Startup: web search configured for {config.web.searxng_url}")
+    else:
+        log_info("Startup: web search disabled")
+
     coder_provider = config.coder.provider or config.provider
     coder_model = config.coder.model
     if coder_model is None:
@@ -90,7 +108,15 @@ def main() -> int:
     )
     deploy_handler = register_deploy_coder_tool(registry, coder_service)
 
-    memory = SessionMemory(launch_directory)
+    if config.memory.enabled:
+        try:
+            memory = PersistentMemory(launch_directory, config.memory, provider)
+        except MemoryError as exc:
+            log_error(f"Startup: persistent memory initialization failed: {exc}")
+            console.print(f"Memory error: {exc}", style="red")
+            return 1
+    else:
+        memory = SessionMemory(launch_directory / "data" / "sessions", label="aria")
     context = ToolContext(
         workspace=config.workspace,
         command_timeout_seconds=config.command_timeout_seconds,
@@ -106,15 +132,19 @@ def main() -> int:
     )
     speech = SpeechController(config.speech)
 
-    Repl(
-        agent,
-        console,
-        provider_manager=provider_manager,
-        config=config,
-        speech=speech,
-        coder_service=coder_service,
-        deploy_handler=deploy_handler,
-    ).run()
+    try:
+        Repl(
+            agent,
+            console,
+            provider_manager=provider_manager,
+            config=config,
+            speech=speech,
+            coder_service=coder_service,
+            deploy_handler=deploy_handler,
+            web_service=web_service,
+        ).run()
+    finally:
+        memory.cleanup()
     log_info("ARIA shut down cleanly")
     return 0
 
