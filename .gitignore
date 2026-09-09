@@ -10,9 +10,14 @@ config.yml
 *-session-*.json
 *-session-*.tmp
 data/logs/
+data/memory/
 data/sessions/
-data/aria-state.yaml
+data/state/
+data/scheduler/*.sqlite3
 # Local conversation data can contain private messages, tool output, and vector
 # indexes.  It must never be staged accidentally.
-data/memory/
 data/browser-profile
+
+# Runtime files are never committed.
+*.log
+*.sqlite3

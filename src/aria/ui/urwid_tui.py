@@ -52,13 +52,13 @@ PALETTE = [
     ("user", "white", ""),
     ("user-title", "light green,bold", ""),
     ("aria-title", "light cyan,bold", ""),
-    ("cot", "light gray", ""),
-    ("cot-dim", "light gray", ""),
-    ("cot-title", "white,bold", ""),
-    ("cot-tool", "light cyan", ""),
-    ("cot-ok", "light green", ""),
-    ("cot-fail", "light red", ""),
-    ("cot-warn", "yellow", ""),
+    ("trace", "light gray", ""),
+    ("trace-dim", "light gray", ""),
+    ("trace-title", "white,bold", ""),
+    ("trace-tool", "light cyan", ""),
+    ("trace-ok", "light green", ""),
+    ("trace-fail", "light red", ""),
+    ("trace-warn", "yellow", ""),
     ("coder", "yellow", ""),
     ("coder-title", "yellow,bold", ""),
     ("command", "light gray", ""),
@@ -381,11 +381,11 @@ class UrwidRepl(Repl):
             )
         )
 
-    def _remember_cot(self, steps: list[list[Any]]) -> None:
-        """Persist the finished chain of thought into the transcript."""
+    def _remember_trace(self, steps: list[list[Any]]) -> None:
+        """Persist the finished execution trace into the transcript."""
         if not steps:
             return
-        lines: list[Any] = [("cot-title", "─ Chain of thought ")]
+        lines: list[Any] = [("trace-title", "─ Execution trace ")]
         for step in steps:
             lines.append(_sep())
             lines.extend(step)
@@ -468,7 +468,7 @@ class UrwidRepl(Repl):
         def finish() -> None:
             self._remove_live(live_pile)
             if self.keep_cot and steps:
-                self._remember_cot(steps)
+                self._remember_trace(steps)
             self._remember_response(result)
 
         self._post_ui(finish)
@@ -487,29 +487,29 @@ class UrwidRepl(Repl):
             body[body.index(live_pile)] = urwid.Text("")
 
     def _render_event_markup(self, event: Any) -> list[Any] | None:
-        """One human-readable chain-of-thought line for an agent event.
+        """One human-readable execution-trace line for an agent event.
 
         Tool payloads arrive as JSON (the wire format); render them as
         short, readable lines instead of dumping the raw objects.
         """
         if event.kind == "round":
-            return [("cot-dim", f"◦ round {event.round}")]
+            return [("trace-dim", f"◦ round {event.round}")]
         if event.kind == "tool_call":
             args = humanize_tool_args(event.detail)
-            line: list[Any] = [("cot", "⚙ "), ("cot-tool", event.name)]
+            line: list[Any] = [("trace", "⚙ "), ("trace-tool", event.name)]
             if args:
-                line.append(("cot", f"  {args}"))
+                line.append(("trace", f"  {args}"))
             return line
         if event.kind == "tool_result":
-            mark, mark_style = ("✓", "cot-ok") if event.ok else ("✗", "cot-fail")
+            mark, mark_style = ("✓", "trace-ok") if event.ok else ("✗", "trace-fail")
             shown = humanize_tool_result(event.detail)
             return [
-                (mark_style, f"{mark} "),
-                ("cot-tool", event.name),
-                ("cot-dim", f"  {shown}"),
+                (mark_style.replace("cot", "trace"), f"{mark} "),
+                ("trace-tool", event.name),
+                ("trace-dim", f"  {shown}"),
             ]
         if event.kind == "limit":
-            return [("cot-warn", f"⚠ {event.detail}")]
+            return [("trace-warn", f"⚠ {event.detail}")]
         return None
 
     # -------------------------------------------------------------- export
@@ -539,7 +539,7 @@ class UrwidRepl(Repl):
     def _status_markup(self) -> list[Any]:
         model = self.agent.model_name or "unknown model"
         speech = "TTS on" if self.speech and self.speech.enabled else "TTS off"
-        cot = "CoT on" if self.show_cot else "CoT off"
+        cot = "Trace on" if self.show_cot else "Trace off"
         if self.keep_cot:
             cot += "+keep"
         return [

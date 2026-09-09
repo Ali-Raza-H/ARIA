@@ -90,7 +90,7 @@ def test_keep_cot_retains_steps_in_transcript_after_turn() -> None:
     repl._remember_response(repl._render_aria_body("Done."))
     cot_panel = Panel(
         Text("⚙ shell ls"),
-        title="Chain of thought",
+        title="Execution trace",
         title_align="left",
         border_style="bright_black",
         expand=True,
@@ -100,7 +100,7 @@ def test_keep_cot_retains_steps_in_transcript_after_turn() -> None:
     repl._redraw_screen()
 
     rendered = repl.console.export_text(clear=False)
-    assert "Chain of thought" in rendered
+    assert "Execution trace" in rendered
     assert "⚙ shell ls" in rendered
     # CoT appears before the final answer, both above the prompt.
-    assert rendered.find("Chain of thought") < rendered.rfind("Done.") < rendered.rfind("YOU")
+    assert rendered.find("Execution trace") < rendered.rfind("Done.") < rendered.rfind("YOU")

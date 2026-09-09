@@ -215,7 +215,7 @@ speech:
   hf_provider: auto       # or a specific inference provider (novita, fal-ai, ...)
 
 # --- Logging ---------------------------------------------------------------
-# debug.log holds DEBUG+ (full data flow), info.log INFO+, error.log ERROR+.
+# aria.log contains all levels (DEBUG through CRITICAL) in one rotating file.
 logging:
   directory: data/logs
   console_level: WARNING
@@ -282,13 +282,13 @@ memory:
 # --- Workspace & limits ----------------------------------------------------
 # All paths are resolved from the directory where aria starts.
 # Runtime changes made with /provider, /model, /workspace, /iterations, /agent,
-# /tts, and /cot are saved separately in data/aria-state.yaml.
+# /tts and /trace are saved separately in data/state/aria-state.yaml.
 workspace: .
 
 # --- UI --------------------------------------------------------------------
 # backend: urwid (modern TUI, install --extra tui) or rich (legacy full-screen)
-# show_cot: live tool chain-of-thought while ARIA works
-# keep_cot: also keep the finished chain of thought in the transcript
+# show_cot: live execution trace (tool calls/results) while ARIA works
+# keep_cot: also keep the finished execution trace in the transcript
 ui:
   backend: urwid
   show_cot: true

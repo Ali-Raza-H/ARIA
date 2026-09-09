@@ -1,12 +1,8 @@
-"""ARIA's rotating file logging system.
+"""ARIA's centralized rotating logging system.
 
-Three independent rotating files are maintained:
-
-- ``data/logs/debug.log``: DEBUG and above (the complete data flow).
-- ``data/logs/info.log``: INFO and above only.
-- ``data/logs/error.log``: ERROR and above only.
-
-Each file keeps ``backup_count`` rotated backups of ``max_bytes`` bytes.
+All application levels are written to one file, ``data/logs/aria.log``.
+Rotated backups use the same basename, keeping runtime logs in one location
+while preserving DEBUG through CRITICAL records in the normal log stream.
 A ``log_call`` decorator records function entry, exit, arguments, results and
 exceptions so the logs reconstruct both the call graph and the data flow.
 """
@@ -67,7 +63,7 @@ def configure_logging(
     max_bytes: int = 5 * 1024 * 1024,
     backup_count: int = 3,
 ) -> None:
-    """Attach the three rotating file handlers (and a console handler)."""
+    """Attach the single rotating ARIA file handler and a console handler."""
     global _configured
     logger = logging.getLogger(_LOGGER_NAME)
     logger.setLevel(logging.DEBUG)
@@ -81,21 +77,17 @@ def configure_logging(
     except OSError:
         pass
     formatter = logging.Formatter(_FORMAT)
-    for filename, level in (
-        ("debug.log", logging.DEBUG),
-        ("info.log", logging.INFO),
-        ("error.log", logging.ERROR),
-    ):
-        handler = RotatingFileHandler(
-            directory / filename, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8"
-        )
-        try:
-            os.chmod(directory / filename, 0o600)
-        except OSError:
-            pass
-        handler.setLevel(level)
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
+    log_path = directory / "aria.log"
+    handler = RotatingFileHandler(
+        log_path, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8"
+    )
+    try:
+        os.chmod(log_path, 0o600)
+    except OSError:
+        pass
+    handler.setLevel(logging.DEBUG)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
     console = logging.StreamHandler()
     console.setLevel(console_level)

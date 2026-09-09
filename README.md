@@ -19,18 +19,17 @@ much larger iteration budget, so ARIA's conversation stays clean.
   calling still work; native tools are opt-in per provider configuration.
 - **Model lists & quick switching** - each provider keeps a model list;
   `/providers`, `/models`, `/model`, `/provider` switch at runtime. Runtime
-  preferences survive restarts in the ignored `data/aria-state.yaml` file;
+  preferences survive restarts in the ignored `data/state/aria-state.yaml` file;
   the main `config.yaml` is never rewritten.
 - **`.env` based secrets** - Each hosted provider has separate ARIA and coder
   credentials (`aria_api_key_env` / `coder_api_key_env`); secrets and `ARIA_*`
   settings overrides live in `.env` (see `.env.example`).
-- **Full rotating logging** - `data/logs/debug.log` (everything, the complete
-  data flow: function calls, arguments, results, errors), `info.log` (INFO+),
-  and `error.log` (ERROR only). 5 MiB per file, 3 rotated backups. Secrets are
-  redacted before anything hits disk.
-- **Live chain of thought** - watch ARIA's reasoning as it happens: every
-  round, tool call with arguments, and tool result streams inside the response
-  panel. `/cot on|off` toggles it.
+- **Centralized rotating logging** - every level from DEBUG through CRITICAL is
+  written to the single `data/logs/aria.log` file (5 MiB, 3 rotated backups).
+  Secrets are redacted before anything hits disk.
+- **Execution trace** - inspect rounds, tool calls, and tool results as they
+  happen without exposing or claiming to expose private model reasoning.
+  `/trace on|off` toggles it; `/cot` remains a deprecated alias.
 - **Chat-style TUI** - the conversation owns the terminal screen while open;
   mouse-wheel scrolling browses older/newer messages and Home/End jump to
   either end while the prompt stays pinned. `/save` exports the transcript.
@@ -63,12 +62,16 @@ much larger iteration budget, so ARIA's conversation stays clean.
 
 ## Setup
 
-Install `uv`, then create the project-local Python 3.11 environment and install
-dependencies:
+Recommended development installation (Python 3.11):
 
 ```bash
-uv venv --python 3.11
 uv sync --extra dev --extra tui
+```
+
+For a simple pip installation of the complete normal dependency set:
+
+```bash
+pip install -r requirements.txt
 ```(`--extra tui` installs urwid for the default TUI; without it ARIA falls back
  to the legacy Rich interface. Use `--extra voice`/`--extra voice-local` for
  speech as described below. Playwright is a normal dependency; install its
@@ -110,7 +113,7 @@ Wayland session. If those utilities do not work, set `desktop.input_backend:
 pyautogui` and install `uv sync --extra desktop`; PyAutoGUI has different
 Wayland limitations and is not a universal replacement.
 
-Docker must be running before ARIA can use web search:
+Docker is only required to run the optional SearXNG deployment; ARIA never starts Docker during normal startup:
 
 ```bash
 sudo systemctl enable --now docker
@@ -118,9 +121,9 @@ docker compose -f infrastructure/searxng/docker-compose.yml up -d
 ```
 
 Web search is optional: if SearXNG is unreachable at startup, ARIA prints a
-warning and continues without the web tools (set `web.start_backend: true` to
-let ARIA attempt the `docker compose up -d` command itself). Memory works the
-same way — with no embedding backend available, ARIA starts in a degraded
+warning and continues without the web tools. The runtime data root is `data/`;
+logs are written only to `data/logs/aria.log`. Memory works the same way — with
+no embedding backend available, ARIA starts in a degraded
 mode that keeps structured facts/preferences and skips semantic recall until
 Ollama is back.
 
@@ -130,14 +133,15 @@ Configure and run:
 cp config.example.yaml config.yaml
 cp .env.example .env          # then fill in the API key(s) you use
 uv run aria
+# or: python -m aria
 ```
 
 Command-line flags:
 
 ```text
 -c, --config PATH   Path to config.yaml (default: config.yaml)
-    --ignore-state  Ignore data/aria-state.yaml for this run; config.yaml wins
-    --reset-state   Delete data/aria-state.yaml, then behave like --ignore-state
+    --ignore-state  Ignore data/state/aria-state.yaml for this run; config.yaml wins
+    --reset-state   Delete data/state/aria-state.yaml, then behave like --ignore-state
 ```
 
 The independent coding agent can use a different backend from ARIA. Set these
@@ -239,7 +243,7 @@ this order:
 4. `bge-m3` — multilingual, larger/slower option
 5. `snowflake-arctic-embed` — efficient model family
 
-Install Chroma with `uv sync`, install Ollama separately, and pull at least one
+Install Chroma with `uv sync` (or `pip install -r requirements.txt`), install Ollama separately, and pull at least one
 embedding model, for example:
 
 ```bash
@@ -279,14 +283,18 @@ Memory commands:
 Every destructive wipe requires the exact uppercase `DELETE` confirmation.
 The old ephemeral JSON session files are not migrated automatically.
 
+All runtime-generated data belongs under `data/`: memory under `data/memory/`,
+sessions under `data/sessions/`, scheduler state under `data/scheduler/`, and
+runtime settings under `data/state/`.
+
 ### Runtime settings persistence
 
 Changes made through the REPL are saved automatically to
-`data/aria-state.yaml`, a separate local file that is ignored by Git. This
+`data/state/aria-state.yaml`, a separate local file that is ignored by Git. This
 includes the active provider/model, workspace, ARIA and coder iteration limits,
-TTS engine/enabled state, and `/cot` visibility. The YAML configuration remains
+TTS engine/enabled state, and `/trace` visibility. The YAML configuration remains
 the source for provider definitions, credentials, and other static settings.
-Delete `data/aria-state.yaml` (or start with `--ignore-state` / `--reset-state`)
+Delete `data/state/aria-state.yaml` (or start with `--ignore-state` / `--reset-state`)
 to return to the values in `config.yaml`. At startup ARIA prints the effective
 provider/model and which keys the state file overrode, and it validates the
 model against the provider's inventory — an unavailable model from stale state
@@ -306,10 +314,10 @@ Hosted Kokoro requires `HF_TOKEN` in `.env`.
 src/aria/
 ├── __main__.py          Entry point: wires config, logging, providers, agents, UI
 ├── config.py            YAML + .env configuration, validated
-├── logging_setup.py     Rotating 3-file logger, secret redaction, log_call tracing
+├── logging_setup.py     Single rotating aria.log handler with secret redaction
 ├── prompts.py           ARIA's persona and the coder agent's mission prompt
-├── memory.py            Ephemeral JSON session memory
-├── agent/
+├── memory/              MemoryManager facade plus session/storage internals
+├── agent/               Core reasoning and optional coder deployment
 │   ├── base.py          Shared agent loop (model rounds, tool execution, limits)
 │   ├── aria.py          AriaAgent: conversational assistant + deploy_coder tool
 │   └── coder.py         CoderAgent + CoderService: independent deployments
@@ -362,7 +370,8 @@ src/aria/
 | `/status` | Full configuration overview |
 | `browser_*` tools | Persistent Playwright browser actions, when enabled |
 | `desktop_*` tools | Hyprland and desktop actions, when enabled |
-| `/logs` | Log file locations and sizes |
+| `/trace [on\\|off\\|keep]` | Show/hide the execution trace; `/cot` is a deprecated alias |
+| `/logs` | Show the single `data/logs/aria.log` location, size, and status |
 | `/ollama clear-vram` | Unload all currently running Ollama models |
 | `/quit`, `/exit` | Leave |
 

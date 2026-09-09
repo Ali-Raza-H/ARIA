@@ -68,8 +68,8 @@ def write_config(tmp_path: Path) -> Path:
 def test_runtime_state_with_stale_workspace_and_model_is_sanitized(tmp_path: Path) -> None:
     """A stale/scratch value in state must drop one key, not break startup."""
     config_path = write_config(tmp_path)
-    state_path = tmp_path / "data" / "aria-state.yaml"
-    state_path.parent.mkdir()
+    state_path = tmp_path / "data" / "state" / "aria-state.yaml"
+    state_path.parent.mkdir(parents=True)
     state_path.write_text(
         "provider: ollama\n"
         'model: ""\n'  # empty → dropped
@@ -92,7 +92,7 @@ def test_ignore_runtime_state_skips_saved_overrides(tmp_path: Path) -> None:
     config_path = write_config(tmp_path)
     initial = load_config(config_path, tmp_path)
     save_runtime_state(
-        tmp_path / "data" / "aria-state.yaml",
+        tmp_path / "data" / "state" / "aria-state.yaml",
         replace(initial, provider="mistral", model="mistral-small-latest"),
     )
 
@@ -105,8 +105,8 @@ def test_ignore_runtime_state_skips_saved_overrides(tmp_path: Path) -> None:
 
 def test_invalid_state_file_is_ignored_not_fatal(tmp_path: Path) -> None:
     config_path = write_config(tmp_path)
-    state_path = tmp_path / "data" / "aria-state.yaml"
-    state_path.parent.mkdir()
+    state_path = tmp_path / "data" / "state" / "aria-state.yaml"
+    state_path.parent.mkdir(parents=True)
     state_path.write_text("{ not: valid: yaml:", encoding="utf-8")
 
     config = load_config(config_path, tmp_path)

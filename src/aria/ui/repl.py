@@ -50,7 +50,8 @@ HELP_TEXT = """\
   /workspace [path]        Show or change the workspace directory
   /iterations [n]          Show or set ARIA's iteration limit
   /agent [n]               Show or set the coder agent's iteration limit
-  /cot [on|off|keep]       Show/hide the live chain of thought; keep keeps it in the transcript
+  /trace [on|off|keep]    Show/hide the live execution trace; keep retains it in the transcript
+  /cot [on|off|keep]       Deprecated alias for /trace
   /tts [on|off|engine]     Toggle speech or switch engine (kokoro_hf|kokoro_local|chatterbox)
   /memory                  Show memory status (status|search|facts|summarize|promote|retention)
   /memory search <text>    Search semantic memories and chat history
@@ -286,7 +287,7 @@ class Repl:
     def _status_bar(self) -> Text:
         model = self.agent.model_name or "unknown model"
         speech = "TTS on" if self.speech and self.speech.enabled else "TTS off"
-        cot = "CoT on" if self.show_cot else "CoT off"
+        cot = "Trace on" if self.show_cot else "Trace off"
         if self.keep_cot:
             cot += "+keep"
         return Text.assemble(
@@ -642,11 +643,11 @@ class Repl:
 
         self._remember_response(self._render_aria_body(result))
         if self.keep_cot and steps:
-            # Re-render the chain of thought above the final answer so it
+            # Re-render the execution trace above the final answer so it
             # remains in the transcript after the transient live frame ends.
             cot_panel = Panel(
                 Group(*steps),
-                title="Chain of thought",
+                title="Execution trace",
                 title_align="left",
                 border_style="bright_black",
                 expand=True,
@@ -711,7 +712,8 @@ class Repl:
             "/workspace": self._cmd_workspace,
             "/iterations": self._cmd_iterations,
             "/agent": self._cmd_agent,
-            "/cot": self._cmd_cot,
+            "/trace": self._cmd_trace,
+            "/cot": self._cmd_trace,
             "/tts": self._cmd_tts,
             "/memory": self._cmd_memory,
             "/timer": self._cmd_timer,
@@ -884,14 +886,14 @@ class Repl:
         log_info(f"Repl: coder max_iterations set to {argument}")
         self._remember_command("/agent", Text(f"Coder iteration limit: {argument}"))
 
-    def _cmd_cot(self, argument: str) -> None:
+    def _cmd_trace(self, argument: str) -> None:
         value = argument.lower()
         if value in {"", "status"}:
             detail = (
-                f"chain of thought: {'on' if self.show_cot else 'off'}  "
+                f"execution trace: {'on' if self.show_cot else 'off'}  "
                 f"keep: {'on' if self.keep_cot else 'off'}"
             )
-            self._remember_command("/cot", Text(detail))
+            self._remember_command("/trace", Text(detail))
             return
         if value == "on":
             self.show_cot = True
@@ -901,18 +903,18 @@ class Repl:
             self.keep_cot = not self.keep_cot
             self.config = dataclass_replace(self.config, keep_cot=self.keep_cot) if self.config else self.config
             self._persist_runtime_state()
-            self._remember_command("/cot", Text(f"Keep chain of thought in transcript: {'on' if self.keep_cot else 'off'}"))
+            self._remember_command("/trace", Text(f"Keep execution trace in transcript: {'on' if self.keep_cot else 'off'}"))
             return
         else:
-            self._remember_command("/cot", Text("Usage: /cot [on|off|keep]", style="yellow"))
+            self._remember_command("/trace", Text("Usage: /trace [on|off|keep]", style="yellow"))
             return
         self.config = dataclass_replace(self.config, show_cot=self.show_cot) if self.config else self.config
         self._persist_runtime_state()
         detail = (
-            f"Chain of thought: {'on' if self.show_cot else 'off'}  "
+            f"Execution trace: {'on' if self.show_cot else 'off'}  "
             f"keep: {'on' if self.keep_cot else 'off'}"
         )
-        self._remember_command("/cot", detail)
+        self._remember_command("/trace", detail)
 
     def _cmd_tts(self, argument: str) -> None:
         if not self.speech or not self.config:
@@ -1178,11 +1180,15 @@ class Repl:
         if not self.config:
             return
         directory = self.config.logging.directory
-        lines = Text(f"Logs in {directory.resolve()}:\n")
-        for name in ("debug.log", "info.log", "error.log"):
-            path = directory / name
-            size = f"{path.stat().st_size / 1024:.1f} KiB" if path.exists() else "missing"
-            lines.append(f"  {name}: {size}\n")
+        path = directory / "aria.log"
+        size = f"{path.stat().st_size / 1024:.1f} KiB" if path.exists() else "missing"
+        status = "available" if path.exists() else "not created yet"
+        lines = Text(
+            f"Logs\n  location : {path.resolve()}\n"
+            f"  size     : {size}\n"
+            f"  status   : {status}\n"
+            f"  level    : DEBUG (file) / {self.config.logging.console_level} (console)"
+        )
         self._remember_command("/logs", lines)
 
     def _cmd_save(self, argument: str) -> None:

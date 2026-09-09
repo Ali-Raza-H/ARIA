@@ -42,8 +42,8 @@ def make_config(tmp_path: Path, backend: str = "urwid") -> AppConfig:
         max_command_output_chars=None,
         persona="jarvis",
         ui_backend=backend,
-        # Persist runtime state inside tmp_path: /cot and /status must never
-        # write the project's real data/aria-state.yaml during tests.
+        # Persist runtime state inside tmp_path: /trace and /status must never
+        # write the project's real data/state/aria-state.yaml during tests.
         runtime_state_path=tmp_path / "aria-state.yaml",
     )
 
@@ -202,7 +202,7 @@ def test_urwid_repl_records_transcript(tmp_path: Path) -> None:
 def test_urwid_repl_inherits_commands(tmp_path: Path) -> None:
     repl = UrwidRepl(cast(AriaAgent, DummyAgent()), config=make_config(tmp_path))
 
-    repl._cmd_cot("keep")
+    repl._cmd_trace("keep")
 
     assert repl.keep_cot is True
     assert repl.show_cot is True

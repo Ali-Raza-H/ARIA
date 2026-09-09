@@ -57,12 +57,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--ignore-state",
         action="store_true",
-        help="Ignore data/aria-state.yaml for this run; config.yaml wins",
+        help="Ignore data/state/aria-state.yaml for this run; config.yaml wins",
     )
     parser.add_argument(
         "--reset-state",
         action="store_true",
-        help="Delete data/aria-state.yaml before starting, then behave like --ignore-state",
+        help="Delete data/state/aria-state.yaml before starting, then behave like --ignore-state",
     )
     return parser
 
@@ -97,7 +97,7 @@ def main() -> int:
 
     try:
         provider_manager = ProviderManager(config.providers)
-        # BR-2: a stale provider/model from data/aria-state.yaml must not make
+        # BR-2: a stale provider/model from data/state/aria-state.yaml must not make
         # ARIA look broken on launch; validate and fall back when unavailable.
         fallback_model = _validate_model_choice(provider_manager, config)
         if fallback_model is not None:

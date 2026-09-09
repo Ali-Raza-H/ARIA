@@ -28,7 +28,7 @@ def test_env_overrides_match_documented_names(tmp_path: Path, monkeypatch: pytes
     monkeypatch.setenv("ARIA_COMMAND_TIMEOUT_SECONDS", "30")
     monkeypatch.setenv("ARIA_MAX_COMMAND_OUTPUT_CHARS", "12000")
     monkeypatch.setenv("ARIA_SPEECH_ENABLED", "true")
-    monkeypatch.setenv("ARIA_LOG_DIR", "custom-logs")
+    monkeypatch.setenv("ARIA_LOG_DIR", "data/logs")
 
     config = load_config(write_config(tmp_path), tmp_path)
 
@@ -37,7 +37,7 @@ def test_env_overrides_match_documented_names(tmp_path: Path, monkeypatch: pytes
     assert config.command_timeout_seconds == 30.0
     assert config.max_command_output_chars == 12_000
     assert config.speech.enabled is True
-    assert config.logging.directory == Path("custom-logs")
+    assert config.logging.directory == Path("data/logs")
 
 
 def test_mistral_provider_and_kokoro_modes_are_loaded(tmp_path: Path) -> None:
@@ -118,7 +118,7 @@ def test_runtime_state_restores_preferences_without_rewriting_config(tmp_path: P
     config_path = write_config(tmp_path)
     initial = load_config(config_path, tmp_path)
     original_config = config_path.read_text(encoding="utf-8")
-    state_path = tmp_path / "data" / "aria-state.yaml"
+    state_path = tmp_path / "data" / "state" / "aria-state.yaml"
     save_runtime_state(state_path, initial, show_cot=False, coder_max_iterations=99)
 
     restored = load_config(config_path, tmp_path)
@@ -136,7 +136,7 @@ def test_runtime_state_overrides_static_provider_and_model(tmp_path: Path) -> No
     config_path = write_config(tmp_path)
     initial = load_config(config_path, tmp_path)
     changed = replace(initial, provider="mistral", model="mistral-small-latest")
-    save_runtime_state(tmp_path / "data" / "aria-state.yaml", changed)
+    save_runtime_state(tmp_path / "data" / "state" / "aria-state.yaml", changed)
 
     restored = load_config(config_path, tmp_path)
 
@@ -148,7 +148,7 @@ def test_environment_override_beats_runtime_state(tmp_path: Path, monkeypatch: p
     config_path = write_config(tmp_path)
     initial = load_config(config_path, tmp_path)
     changed = replace(initial, provider="mistral", model="mistral-small-latest")
-    save_runtime_state(tmp_path / "data" / "aria-state.yaml", changed)
+    save_runtime_state(tmp_path / "data" / "state" / "aria-state.yaml", changed)
     monkeypatch.setenv("ARIA_PROVIDER", "ollama")
     monkeypatch.setenv("ARIA_MODEL", "gemma2:9b")
 

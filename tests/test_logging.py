@@ -13,23 +13,18 @@ def read(tmp_path: Path, name: str) -> str:
     return (tmp_path / name).read_text(encoding="utf-8")
 
 
-def test_levels_are_separated_across_files(tmp_path: Path) -> None:
+def test_all_levels_share_one_log_file(tmp_path: Path) -> None:
     make_logger(tmp_path)
     log("debug", "only debug sees this")
     log("info", "info and debug see this")
     log("error", "everyone sees this")
 
-    debug = read(tmp_path, "debug.log")
-    info = read(tmp_path, "info.log")
-    error = read(tmp_path, "error.log")
+    log_file = read(tmp_path, "aria.log")
 
-    assert "only debug sees this" in debug
-    assert "only debug sees this" not in info
-    assert "info and debug see this" in info
-    assert "info and debug see this" not in error
-    assert "everyone sees this" in error
-    assert "everyone sees this" in info
-    assert "everyone sees this" in debug
+    assert "only debug sees this" in log_file
+    assert "info and debug see this" in log_file
+    assert "everyone sees this" in log_file
+    assert sorted(path.name for path in tmp_path.iterdir()) == ["aria.log"]
 
 
 def test_rotating_backups_created(tmp_path: Path) -> None:
@@ -37,9 +32,9 @@ def test_rotating_backups_created(tmp_path: Path) -> None:
     # Fill more than one rotation's worth of the debug file.
     for index in range(200):
         log("debug", "x" * 1024 + f" {index}")
-    files = sorted(p.name for p in tmp_path.glob("debug.log*"))
-    assert "debug.log" in files
-    assert any(name.startswith("debug.log.") for name in files), files
+    files = sorted(p.name for p in tmp_path.glob("aria.log*"))
+    assert "aria.log" in files
+    assert any(name.startswith("aria.log.") for name in files), files
 
 
 def test_log_call_traces_entry_exit_and_errors(tmp_path: Path) -> None:
@@ -59,17 +54,15 @@ def test_log_call_traces_entry_exit_and_errors(tmp_path: Path) -> None:
     except ValueError:
         pass
 
-    debug = read(tmp_path, "debug.log")
-    error = read(tmp_path, "error.log")
-    assert "call -> " in debug and "add" in debug
-    assert "call <- " in debug and "5" in debug
-    assert "boom raised ValueError: nope" in error
+    log_file = read(tmp_path, "aria.log")
+    assert "call -> " in log_file and "add" in log_file
+    assert "call <- " in log_file and "5" in log_file
+    assert "boom raised ValueError: nope" in log_file
 
 
 def test_log_level_filtering_matches_config(tmp_path: Path) -> None:
     make_logger(tmp_path)
     logger = logging.getLogger("aria")
-    levels = {handler.level for handler in logger.handlers}
-    assert logging.DEBUG in levels
-    assert logging.INFO in levels
-    assert logging.ERROR in levels
+    file_handlers = [handler for handler in logger.handlers if isinstance(handler, logging.handlers.RotatingFileHandler)]
+    assert len(file_handlers) == 1
+    assert file_handlers[0].level == logging.DEBUG

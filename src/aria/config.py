@@ -273,14 +273,14 @@ class AppConfig:
     show_cot: bool = True
     keep_cot: bool = False
     ui_backend: str = "urwid"
-    runtime_state_path: Path = Path("data/aria-state.yaml")
+    runtime_state_path: Path = Path("data/state/aria-state.yaml")
     # Top-level keys the runtime state file overrode (empty when none or when
     # state loading was skipped). Surfaced so startup can show the source of
     # the effective provider/model (bugReport BR-2).
     runtime_state_overrides: tuple[str, ...] = ()
 
 
-RUNTIME_STATE_RELATIVE_PATH = Path("data/aria-state.yaml")
+RUNTIME_STATE_RELATIVE_PATH = Path("data/state/aria-state.yaml")
 
 
 def _load_runtime_state(path: Path, root: Path) -> dict[str, Any]:
@@ -467,7 +467,7 @@ def load_config(
     """Load config from YAML (+.env), resolving the workspace from the launch directory.
 
     With ``ignore_runtime_state`` the persisted REPL preferences in
-    ``data/aria-state.yaml`` are skipped entirely (the ``--ignore-state``
+    ``data/state/aria-state.yaml`` are skipped entirely (the ``--ignore-state``
     flag), so static ``config.yaml`` values win.
     """
     # Load .env from the config file's directory, then the launch directory.
