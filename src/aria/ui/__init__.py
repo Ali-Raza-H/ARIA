@@ -1,6 +1,6 @@
-"""Terminal UI."""
+"""ARIA user-interface implementations."""
 
-from .config_view import replace_config
-from .repl import Repl
+from .components.factory import AVAILABLE_BACKENDS, create_repl
+from .rich.repl import Repl
 
-__all__ = ["Repl", "replace_config"]
+__all__ = ["AVAILABLE_BACKENDS", "create_repl", "Repl"]

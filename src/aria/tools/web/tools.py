@@ -14,8 +14,8 @@ import httpx
 
 from ...config import WebConfig
 from ...logging.setup import log_error, log_info
-from ..base import Tool, ToolContext, ToolResult
-from ..registry import ToolRegistry
+from ..core.base import Tool, ToolContext, ToolResult
+from ..core.registry import ToolRegistry
 from .exceptions import (
     SearchConnectionError,
     SearchResponseError,

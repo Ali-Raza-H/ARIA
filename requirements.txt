@@ -24,13 +24,13 @@ urwid>=4.1.0
 
 # Speech engines (optional)
 # For hosted Kokoro: uncomment following
-# huggingface_hub>=0.30.0
-# sounddevice>=0.5.1
-# soundfile>=0.12.1
+#huggingface_hub>=0.30.0
+#sounddevice>=0.5.1
+#soundfile>=0.12.1
 
 # For local Kokoro: uncomment following
-# kokoro>=0.9.4
-# sounddevice>=0.5.1
+kokoro>=0.9.4
+sounddevice>=0.5.1
 
 # For Chatterbox: uncomment following
 # chatterbox-tts>=0.1.0
@@ -38,4 +38,4 @@ urwid>=4.1.0
 # soundfile>=0.12.1
 
 # Desktop automation (optional)
-# pyautogui>=0.9.54
+pyautogui>=0.9.54

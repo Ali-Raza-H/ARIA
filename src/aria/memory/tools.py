@@ -13,8 +13,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..tools.base import Tool, ToolContext, ToolResult
-from ..tools.registry import ToolRegistry
+from ..tools.core.base import Tool, ToolContext, ToolResult
+from ..tools.core.registry import ToolRegistry
 from .manager import MemoryManager
 
 

@@ -5,15 +5,17 @@ __pycache__/
 .pyright/
 .ruff_cache/
 .env
+
 config.yaml
-config.yml
 *-session-*.json
 *-session-*.tmp
 data/logs/
-data/memory/
-data/sessions/
-data/state/
-data/scheduler/*.sqlite3
+assistant.db
+data/memory/chroma
+.sqlite3
+data/sessions
+aria-state.yaml
+.sqlite3
 # Local conversation data can contain private messages, tool output, and vector
 # indexes.  It must never be staged accidentally.
 data/browser-profile

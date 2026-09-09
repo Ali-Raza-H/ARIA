@@ -14,20 +14,20 @@ from typing import Any
 
 from rich.console import Console
 
-from .agent.aria import AriaAgent, register_deploy_coder_tool
-from .agent.coder import CoderService
+from .core.agent.aria import AriaAgent, register_deploy_coder_tool
+from .services.coder import CoderService
 from .config import RUNTIME_STATE_RELATIVE_PATH, AppConfig, ConfigError, WebConfig, load_config
 from .llm.base import list_models
-from .images import capture_clipboard, capture_screen, load_image, register_image_tools
-from .notifications import NotificationService
-from .proactive import ProactiveService
-from .scheduler import ScheduledJob, SchedulerService, register_scheduler_tools
+from .services.vision import capture_clipboard, capture_screen, load_image, register_image_tools
+from .services.notifications import NotificationService
+from .services.proactive import ProactiveService
+from .services.scheduler import ScheduledJob, SchedulerService, register_scheduler_tools
 from .llm.factory import ProviderManager
 from .logging.setup import configure_logging, log_error, log_info
 from .memory import MemoryManager, MemoryError, MemoryStore, MemorySettings, SessionMemory
 from .memory.tools import register_memory_tools
 from .skills import SkillManager
-from .speech import SpeechController
+from .services.speech import SpeechController
 from .tools import (
     BrowserToolService,
     DesktopToolService,
@@ -42,7 +42,7 @@ from .tools import (
     register_web_tools,
 )
 from .tools.web import SearXNGProvider
-from .ui.factory import create_repl
+from .ui.components.factory import create_repl
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -367,7 +367,7 @@ def main() -> int:
         except Exception as exc:
             # BR-3: an urwid thread crash used to look like a clean exit.
             # Propagate it into a controlled Rich fallback when possible.
-            from .ui.urwid_tui import UrwidRepl  # lazy: keeps urwid optional
+            from .ui.urwid.tui import UrwidRepl  # lazy: keeps urwid optional
 
             if not isinstance(repl, UrwidRepl):
                 raise
@@ -377,7 +377,7 @@ def main() -> int:
                 "Falling back to the Rich interface for this session.",
                 style="yellow",
             )
-            from .ui.repl import Repl
+            from .ui.rich.repl import Repl
 
             Repl(agent, console, **repl_kwargs).run()
     finally:

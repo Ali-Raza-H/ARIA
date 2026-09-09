@@ -1,14 +1,6 @@
-"""Agent layer: the conversational assistant and the coding sub-agent."""
+"""Deprecated compatibility facade; use :mod:`aria.core.agent` instead."""
 
-from .aria import AriaAgent, register_deploy_coder_tool
-from .base import BaseAgent
-from .coder import CoderAgent, CoderReport, CoderService
+from ..core.agent import AriaAgent, BaseAgent, register_deploy_coder_tool
+from ..services.coder import CoderAgent, CoderReport, CoderService
 
-__all__ = [
-    "AriaAgent",
-    "BaseAgent",
-    "CoderAgent",
-    "CoderReport",
-    "CoderService",
-    "register_deploy_coder_tool",
-]
+__all__ = ["AriaAgent", "BaseAgent", "register_deploy_coder_tool", "CoderAgent", "CoderReport", "CoderService"]

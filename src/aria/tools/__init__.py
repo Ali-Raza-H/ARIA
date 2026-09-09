@@ -1,12 +1,11 @@
 """Agent tools."""
 
-from .base import Tool, ToolContext, ToolResult
+from .core import CustomToolRouter, RoutedResponse, Tool, ToolContext, ToolRegistry, ToolResult
 from .browser import BrowserToolService, register_browser_tools
 from .desktop import DesktopToolService, register_desktop_tools
 from .filesystem import register_filesystem_tools
-from .lifeos import LifeOSConfig, LifeOSTool, register_lifeos_tool
-from .registry import ToolRegistry
-from .router import CustomToolRouter, RoutedResponse
+from .lifeos import LifeOSTool, register_lifeos_tool
+from ..config import LifeOSConfig
 from .shell import register_shell_tool
 from .web import WebToolService, register_web_tools
 
