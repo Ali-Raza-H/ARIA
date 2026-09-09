@@ -15,3 +15,4 @@ data/aria-state.yaml
 # Local conversation data can contain private messages, tool output, and vector
 # indexes.  It must never be staged accidentally.
 data/memory/
+data/browser-profile

@@ -100,7 +100,7 @@ desktop:
   command_timeout_seconds: 15
   launchers:
     terminal: [kitty]
-    browser: [firefox]
+    browser: [firefox, zen]
 
 # --- Web search (local SearXNG) ------------------------------------------
 # Start the bundled deployment from infrastructure/searxng with:
