@@ -168,7 +168,7 @@ No runtime command is required; restart ARIA after changing these settings.
 ### Proactive work, scheduling, and multimodal input
 
 The scheduler is intentionally **in-process**. Jobs and timers are persisted in
-SQLite, but no work runs while ARIA is closed. Enable it only after reviewing
+`data/scheduler/scheduler.sqlite3`, but no work runs while ARIA is closed. Enable it only after reviewing
 `autonomy.allowed_categories`; each scheduled attempt, including blocked and
 failed actions, is recorded in `scheduler.sqlite3`.
 
@@ -216,7 +216,7 @@ mode and persistent browser credentials as trusted-local-agent capabilities.
 ### Persistent memory
 
 Persistent memory is enabled by default and requires the local `chromadb`
-package. ARIA stores SQLite metadata/facts in `data/memory/memory.sqlite3` and
+package. ARIA stores SQLite metadata/facts in `data/memory/assistant.db` and
 uses two local Chroma collections under `data/memory/chroma`:
 
 - **Tier 1 — hard facts:** structured namespaced facts with confidence,
@@ -357,7 +357,7 @@ src/aria/
 | `/workspace [path]` | Show or change the workspace |
 | `/iterations [n]` | ARIA's model/tool round limit |
 | `/agent [n]` | The coding agent's iteration limit (default 60) |
-| `/cot [on\|off\|keep]` | Show/hide the live chain of thought; `keep` also retains it in the transcript |
+| `/trace [on\|off\|keep]` | Show/hide the live execution trace; `/cot` remains a deprecated alias |
 | `/tts on\|off\|kokoro_hf\|kokoro_local\|chatterbox` | Speech on/off or engine switch |
 | `/memory [action]` | Persistent memory status, search, facts, summarization, retention, or wipe |
 | `/timer ...` | Create, control, and list reminders, alarms, pomodoros, and stopwatches |
@@ -414,4 +414,4 @@ uv run pyright
 ```
 
 A detailed implementation audit, including current limitations and request
-size estimates, is in `REPORT(2026-09-08).md`.
+size estimates, is in `docs/reports/REPORT-2026-09-08.md`.

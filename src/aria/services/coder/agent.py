@@ -113,7 +113,7 @@ class CoderService:
         """Run *task* in an independent agent and return its report to ARIA.
 
         ``on_event`` receives the coder's AgentEvent stream so the UI can show
-        its chain of thought while it works.
+        its execution trace while it works.
         """
         log_info(f"CoderService: deployment requested ({len(task)} chars of instructions)")
         acquired = self._lock.acquire(timeout=1.0)

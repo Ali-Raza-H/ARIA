@@ -220,7 +220,7 @@ def test_urwid_run_reraises_ui_thread_crash(
 ) -> None:
     import urwid
 
-    from aria.ui.urwid_tui import UrwidRepl
+    from aria.ui.urwid.tui import UrwidRepl
 
     repl = UrwidRepl(cast(Any, DummyAgent()), config=make_config(tmp_path))
 
@@ -338,7 +338,7 @@ def test_memory_manager_skips_semantic_writes_in_degraded_mode(tmp_path: Path) -
 
 
 def test_config_example_documents_degraded_memory_mode() -> None:
-    repo_example = Path(__file__).resolve().parents[1] / "config.yaml"
+    repo_example = Path(__file__).resolve().parents[2] / "config.yaml"
     parsed = yaml.safe_load(repo_example.read_text(encoding="utf-8"))
     assert parsed["web"]["start_backend"] is False
 

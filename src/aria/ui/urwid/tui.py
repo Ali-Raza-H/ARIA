@@ -11,7 +11,7 @@ Two rendering notes that shape this module:
 * urwid ``Text`` markup breaks lines only at a literal ``"\\n"`` element — a
   plain ``""`` between styled segments is a no-op, so every renderer here
   appends ``_sep()`` (a newline) to end a line. Getting this wrong mashes
-  whole blocks (logo, replies, chain of thought) into one paragraph.
+  whole blocks (logo, replies, execution trace) into one paragraph.
 * Markdown is rendered by :func:`markdown_to_markup`, a small block-aware
   parser (fences, headings, lists, quotes, tables, rules, inline styles) so
   replies look structured instead of a wall of raw syntax.
@@ -399,7 +399,7 @@ class UrwidRepl(Repl):
         Every UI mutation is marshaled through :meth:`_post_ui` so urwid's
         widgets are only touched from the UI thread. The streaming callbacks
         fire from this worker and repaint live through the asyncio loop, so
-        the chain of thought and the partial reply update as they happen.
+        the execution trace and the partial reply update as they happen.
         """
         chunks: list[str] = []
         steps: list[list[Any]] = []

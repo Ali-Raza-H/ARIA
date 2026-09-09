@@ -72,7 +72,7 @@ def test_zai_provider_is_known(tmp_path: Path) -> None:
 
 def test_memory_config_fields_match_example(tmp_path: Path) -> None:
     """The shipped example must parse cleanly and set every memory field."""
-    repo_example = Path(__file__).resolve().parents[1] / "config.example.yaml"
+    repo_example = Path(__file__).resolve().parents[2] / "config.example.yaml"
     config = load_config(repo_example, tmp_path)
 
     memory = config.memory

@@ -67,7 +67,7 @@ class BaseAgent:
         """Process one user message until the model has no more tool calls.
 
         ``on_event`` receives every intermediate step (rounds, reasoning text,
-        tool calls, tool results) so the UI can show the chain of thought.
+        tool calls, tool results) so the UI can show the execution trace.
         """
 
         def emit(event: AgentEvent) -> None:

@@ -8,13 +8,13 @@ from aria.config import (
     SchedulerConfig,
     VisionConfig,
 )
-from aria.images import ImageAttachment, prepare_image_message, register_image_tools
+from aria.services.vision import ImageAttachment, prepare_image_message, register_image_tools
 from aria.llm.base import AssistantMessage
 from aria.llm.ollama_provider import OllamaProvider
-from aria.proactive import ProactiveService
-from aria.scheduler import CronSchedule, SchedulerService, SchedulerStore
-from aria.tools.base import ToolContext
-from aria.tools.registry import ToolRegistry
+from aria.services.proactive import ProactiveService
+from aria.services.scheduler import CronSchedule, SchedulerService, SchedulerStore
+from aria.tools.core.base import ToolContext
+from aria.tools.core.registry import ToolRegistry
 
 
 class TextProvider:

@@ -4,8 +4,8 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from aria.agent.aria import AriaAgent
-from aria.ui.repl import _LOGO_LINES, Repl
+from aria.core.agent.aria import AriaAgent
+from aria.ui.rich.repl import _LOGO_LINES, Repl
 
 
 class DummyAgent:

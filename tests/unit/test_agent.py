@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from aria.agent.aria import AriaAgent, register_deploy_coder_tool
-from aria.agent.base import AgentEvent
-from aria.agent.coder import CoderService
+from aria.core.agent.aria import AriaAgent, register_deploy_coder_tool
+from aria.core.agent.base import AgentEvent
+from aria.services.coder import CoderService
 from aria.llm.base import AssistantMessage, ToolCall
 from aria.memory import SessionMemory
 from aria.prompts import build_coder_prompt, build_system_prompt

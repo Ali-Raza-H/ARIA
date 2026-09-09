@@ -11,11 +11,11 @@ config.yaml
 *-session-*.tmp
 data/logs/
 assistant.db
-data/memory/chroma
-.sqlite3
-data/sessions
+data/memory/
+data/sessions/
+data/state/
+data/scheduler/*.sqlite3
 aria-state.yaml
-.sqlite3
 # Local conversation data can contain private messages, tool output, and vector
 # indexes.  It must never be staged accidentally.
 data/browser-profile

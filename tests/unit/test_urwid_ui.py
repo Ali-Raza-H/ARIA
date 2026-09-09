@@ -8,10 +8,10 @@ from typing import Any, cast
 
 import urwid
 
-from aria.agent.aria import AriaAgent
+from aria.core.agent.aria import AriaAgent
 from aria.config import AppConfig
-from aria.ui.factory import AVAILABLE_BACKENDS, create_repl
-from aria.ui.urwid_tui import (
+from aria.ui.components.factory import AVAILABLE_BACKENDS, create_repl
+from aria.ui.urwid.tui import (
     UrwidRepl,
     humanize_tool_args,
     humanize_tool_result,
@@ -134,7 +134,7 @@ def test_humanize_tool_result_summarizes_payload() -> None:
 
 def test_cot_events_are_humanized(tmp_path: Path) -> None:
     repl = UrwidRepl(cast(AriaAgent, DummyAgent()), config=make_config(tmp_path))
-    from aria.agent.base import AgentEvent
+    from aria.core.agent.base import AgentEvent
 
     call = repl._render_event_markup(
         AgentEvent(kind="tool_call", round=1, name="shell", detail=json.dumps({"command": "ls -la"}))
@@ -224,7 +224,7 @@ def test_factory_builds_urwid_by_default(tmp_path: Path) -> None:
 
 
 def test_factory_builds_rich_legacy_backend(tmp_path: Path) -> None:
-    from aria.ui.repl import Repl
+    from aria.ui.rich.repl import Repl
 
     repl = create_repl(cast(AriaAgent, DummyAgent()), config=make_config(tmp_path, backend="rich"))
 
