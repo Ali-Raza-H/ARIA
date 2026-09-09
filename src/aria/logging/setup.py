@@ -13,6 +13,7 @@ import functools
 import logging
 import os
 import re
+import sys
 from collections.abc import Callable
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
@@ -22,6 +23,29 @@ _FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 
 _LOGGER_NAME = "aria"
 _configured: bool = False
+_console_sink: Callable[[str], None] | None = None
+
+
+class _ConsoleHandler(logging.Handler):
+    """Send console records to the active UI when one is running."""
+
+    def emit(self, record: logging.LogRecord) -> None:
+        try:
+            message = self.format(record)
+            sink = _console_sink
+            if sink is not None:
+                sink(message)
+            else:
+                sys.stderr.write(message + "\\n")
+                sys.stderr.flush()
+        except Exception:
+            self.handleError(record)
+
+
+def set_console_sink(sink: Callable[[str], None] | None) -> None:
+    """Route console-level ARIA logs to a UI sink instead of stderr."""
+    global _console_sink
+    _console_sink = sink
 
 # Secrets that must never reach disk, whatever a caller tries to log.
 _REDACTED_KEYS = {"api_key", "apikey", "key", "token", "authorization", "password", "secret"}
@@ -89,7 +113,7 @@ def configure_logging(
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    console = logging.StreamHandler()
+    console = _ConsoleHandler()
     console.setLevel(console_level)
     console.setFormatter(formatter)
     logger.addHandler(console)

@@ -74,6 +74,10 @@ class BaseAgent:
             if on_event:
                 on_event(event)
 
+        # Refresh just-in-time context for every direct or UI-driven turn.
+        refresh_context = getattr(self, "refresh_skills", None)
+        if callable(refresh_context):
+            refresh_context()
         log_info(f"BaseAgent.run: starting turn with {len(user_text)} chars of user input")
         prepare_context = getattr(self.memory, "prepare_context", None)
         if callable(prepare_context):

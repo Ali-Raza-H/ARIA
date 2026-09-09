@@ -141,6 +141,9 @@ class AriaAgent(BaseAgent):
     ) -> str:
         """Run a turn with queued images, clearing them after the attempt."""
         attachments = list(self.pending_attachments)
+        # Direct callers (not only the UIs) receive a fresh clock context for
+        # every turn, so relative dates never rely on a stale startup prompt.
+        self.refresh_skills()
         try:
             return super().run(
                 user_text,
@@ -170,8 +173,8 @@ class AriaAgent(BaseAgent):
             return ""
 
     def refresh_skills(self) -> None:
-        """Re-read the skills folder and rebuild the system message in place."""
-        if self.skill_manager is None or not self.memory.messages:
+        """Refresh skills and the just-in-time date/time context in place."""
+        if not self.memory.messages:
             return
         if self.memory.messages[0].get("role") == "system":
             self.memory.messages[0]["content"] = self._compose_system_prompt(

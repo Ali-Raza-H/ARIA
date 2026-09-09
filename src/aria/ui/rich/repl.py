@@ -64,7 +64,8 @@ HELP_TEXT = """\
   /skills                  List active skill files from the skills/ folder
   /clear                   Start a fresh conversation and clear its persistent session
   /save [path]             Export the session transcript to a text file
-  /status                  Overview of the current configuration
+  /status                  Overview of the current configuration and current time
+  /time                    Show the current local date and time
   /web                     Check local SearXNG web-search health
   /logs                    Show log file locations
   /ollama clear-vram       Unload all Ollama models from VRAM
@@ -725,6 +726,7 @@ class Repl:
             "/clear": self._cmd_clear,
             "/save": self._cmd_save,
             "/status": self._cmd_status,
+            "/time": self._cmd_time,
             "/web": self._cmd_web,
             "/logs": self._cmd_logs,
             "/ollama": self._cmd_ollama,
@@ -1140,6 +1142,11 @@ class Repl:
             "/clear",
             Text("Fresh start. Current session memory cleared; persistent facts retained."),
         )
+
+    def _cmd_time(self, _argument: str) -> None:
+        """Show ARIA's current local clock explicitly."""
+        now = datetime.now().astimezone()
+        self._remember_command("/time", Text(f"Current local time: {now:%A, %Y-%m-%d %H:%M:%S %Z (UTC%z)}"))
 
     def _cmd_status(self, _argument: str) -> None:
         if not self.config:

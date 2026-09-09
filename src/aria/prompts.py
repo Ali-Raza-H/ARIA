@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 ARIA_NAME = "ARIA"
 ARIA_MEANING = "Adaptive Reasoning and Intelligence Assistant"
 
@@ -66,10 +68,22 @@ REPORTING
 """
 
 
+def current_time_context() -> str:
+    """Return the current local time for a just-in-time model context block."""
+    now = datetime.now().astimezone()
+    return (
+        "CURRENT DATE AND TIME\n"
+        f"- Local time: {now:%Y-%m-%d %H:%M:%S %Z (UTC%z)}\n"
+        f"- Day: {now:%A}\n"
+        "- This value is generated immediately before the turn; use it for relative dates "
+        "and times instead of guessing."
+    )
+
+
 def build_system_prompt(persona: str, user_name: str = "the user") -> str:
     """Render the conversational system prompt for ARIA."""
     template = JARVIS_PERSONA
-    return template.format(name=ARIA_NAME, meaning=ARIA_MEANING, user=user_name)
+    return template.format(name=ARIA_NAME, meaning=ARIA_MEANING, user=user_name) + "\\n\\n" + current_time_context()
 
 
 def build_coder_prompt(user_name: str = "the user") -> str:

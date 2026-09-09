@@ -34,7 +34,8 @@ class CronSchedule:
         parts = expression.split()
         if len(parts) != 5:
             raise ValueError("cron must contain five fields: minute hour day month weekday")
-        limits = ((0, 59), (0, 23), (1, 31), (1, 12), (0, 6))
+        # Cron permits both 0 and 7 for Sunday in the weekday field.
+        limits = ((0, 59), (0, 23), (1, 31), (1, 12), (0, 7))
         return cls(tuple(frozenset(cls._field(part, low, high)) for part, (low, high) in zip(parts, limits)))
 
     @staticmethod
@@ -58,13 +59,29 @@ class CronSchedule:
                 result.update(range(start, end + 1))
                 continue
             result.add(int(item))
-        if not result or min(result) < low or max(result) > high:
+        if not result or any(value < low or value > high for value in result):
             raise ValueError(f"cron field out of range {low}-{high}")
+        if low == 0 and high == 7 and 7 in result:
+            result.remove(7)
+            result.add(0)
         return result
 
     def matches(self, moment: datetime) -> bool:
         values = (moment.minute, moment.hour, moment.day, moment.month, (moment.weekday() + 1) % 7)
-        return all(value in allowed for value, allowed in zip(values, self.fields))
+        minute, hour, day, month, weekday = self.fields
+        # Standard cron uses OR between restricted day-of-month and weekday
+        # fields, while wildcard fields behave as an unrestricted side.
+        day_match = moment.day in day
+        weekday_match = values[4] in weekday
+        dom_wild = len(day) == 31
+        dow_wild = len(weekday) == 7
+        calendar_match = (day_match or weekday_match) if not (dom_wild or dow_wild) else (day_match and weekday_match)
+        return (
+            values[0] in minute
+            and values[1] in hour
+            and values[3] in month
+            and calendar_match
+        )
 
 
 @dataclass(frozen=True)
@@ -271,6 +288,10 @@ class SchedulerService:
     def start(self) -> None:
         if self._thread is not None:
             return
+        # A service may be constructed before the UI is ready; make sure a
+        # previous stop signal cannot cause a newly started worker to exit
+        # without processing its first cron tick.
+        self._stop.clear()
         self._recover_misfires(datetime.now().astimezone())
         self._thread = threading.Thread(target=self._run, name="aria-scheduler", daemon=True)
         self._thread.start()

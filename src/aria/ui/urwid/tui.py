@@ -39,6 +39,7 @@ import urwid
 
 from ..rich.repl import _LOGO_LINES, Repl
 from ...logging.setup import log_error
+from ...memory import SessionMemory
 
 # Bright-on-dark palette: terminal backgrounds are usually a very dark shade,
 # so "dark gray" accents are nearly invisible. Dim text uses "light gray" and
@@ -49,9 +50,11 @@ PALETTE = [
     ("stamp", "light gray", ""),
     ("status", "white", ""),
     ("status-dim", "light gray", ""),
+    ("system-log", "yellow", ""),
     ("user", "white", ""),
-    ("user-title", "light green,bold", ""),
-    ("aria-title", "light cyan,bold", ""),
+    ("user-title", "black,bold", "light green"),
+    ("aria-body", "white", ""),
+    ("aria-title", "black,bold", "light cyan"),
     ("trace", "light gray", ""),
     ("trace-dim", "light gray", ""),
     ("trace-title", "white,bold", ""),
@@ -291,6 +294,9 @@ class UrwidRepl(Repl):
         self._listbox: urwid.ListBox | None = None
         self._prompt_edit: urwid.Edit | None = None
         self._plain_log: list[str] = []
+        self._status_widget: urwid.Text | None = None
+        self._log_messages: list[str] = []
+        self._view_generation = 0
         # Set when the UI thread dies from anything other than a clean stop;
         # run() re-raises it so the process exits non-zero or falls back (BR-3).
         self._ui_error: BaseException | None = None
@@ -332,7 +338,27 @@ class UrwidRepl(Repl):
         self._refresh()
 
     def _timestamp(self) -> str:
-        return datetime.now().strftime("%H:%M")
+        return datetime.now().astimezone().strftime("%H:%M")
+
+    def _log_sink(self, message: str) -> None:
+        """Display console-level logs inside the ARIA transcript area."""
+        if self._async_loop is None and self._listbox is None:
+            return
+        self._post_ui(lambda: self._append_log(message))
+
+    def _append_log(self, message: str) -> None:
+        shown = message.replace("\n", " ")
+        self._log_messages.append(shown)
+        self._plain_log.append(f"[{self._timestamp()}] SYSTEM: {shown}")
+        self._append_widget(
+            urwid.Pile(
+                [
+                    urwid.Text(("system-log", f"─ System log · {self._timestamp()} ")),
+                    urwid.Text(("system-log", shown)),
+                    urwid.Text(""),
+                ]
+            )
+        )
 
     @staticmethod
     def _plain(output: Any) -> str:
@@ -352,6 +378,25 @@ class UrwidRepl(Repl):
         )
         self._append_widget(pile)
 
+    def _cmd_clear(self, _argument: str) -> None:
+        """Clear memory and every visible body widget, then repaint immediately."""
+        clear_session = getattr(self.agent.memory, "clear_current_session", None)
+        if callable(clear_session):
+            clear_session()
+        else:
+            self.agent.memory.cleanup()
+            self.agent.memory = SessionMemory(self.agent.memory.path.parent, label="aria")
+        self.agent.ensure_system_prompt()
+        self._view_generation += 1
+        self._plain_log.clear()
+        self._log_messages.clear()
+        self._scroll_offset = 0
+        if self._listbox is not None:
+            body = cast("list[urwid.Widget]", self._listbox.body)  # type: ignore[attr-defined]
+            body.clear()
+        self._remember_command("/clear", "Fresh screen. Current session memory cleared; persistent facts retained.")
+        self._refresh()
+
     def _remember_response(self, body: Any) -> None:
         if isinstance(body, urwid.Text):
             widget = body
@@ -359,6 +404,8 @@ class UrwidRepl(Repl):
             plain = body if isinstance(body, str) else str(body)
             self._plain_log.append(f"[{self._timestamp()}] ARIA: {plain}")
             widget = urwid.Text(markdown_to_markup(plain))
+        if not isinstance(body, urwid.Text):
+            widget.set_text(markdown_to_markup(plain))
         header = urwid.Text(("aria-title", f"─ ARIA ─ {self._timestamp()} "))
         self._append_widget(urwid.Pile([header, widget, urwid.Text("")]))
 
@@ -405,13 +452,20 @@ class UrwidRepl(Repl):
         steps: list[list[Any]] = []
         coder_notes: list[str] = []
 
+        generation = self._view_generation
         live_header = urwid.Text(("aria-title", f"─ ARIA ─ {self._timestamp()} … "))
         live_body = urwid.Text("")
         live_pile = urwid.Pile([live_header, live_body])
-        self._post_ui(lambda: self._append_widget(live_pile))
+        self._post_ui(
+            lambda: self._append_widget(live_pile)
+            if self._view_generation == generation
+            else None
+        )
 
         def update() -> None:
             def paint() -> None:
+                if self._view_generation != generation:
+                    return
                 markup: list[Any] = []
                 if self.show_cot and steps:
                     for step in steps:
@@ -456,6 +510,8 @@ class UrwidRepl(Repl):
             except KeyboardInterrupt:
 
                 def interrupted() -> None:
+                    if self._view_generation != generation:
+                        return
                     self._remove_live(live_pile)
                     self._remember_response("Interrupted.")
 
@@ -466,6 +522,8 @@ class UrwidRepl(Repl):
                 self._deploy_handler.set_stream_hook(None, None)
 
         def finish() -> None:
+            if self._view_generation != generation:
+                return
             self._remove_live(live_pile)
             if self.keep_cot and steps:
                 self._remember_trace(steps)
@@ -550,6 +608,8 @@ class UrwidRepl(Repl):
             ("status-dim", speech),
             ("status-dim", "  │  "),
             ("status-dim", cot),
+            ("status-dim", "  │  "),
+            ("status", f"{datetime.now().astimezone():%H:%M:%S %Z}"),
             ("status-dim", "  │  /help"),
         ]
 
@@ -589,6 +649,7 @@ class UrwidRepl(Repl):
         prompt_edit = urwid.Edit(("edit-caption", "You › "), "")
         self._prompt_edit = prompt_edit
         status = urwid.Text(self._status_markup())
+        self._status_widget = status
         footer = urwid.AttrMap(
             urwid.Text("Enter send · PgUp/PgDn or mouse wheel scroll · /help commands · Ctrl+C quit"),
             "footer",
@@ -643,6 +704,19 @@ class UrwidRepl(Repl):
         # permits from the main thread. Keep the UI loop on the calling thread;
         # agent turns remain on worker threads and marshal their updates here.
         self._ui_error = None
+        def update_clock(main_loop: urwid.MainLoop, _data: Any) -> None:
+            if self._status_widget is not None:
+                self._status_widget.set_text(self._status_markup())
+                try:
+                    main_loop.draw_screen()
+                except AssertionError:
+                    pass
+            if self._async_loop is not None:
+                main_loop.set_alarm_in(1, update_clock)
+
+        loop.set_alarm_in(1, update_clock)
+        from ...logging.setup import set_console_sink
+        set_console_sink(self._log_sink)
         try:
             asyncio.set_event_loop(async_loop)
             loop.run()
@@ -654,6 +728,9 @@ class UrwidRepl(Repl):
             self._ui_error = exc
             log_error(f"UrwidRepl: UI thread crashed: {type(exc).__name__}: {exc}")
         finally:
+            from ...logging.setup import set_console_sink
+            set_console_sink(None)
+            self._status_widget = None
             self._loop = None
             try:
                 async_loop.close()
