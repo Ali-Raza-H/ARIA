@@ -17,10 +17,10 @@ from aria.config import (
     load_config,
     save_runtime_state,
 )
-from aria.memory_pkg.config import MemorySettings
-from aria.memory_pkg.embeddings import FallbackEmbeddingProvider
-from aria.memory_pkg.exceptions import MemoryError
-from aria.memory_pkg.manager import MemoryManager
+from aria.memory.config import MemorySettings
+from aria.memory.embeddings import FallbackEmbeddingProvider
+from aria.memory.exceptions import MemoryError
+from aria.memory.manager import MemoryManager
 
 # ────────────────────────────────────────────────────────────── shared fakes
 

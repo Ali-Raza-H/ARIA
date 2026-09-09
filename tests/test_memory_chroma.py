@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from aria.memory_pkg.chroma_store import ChromaStore, collection_name_for
-from aria.memory_pkg.models import MemoryType, SemanticMemory
+from aria.memory.chroma_store import ChromaStore, collection_name_for
+from aria.memory.models import MemoryType, SemanticMemory
 from memory_fakes import FakeEmbeddings
 
 

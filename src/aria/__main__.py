@@ -24,10 +24,8 @@ from .proactive import ProactiveService
 from .scheduler import ScheduledJob, SchedulerService, register_scheduler_tools
 from .llm.factory import ProviderManager
 from .logging_setup import configure_logging, log_error, log_info
-from .memory import SessionMemory
-from .memory_pkg import MemoryManager, MemoryError
-from .memory_pkg.config import MemorySettings
-from .memory_pkg.tools import register_memory_tools
+from .memory import MemoryManager, MemoryError, MemoryStore, MemorySettings, SessionMemory
+from .memory.tools import register_memory_tools
 from .skills import SkillManager
 from .speech import SpeechController
 from .tools import (

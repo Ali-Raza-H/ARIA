@@ -13,14 +13,14 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from memory_fakes import FakeEmbeddings, make_settings  # noqa: E402
 
-from aria.memory_pkg.classifier import MemoryClassifier, MemoryDecisionType  # noqa: E402
-from aria.memory_pkg.config import MemorySettings  # noqa: E402
-from aria.memory_pkg.lifecycle import LifecycleManager  # noqa: E402
-from aria.memory_pkg.manager import MemoryManager  # noqa: E402
-from aria.memory_pkg.models import MemoryResult, MemoryType, StorageType  # noqa: E402
-from aria.memory_pkg.retriever import QueryKind, classify_query  # noqa: E402
-from aria.memory_pkg.models import utc_now  # noqa: E402
-from aria.memory_pkg.reranker import Reranker  # noqa: E402
+from aria.memory.classifier import MemoryClassifier, MemoryDecisionType  # noqa: E402
+from aria.memory.config import MemorySettings  # noqa: E402
+from aria.memory.lifecycle import LifecycleManager  # noqa: E402
+from aria.memory.manager import MemoryManager  # noqa: E402
+from aria.memory.models import MemoryResult, MemoryType, StorageType  # noqa: E402
+from aria.memory.retriever import QueryKind, classify_query  # noqa: E402
+from aria.memory.models import utc_now  # noqa: E402
+from aria.memory.reranker import Reranker  # noqa: E402
 
 
 # ---------------------------------------------------------------- classifier
@@ -194,7 +194,7 @@ def test_backup_zip_roundtrip(tmp_path: Path) -> None:
     manager = MemoryManager(tmp_path, settings, provider=None, embeddings=FakeEmbeddings())
     try:
         assert manager.remember("User prefers dark themes", "preference", key="theme", value="dark")
-        from aria.memory_pkg import __main__ as memory_cli
+        from aria.memory import __main__ as memory_cli
 
         target = tmp_path / "backup.zip"
         backup_stores = memory_cli.backup_stores

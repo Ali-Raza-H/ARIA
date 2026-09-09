@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from aria.memory_pkg.exceptions import ValidationError
-from aria.memory_pkg.sqlite_store import SQLiteStore
+from aria.memory.exceptions import ValidationError
+from aria.memory.sqlite_store import SQLiteStore
 
 
 @pytest.fixture()
@@ -142,7 +142,7 @@ def test_orphan_detection_and_repair(store: SQLiteStore) -> None:
 def test_expired_memory_detection(store: SQLiteStore) -> None:
     from datetime import timedelta
 
-    from aria.memory_pkg.models import utc_now
+    from aria.memory.models import utc_now
 
     memory_id, _ = store.upsert_fact("default", "profile", "temp", "value")
     past = (utc_now() - timedelta(days=1)).isoformat()

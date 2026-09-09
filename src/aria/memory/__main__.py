@@ -1,6 +1,6 @@
 """CLI for memory inspection, maintenance, and backup (spec §42, §54, §57).
 
-Run with ``uv run python -m aria.memory_pkg stats|search|recent|wipe|health|
+Run with ``uv run python -m aria.memory stats|search|recent|wipe|health|
 maintenance|backup|ingest``.
 """
 

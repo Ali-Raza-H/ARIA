@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-from aria.memory_pkg import MemoryManager
+from aria.memory import MemoryManager
 from memory_fakes import FakeEmbeddings, FakeProvider, make_settings
 
 

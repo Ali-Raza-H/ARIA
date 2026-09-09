@@ -7,7 +7,7 @@ import math
 from pathlib import Path
 from typing import Any
 
-from aria.memory_pkg.config import MemorySettings
+from aria.memory.config import MemorySettings
 
 
 class FakeEmbeddings:

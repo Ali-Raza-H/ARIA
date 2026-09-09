@@ -216,7 +216,7 @@ class LifeOSConfig:
 class MemoryConfig:
     """Hybrid memory settings (SQLite + Chroma RAG).
 
-    Field set matches the new ``memory_pkg`` engine exactly: every field here
+    Field set matches the new ``aria.memory`` engine exactly: every field here
     is consumed, and nothing the engine needs is missing.
     """
 
