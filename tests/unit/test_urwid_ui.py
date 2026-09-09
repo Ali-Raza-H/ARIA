@@ -19,16 +19,21 @@ from aria.ui.urwid.tui import (
 )
 
 
+class DummyMemory:
+    messages: list = []
+    path = Path("/tmp/aria-test-session.json")
+
+    def cleanup(self) -> None:
+        pass
+
+
 class DummyAgent:
     model_name = "test-model"
     max_iterations = 5
+    memory = DummyMemory()
 
-    class memory:  # noqa: N801 - attribute container
-        messages: list = []
-
-        @staticmethod
-        def path() -> None:
-            return None
+    def ensure_system_prompt(self) -> None:
+        pass
 
 
 def make_config(tmp_path: Path, backend: str = "urwid") -> AppConfig:
@@ -185,6 +190,20 @@ def test_post_ui_runs_inline_without_loop(tmp_path: Path) -> None:
     seen: list[str] = []
     repl._post_ui(lambda: seen.append("x"))
     assert seen == ["x"]
+
+
+def test_urwid_clear_rebuilds_visible_body(tmp_path: Path) -> None:
+    repl = UrwidRepl(cast(AriaAgent, DummyAgent()), config=make_config(tmp_path))
+    walker = urwid.SimpleFocusListWalker([])
+    repl._listbox = urwid.ListBox(walker)
+    repl._remember_input("old message")
+    assert len(walker) == 1
+
+    repl._cmd_clear("")
+
+    assert len(walker) == 1
+    assert "/clear" in repl._plain_log[-1]
+    assert "old message" not in " ".join(repl._plain_log)
 
 
 def test_urwid_repl_records_transcript(tmp_path: Path) -> None:
