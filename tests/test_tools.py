@@ -1,6 +1,11 @@
 from pathlib import Path
 
+import pytest
+
+from aria.config import BrowserConfig, DesktopConfig
 from aria.tools import (
+    BrowserToolService,
+    DesktopToolService,
     CustomToolRouter,
     ToolContext,
     ToolRegistry,
@@ -119,3 +124,38 @@ def test_batch_edit_reports_failures(tmp_path: Path) -> None:
     assert not result.is_error  # one applied, failures reported
     assert "applied 1/2" in result.output
     assert "old_text not found" in result.output
+
+
+def test_desktop_managed_mode_only_allows_validated_actions(monkeypatch: pytest.MonkeyPatch) -> None:
+    commands: list[list[str]] = []
+    monkeypatch.setattr("aria.tools.desktop.shutil.which", lambda _name: "/usr/bin/fake")
+    monkeypatch.setattr(
+        "aria.tools.desktop.subprocess.run",
+        lambda command, **_kwargs: commands.append(command) or type("Result", (), {"stdout": "ok", "stderr": "", "returncode": 0})(),
+    )
+    service = DesktopToolService(DesktopConfig(enabled=True, mode="managed"))
+
+    assert service.managed_dispatch({"dispatcher": "workspace", "arguments": ["2"]}) == "ok"
+    with pytest.raises(ValueError, match="managed dispatcher"):
+        service.managed_dispatch({"dispatcher": "exec", "arguments": ["rm", "-rf", "/"]})
+    with pytest.raises(PermissionError, match="unrestricted"):
+        service.dispatch({"dispatcher": "anything", "arguments": []})
+    assert commands == [["hyprctl", "dispatch", "workspace", "2"]]
+
+
+def test_desktop_unrestricted_registers_raw_tools() -> None:
+    from aria.tools import ToolRegistry, register_desktop_tools
+
+    registry = ToolRegistry()
+    register_desktop_tools( registry, DesktopToolService(DesktopConfig(enabled=True, mode="unrestricted")))
+
+    assert "desktop_raw_dispatch" in registry.names()
+    assert "desktop_shell" in registry.names()
+    assert "desktop_set_keybind" in registry.names()
+
+
+def test_browser_output_paths_are_resolved_against_workspace(tmp_path: Path) -> None:
+    service = BrowserToolService(BrowserConfig(), tmp_path)
+    path = service._output_path("captures/page.png", ToolContext(tmp_path), "browser.png")
+
+    assert path == (tmp_path / "captures" / "page.png").resolve()

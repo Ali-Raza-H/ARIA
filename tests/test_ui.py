@@ -1,6 +1,7 @@
 from typing import cast
 
 from rich.console import Console
+from rich.panel import Panel
 from rich.text import Text
 
 from aria.agent.aria import AriaAgent
@@ -66,6 +67,13 @@ def test_transcript_paging_keeps_a_single_full_width_frame() -> None:
         assert len(line) <= 80
 
 
+def test_mouse_wheel_maps_to_transcript_direction() -> None:
+    repl = make_repl(width=80, height=24)
+    assert repl._mouse_scroll_destination(64) == "older"
+    assert repl._mouse_scroll_destination(65) == "newer"
+    assert repl._mouse_scroll_destination(0) is None
+
+
 def test_streaming_frame_keeps_prompt_below_live_output() -> None:
     repl = make_repl(width=80, height=24)
     repl._streaming_body = repl._render_aria_body("A response arriving now.")
@@ -73,3 +81,26 @@ def test_streaming_frame_keeps_prompt_below_live_output() -> None:
 
     rendered = repl.console.export_text(clear=False)
     assert rendered.rfind("A response arriving now.") < rendered.rfind("YOU")
+
+
+def test_keep_cot_retains_steps_in_transcript_after_turn() -> None:
+    repl = make_repl(width=80, height=24)
+    repl.keep_cot = True
+    repl._remember_input("Do a tool call")
+    repl._remember_response(repl._render_aria_body("Done."))
+    cot_panel = Panel(
+        Text("⚙ shell ls"),
+        title="Chain of thought",
+        title_align="left",
+        border_style="bright_black",
+        expand=True,
+        padding=(0, 1),
+    )
+    repl._transcript.insert(-1, cot_panel)
+    repl._redraw_screen()
+
+    rendered = repl.console.export_text(clear=False)
+    assert "Chain of thought" in rendered
+    assert "⚙ shell ls" in rendered
+    # CoT appears before the final answer, both above the prompt.
+    assert rendered.find("Chain of thought") < rendered.rfind("Done.") < rendered.rfind("YOU")

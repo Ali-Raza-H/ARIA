@@ -32,14 +32,18 @@ class OpenAICompatProvider:
     ) -> None:
         if credential_role == "coder":
             api_key_env = str(settings.get("coder_api_key_env", ""))
-            # Coder credentials are intentionally independent: never fall back
-            # to ARIA's key when the dedicated variable is missing.
             api_key = os.getenv(api_key_env) if api_key_env else None
+            role_name = "coder"
+        elif credential_role not in {"aria", ""}:
+            api_key_env = str(settings.get("background_api_key_env", "") or settings.get("aria_api_key_env", ""))
+            api_key = os.getenv(api_key_env) if api_key_env else None
+            role_name = credential_role
+            # Background/vision credentials may be dedicated or reuse ARIA's key.
         else:
             api_key_env = str(settings.get("aria_api_key_env", ""))
             api_key = os.getenv(api_key_env) if api_key_env else None
+            role_name = "ARIA"
         if not api_key:
-            role_name = "coder" if credential_role == "coder" else "ARIA"
             raise ValueError(
                 f"Provider '{provider_name}' needs an API key for {role_name}: "
                 f"set {api_key_env or 'the provider credential'} in .env"
@@ -49,6 +53,9 @@ class OpenAICompatProvider:
             raise ValueError(f"Provider '{provider_name}' is missing base_url in config.yaml")
         self.name = provider_name
         self.model = model
+        image_models = settings.get("image_input_models", [])
+        self.supports_image_input = model in image_models if isinstance(image_models, list) else False
+        self.supports_image_generation = model in (settings.get("image_generation_models", []) or []) if isinstance(settings.get("image_generation_models", []), list) else False
         log_debug(f"OpenAICompatProvider[{provider_name}]: endpoint={base_url} model={model}")
         self.client = OpenAI(api_key=api_key, base_url=base_url)
 
@@ -119,6 +126,27 @@ class OpenAICompatProvider:
             )
         log_info(f"OpenAICompatProvider[{self.name}]: completed, {len(normalized_calls)} tool call(s)")
         return AssistantMessage("".join(content_parts), normalized_calls)
+
+    def generate_image(self, prompt: str, output_path: str) -> str:
+        """Generate one image through an OpenAI-compatible images endpoint."""
+        if not self.supports_image_generation:
+            raise RuntimeError(f"model {self.model} is not marked image-generation capable")
+        response = self.client.images.generate(model=self.model, prompt=prompt, n=1, size="1024x1024")
+        if not response.data:
+            raise RuntimeError("image provider returned no image data")
+        item = response.data[0]
+        import base64
+        import pathlib
+        data = getattr(item, "b64_json", None)
+        if data:
+            pathlib.Path(output_path).write_bytes(base64.b64decode(data))
+        else:
+            import httpx
+            url = getattr(item, "url", None)
+            if not url:
+                raise RuntimeError("image provider returned neither b64_json nor url")
+            pathlib.Path(output_path).write_bytes(httpx.get(url, timeout=30).content)
+        return output_path
 
     def list_models(self) -> list[str]:
         """Return model ids available on this endpoint, best effort."""

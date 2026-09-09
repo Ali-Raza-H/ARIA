@@ -2,7 +2,7 @@
   "schema_version": 2,
   "name": "ARIA",
   "display_name": "ARIA",
-  "description": "Adavanced Reasoning & Intelligence Assistant",
+  "description": "Adaptive Reasoning & Intelligence Assistant",
   "type": "python",
   "category": "ai",
   "stage": "inProgress",
@@ -13,7 +13,7 @@
   },
   "commands": {
     "run": "uv run aria",
-    "install": "uv pip install -e .",
+    "install": "uv sync --extra dev --extra voice --extra voice-local --extra voice-chatterbox",
     "test": "pytest"
   },
   "git": {

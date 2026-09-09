@@ -14,12 +14,17 @@ dependencies = [
     "httpx>=0.27.0",
     "beautifulsoup4>=4.12.3",
     "trafilatura>=1.12.0",
+    "playwright>=1.52.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.3.5",
     "pyright>=1.1.390",
+]
+# Modern urwid TUI (default backend).
+tui = [
+    "urwid>=4.1.0",
 ]
 # Speech engines are optional extras; install only what you use.
 # 'voice' covers hosted Kokoro (audio playback only, no local model).
@@ -37,6 +42,10 @@ voice-chatterbox = [
     "chatterbox-tts>=0.1.0",
     "sounddevice>=0.5.1",
     "soundfile>=0.12.1",
+]
+# Optional Python fallback for desktop input on systems without wtype/ydotool.
+desktop = [
+    "pyautogui>=0.9.54",
 ]
 
 [project.scripts]

@@ -215,6 +215,115 @@ def test_coder_service_rejects_parallel_deployments(tmp_path: Path) -> None:
     assert report.ok
 
 
+# ------------------------------------------------------- context compaction
+
+
+def _compact_memory(history: list[dict], max_chars: int = 80_000) -> list[dict]:
+    """Build a minimal agent around *history* and return provider messages."""
+
+    class StubMemory:
+        messages = history
+        path = Path("/dev/null")
+
+        def add(self, message: dict) -> None:
+            pass
+
+        def extend(self, messages: list[dict]) -> None:
+            pass
+
+        def cleanup(self) -> None:
+            pass
+
+    agent = AriaAgent(
+        FakeProvider(),
+        make_registry(),
+        ToolContext(Path("/tmp")),
+        StubMemory(),  # type: ignore[arg-type]
+        max_iterations=1,
+    )
+    return agent._messages_for_provider(max_chars=max_chars)
+
+
+def test_compaction_never_sends_tool_after_system() -> None:
+    """Regression: 'Unexpected role tool after role system' (HTTP 400, 3230).
+
+    A tool result whose assistant tool_calls message fell out of the compacted
+    window used to land directly after the compaction notice.
+    """
+    history = [
+        {"role": "system", "content": "system prompt"},
+        {"role": "user", "content": "old task"},
+        {"role": "assistant", "content": "", "tool_calls": [
+            {"id": "call_1", "type": "function", "function": {"name": "shell", "arguments": "{}"}}
+        ]},
+        {"role": "tool", "tool_call_id": "call_1", "content": "x" * 90_000},
+        {"role": "assistant", "content": "All done."},
+        {"role": "user", "content": "new task"},
+    ]
+
+    compacted = _compact_memory(history)
+
+    roles = [message["role"] for message in compacted]
+    for previous, current in zip(roles, roles[1:]):
+        assert not (previous == "system" and current == "tool"), compacted
+    assert not (roles and roles[0] != "system")
+
+
+def test_compaction_keeps_tool_results_with_their_tool_calls() -> None:
+    history = [
+        {"role": "system", "content": "system prompt"},
+        {"role": "user", "content": "old task"},
+        {"role": "assistant", "content": "", "tool_calls": [
+            {"id": "call_1", "type": "function", "function": {"name": "shell", "arguments": "{}"}}
+        ]},
+        {"role": "tool", "tool_call_id": "call_1", "content": "x" * 90_000},
+        {"role": "assistant", "content": "All done."},
+    ]
+
+    compacted = _compact_memory(history)
+
+    tool_positions = [i for i, m in enumerate(compacted) if m["role"] == "tool"]
+    for position in tool_positions:
+        assert position > 0
+        assert compacted[position - 1]["role"] == "assistant"
+        assert compacted[position - 1].get("tool_calls"), compacted
+
+
+def test_compaction_counts_tool_calls_toward_the_budget() -> None:
+    # tool_calls payload is large but content is tiny; the turn must still be
+    # dropped when it does not fit, instead of being kept for free.
+    history = [
+        {"role": "system", "content": "system prompt"},
+        {"role": "assistant", "content": "", "tool_calls": [
+            {"id": f"call_{i}", "type": "function",
+             "function": {"name": "shell", "arguments": "{}"}}
+            for i in range(200)
+        ]},
+        {"role": "tool", "tool_call_id": "call_0", "content": "ok"},
+        {"role": "user", "content": "next"},
+    ]
+
+    compacted = _compact_memory(history, max_chars=1_000)
+
+    roles = [message["role"] for message in compacted]
+    for previous, current in zip(roles, roles[1:]):
+        assert not (previous == "system" and current == "tool"), compacted
+
+
+def test_compaction_notice_is_merged_into_the_system_message() -> None:
+    history = [
+        {"role": "system", "content": "system prompt"},
+        {"role": "user", "content": "hello"},
+        {"role": "assistant", "content": "x" * 90_000},
+    ]
+
+    compacted = _compact_memory(history)
+
+    system_messages = [m for m in compacted if m["role"] == "system"]
+    assert len(system_messages) == 1
+    assert "compacted" in system_messages[0]["content"]
+
+
 # ------------------------------------------------------------------- prompts
 
 

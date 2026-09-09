@@ -7,6 +7,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from ..images import ImageAttachment, prepare_image_message
 from ..llm.base import AssistantMessage, Provider, ToolCall
 from ..logging_setup import log_debug, log_error, log_info
 from ..memory import MemoryStore, SessionMemory
@@ -46,6 +47,8 @@ class BaseAgent:
         # Optional hook: receives streaming text from sub-agent deployments
         # (set by the UI so the coder's progress can be shown live).
         self.coder_on_text: Callable[[str], None] | None = None
+        self._active_attachments: list[ImageAttachment] = []
+        self.tool_attachments: list[ImageAttachment] = []
         log_debug(f"BaseAgent initialized: iterations={max_iterations} tools={registry.names()}")
 
     @property
@@ -58,6 +61,8 @@ class BaseAgent:
         user_text: str,
         on_text: Callable[[str], None] | None = None,
         on_event: Callable[[AgentEvent], None] | None = None,
+        attachments: list[ImageAttachment] | None = None,
+        image_fallback_provider: Provider | None = None,
     ) -> str:
         """Process one user message until the model has no more tool calls.
 
@@ -75,6 +80,7 @@ class BaseAgent:
             prepare_context(user_text)
         self.registry.begin_turn()
         self.memory.add({"role": "user", "content": user_text})
+        self._active_attachments = []
         final_content = ""
 
         for iteration in range(self.max_iterations):
@@ -111,8 +117,20 @@ class BaseAgent:
                 emitted_text += chunk
                 on_text(chunk)
 
+            request_messages = self._messages_for_provider()
+            current_attachments = [*(attachments or [])] if iteration == 0 else []
+            current_attachments.extend(self._active_attachments)
+            if current_attachments:
+                request_messages = self._messages_for_provider(
+                    image_content=prepare_image_message(
+                        self.provider,
+                        user_text,
+                        current_attachments,
+                        fallback_provider=image_fallback_provider,
+                    )
+                )
             response = self.provider.complete(
-                self._messages_for_provider(),
+                request_messages,
                 self.registry.schemas(),
                 on_text=on_provider_text,
             )
@@ -156,6 +174,9 @@ class BaseAgent:
                 )
                 log_debug(f"BaseAgent.run: executing tool '{call.name}'")
                 result = self.registry.execute(call.name, call.arguments, self.context)
+                if self.tool_attachments:
+                    self._active_attachments.extend(self.tool_attachments)
+                    self.tool_attachments.clear()
                 emit(
                     AgentEvent(
                         kind="tool_result",
@@ -197,30 +218,106 @@ class BaseAgent:
         complete_turn = getattr(self.memory, "turn_completed", None)
         if callable(complete_turn):
             complete_turn(user_text, message)
+        self._active_attachments = []
         return message
 
-    def _messages_for_provider(self, max_chars: int = 80_000) -> list[dict[str, Any]]:
+    @staticmethod
+    def _message_size(message: dict[str, Any]) -> int:
+        """Approximate request size of one message, including tool calls.
+
+        An assistant message's ``tool_calls`` payload also reaches the wire, so
+        it must count toward the compaction budget; measuring only ``content``
+        used to let a turn be split right after the assistant message.
+        """
+        size = len(str(message.get("content", "")))
+        tool_calls = message.get("tool_calls")
+        if tool_calls:
+            size += len(json.dumps(tool_calls, ensure_ascii=True))
+        return size
+
+    @staticmethod
+    def _turn_boundary(messages: list[dict[str, Any]], start: int) -> int:
+        """Return the exclusive end of the turn that starts at index *start*.
+
+        A turn is one user message, or one assistant message together with the
+        tool results that answer it. Truncation must never split a turn:
+        sending a ``tool`` message whose matching assistant ``tool_calls``
+        message was dropped makes the request invalid ("Unexpected role 'tool'
+        after role 'system'").
+        """
+        role = messages[start].get("role")
+        end = start + 1
+        if role == "assistant" and messages[start].get("tool_calls"):
+            while end < len(messages) and messages[end].get("role") == "tool":
+                end += 1
+        return end
+
+    def _messages_for_provider(
+        self,
+        max_chars: int = 80_000,
+        image_content: str | list[dict[str, Any]] | None = None,
+    ) -> list[dict[str, Any]]:
         """Keep requests bounded even when a session remains open for days.
 
         The durable memory layer supplies retrieved continuity; sending every
         historic tool payload again is both expensive and a common cause of
-        context-window failures. Keep the system prompt and newest complete
-        messages, replacing dropped history with an explicit notice.
+        context-window failures. Keep the system prompt and the newest turns
+        that fit the budget, replacing dropped history with an explicit notice
+        merged into the system message (never a separate system message before
+        a tool result, which OpenAI-compatible endpoints reject).
         """
         messages = self.memory.messages
-        if sum(len(str(message.get("content", ""))) for message in messages) <= max_chars:
-            return list(messages)
+        if sum(self._message_size(message) for message in messages) <= max_chars:
+            result = list(messages)
+            if image_content is not None:
+                self._attach_image_content(result, image_content)
+            return result
         system = messages[:1] if messages and messages[0].get("role") == "system" else []
+        notice = "\n\nEarlier turn/tool details were compacted; use persistent memory or tools to re-check facts."
+        if system:
+            head: list[dict[str, Any]] = [
+                {**system[0], "content": str(system[0].get("content", "")) + notice}
+            ]
+        else:
+            head = [{"role": "system", "content": notice.strip()}]
+        body = messages[len(system) :]
         kept: list[dict[str, Any]] = []
-        used = sum(len(str(message.get("content", ""))) for message in system)
-        for message in reversed(messages[len(system) :]):
-            size = len(str(message.get("content", "")))
-            if kept and used + size > max_chars:
+        used = sum(self._message_size(message) for message in head)
+        index = len(body)
+        while index > 0:
+            # One turn = user message, or assistant + its tool results.
+            if body[index - 1].get("role") == "tool":
+                # Find the assistant message that owns the trailing tool results.
+                owner = index - 1
+                while owner > 0 and body[owner - 1].get("role") == "tool":
+                    owner -= 1
+                owner -= 1
+                turn_start = owner if owner >= 0 and body[owner].get("role") == "assistant" else index - 1
+            else:
+                turn_start = index - 1
+            turn = body[turn_start:index]
+            turn_size = sum(self._message_size(message) for message in turn)
+            if kept and used + turn_size > max_chars:
                 break
-            kept.append(message)
-            used += size
-        notice = {"role": "system", "content": "Earlier turn/tool details were compacted; use persistent memory or tools to re-check facts."}
-        return [*system, notice, *reversed(kept)]
+            kept[:0] = turn
+            used += turn_size
+            index = turn_start
+        result = [*head, *kept]
+        if image_content is not None:
+            self._attach_image_content(result, image_content)
+        return result
+
+    @staticmethod
+    def _attach_image_content(messages: list[dict[str, Any]], image_content: str | list[dict[str, Any]]) -> None:
+        """Attach images without overwriting a tool-result user message."""
+        if messages and messages[-1].get("role") == "user" and isinstance(messages[-1].get("content"), str):
+            # A custom-protocol tool result is also represented as a user
+            # message. If the previous message is an assistant response, keep
+            # that result and append a distinct image turn.
+            if len(messages) < 2 or messages[-2].get("role") != "assistant":
+                messages[-1] = {**messages[-1], "content": image_content}
+                return
+        messages.append({"role": "user", "content": image_content})
 
     @staticmethod
     def _assistant_message(

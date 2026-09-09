@@ -1,7 +1,7 @@
 # Copy this file to config.yaml and set what ARIA should use.
 
 # --- The assistant you talk to -------------------------------------------
-provider: gemini          # cerebras | gemini | groq | nvidia | openrouter | openai | mistral | ollama
+provider: gemini          # cerebras | gemini | groq | nvidia | openrouter | openai | mistral | zai | ollama
 model: gemini-2.5-flash
 persona: jarvis           # ARIA's personality (see src/aria/prompts.py)
 
@@ -45,6 +45,11 @@ providers:
     coder_api_key_env: CODER_MISTRAL_API_KEY
     base_url: https://api.mistral.ai/v1
     models: [mistral-large-latest, mistral-small-latest, codestral-latest]
+  zai:
+    aria_api_key_env: ARIA_ZAI_API_KEY
+    coder_api_key_env: CODER_ZAI_API_KEY
+    base_url: https://api.z.ai/api/paas/v4
+    models: [glm-4.7, glm-4.6, glm-4.7-flash, glm-4.5-air]
   ollama:
     host: http://127.0.0.1:11434
     # Most Ollama models do not support native tools; ARIA's custom
@@ -62,13 +67,53 @@ coder:
   max_iterations: 60      # coding agent gets a far bigger budget than ARIA
   max_output_chars: 12000 # per-command output cap inside deployments
 
+# --- Browser automation (ARIA only) --------------------------------------
+# Playwright uses a persistent Chromium profile. Run `playwright install chromium`
+# after syncing dependencies. This is intentionally opt-in because cookies,
+# downloads, uploads, and form actions can affect real accounts.
+browser:
+  enabled: false
+  headless: false
+  profile_directory: data/browser-profile
+  executable_path: ""       # optional system Chromium path
+  timeout_ms: 15000
+  max_text_chars: 30000
+  wait_until: domcontentloaded
+  viewport_width: 1440
+  viewport_height: 900
+  launch_args: []
+
+# --- Hyprland desktop control (ARIA only) -------------------------------
+# managed validates dispatchers and only launches named commands below.
+# unrestricted additionally exposes raw hyprctl dispatch, marked keybind
+# editing, and desktop_shell. Use only when you explicitly accept full local
+# desktop control.
+desktop:
+  enabled: true
+  mode: managed             # managed | unrestricted
+  input_backend: arch       # arch (wtype/ydotool/grim) | pyautogui
+  hyprctl_command: hyprctl
+  wtype_command: wtype
+  ydotool_command: ydotool
+  screenshot_command: grim
+  hyprland_config_path: "" # required only for desktop_set_keybind
+  command_timeout_seconds: 15
+  launchers:
+    terminal: [kitty]
+    browser: [firefox]
+
 # --- Web search (local SearXNG) ------------------------------------------
 # Start the bundled deployment from infrastructure/searxng with:
 #   docker compose up -d
+# start_backend: opt-in — when true, ARIA may run that docker compose command
+# itself (with a 30 s probe) when SearXNG is unreachable at startup. When
+# false (default), startup never touches Docker and continues without web
+# search, printing a warning with the recovery command.
 # Webpage fetching blocks private/local destinations by default. Add exact
 # hostnames only when you intentionally need an internal source.
 web:
   enabled: true
+  start_backend: false
   searxng_url: http://127.0.0.1:8080
   search_timeout: 10
   page_timeout: 15
@@ -89,11 +134,71 @@ web:
 # finance, and more. Requires LIFEOS_API_KEY in .env; left unconfigured ARIA
 # simply answers "not configured" instead of failing.
 lifeos:
+  enabled: true
   base_url: ""             # e.g. http://127.0.0.1:5000
   api_key_env: LIFEOS_API_KEY
   timeout_seconds: 15
   max_retries: 1           # extra attempts on 5xx/network errors
   retry_backoff_seconds: 0.4
+
+# --- Proactive work and autonomy ------------------------------------------
+# Background work is in-process: it runs only while ARIA is open. Every
+# scheduled action is written to scheduler.sqlite3 before/after execution.
+# Keep autonomy disabled until you have reviewed the category allowlist.
+
+
+autonomy:
+  enabled: false
+  allowed_categories: []   # analysis | lifeos_writes | notifications | computer_control | timers
+  lifeos_write_operations: [] # explicit operation names, e.g. [create_task]
+
+background:
+  enabled: true
+  provider: null            # dedicated provider; null disables model analysis
+  model: null
+  api_key_env: ""          # optional hosted-provider key override
+  profile_path: data/proactive-profile.json
+  max_output_chars: 8000
+
+
+notifications:
+  enabled: true
+  backend: notify-send     # Dunst normally receives notify-send messages; dbus is also supported
+  notify_send_command: notify-send
+  dbus_command: gdbus
+  app_name: ARIA
+  default_urgency: normal
+  default_timeout_ms: 10000
+  tts_enabled: true
+
+scheduler:
+  enabled: true
+  database: data/scheduler/scheduler.sqlite3
+  workflow_directory: workflows
+  poll_seconds: 15
+  default_workflows: true
+  timezone: system
+  default_misfire_policy: skip # skip | run_once
+  briefing_times: ["08:00", "13:00", "18:00"]
+  deadline_check_minutes: 30
+  goal_check_minutes: 120
+  calendar_check_minutes: 60
+  briefing_web_queries: ["Weather in Bolton", "Latest AI News", "XAUUSD Market news including news that may affect price of Gold"]   # e.g. ["weather in my city", "technology news about ..."]
+
+# Images are ephemeral by default. Native image models receive image parts;
+# otherwise ARIA sends them to the configured visual fallback for a textual
+# description. Periodic screen context is deliberately opt-in.
+vision:
+  enabled: true
+  fallback_provider: null
+  fallback_model: null
+  fallback_api_key_env: ""
+  max_image_bytes: 10485760
+  clipboard_backend: auto   # auto | wl-paste | xclip | python
+  screenshot_command: grim
+  retain_images: false
+  periodic_screen_enabled: false
+  periodic_screen_cron: "*/15 * * * *"
 
 # --- Speech (text-to-speech) ----------------------------------------------
 # Choose kokoro_hf for Hugging Face-hosted inference or kokoro_local for the
@@ -117,22 +222,28 @@ logging:
   max_bytes: 5242880      # 5 MiB per file before rotation
   backup_count: 3
 
-# --- Persistent three-tier memory ------------------------------------------
-# Tier 1 facts and job/session metadata use SQLite. Tiers 2 and 3 use two
-# local Chroma collections under data/memory/chroma. Chroma is required.
+# --- Hybrid memory (SQLite + Chroma RAG) ------------------------------------
+# SQLite stores what ARIA needs to know exactly (facts, preferences, projects,
+# goals, tasks + a memory registry and event log). Chroma stores what ARIA may
+# want to remember semantically (conversation, episodic, knowledge, project
+# context collections under data/memory/chroma). Chroma is required.
+#
+# Retrieval is query-aware: structured questions hit SQLite, historical
+# questions hit Chroma, and hybrid questions combine both. Results are ranked
+# by similarity/importance/confidence/recency/access and injected into the
+# system prompt as a delimited <assistant_memory> block (treated as context,
+# never as instructions).
 #
 # The optional OpenAI-compatible endpoint is tried first. If it is absent or
 # unavailable, ARIA tries the Ollama models below in order. Install Ollama and
 # pull at least one model before starting ARIA:
 #   ollama pull qwen3-embedding:0.6b
-# Other supported choices: nomic-embed-text, mxbai-embed-large, bge-m3,
-# snowflake-arctic-embed. qwen3-embedding:0.6b is the comfortable 8 GB default.
 memory:
   enabled: true
-  directory: data/memory
+  directory: data/memory              # SQLite lives at <directory>/assistant.db
   chroma_directory: data/memory/chroma
-  embedding_base_url: ""          # optional OpenAI-compatible embeddings URL
-  embedding_model: ""             # optional model at that URL
+  embedding_base_url: ""              # optional OpenAI-compatible embeddings URL
+  embedding_model: ""                 # optional model at that URL
   embedding_api_key_env: MEMORY_EMBEDDING_API_KEY
   embedding_ollama_host: http://127.0.0.1:11434
   embedding_fallback_models:
@@ -141,25 +252,32 @@ memory:
     - mxbai-embed-large
     - bge-m3
     - snowflake-arctic-embed
-  raw_retention_days: 30
-  archive_retention_days: 365
-  tier2_retention_days: 730
-  detail_mode: raw_then_summary    # raw | raw_then_summary | delete_after_summary
-  context_token_budget: 4000
-  tier2_limit: 8
-  tier3_limit: 8
-  # Importance-first ranking profile; values may be changed per deployment.
+  # Retrieval (spec: query-aware, token-bounded)
+  context_token_budget: 4000          # approx max words of injected memory
+  # Ranking weights (configurable per deployment)
   rank_similarity: 0.25
   rank_recency: 0.15
   rank_frequency: 0.10
   rank_importance: 0.35
-  rank_explicit: 0.15
-  promotion_confidence: 0.80
-  promotion_importance: 0.70
-  promotion_repetitions: 2
-  promotion_recency_days: 365
-  retry_interval_seconds: 60
-  warmup_turns: 1
+  rank_confidence: 0.15
+  # Lifecycle: decay/expiry of low-value memories; confirmed and important
+  # memories are never auto-deleted purely for age. 0 days = never expires.
+  episodic_retention_days: 180
+  conversation_retention_days: 365
+  knowledge_retention_days: 0
+
+# --- YAML autonomous workflows --------------------------------------------
+# Put additional workflows in workflows/*.yaml. See workflows/README.md.
+# Example:
+# workflows:
+#   - name: create_followup_task
+#     cron: "0 17 * * 1-5"
+#     category: lifeos_writes
+#     action:
+#       type: lifeos_write
+#       operation: create_task
+#       arguments: {title: "Review today's follow-ups"}
+#     misfire_policy: skip
 
 # --- Workspace & limits ----------------------------------------------------
 # All paths are resolved from the directory where aria starts.
@@ -168,8 +286,18 @@ memory:
 workspace: .
 
 # --- UI --------------------------------------------------------------------
+# backend: urwid (modern TUI, install --extra tui) or rich (legacy full-screen)
+# show_cot: live tool chain-of-thought while ARIA works
+# keep_cot: also keep the finished chain of thought in the transcript
 ui:
+  backend: urwid
   show_cot: true
+  keep_cot: false
+
+# --- Skills ----------------------------------------------------------------
+# Drop Markdown files into skills/ (created on first run) to shape ARIA's
+# behavior, personality, and workflows. Files are re-read every turn; front-
+# matter name/priority is optional. See skills/README.md.
 
 # The conversational loop stops after this many model/tool rounds as an emergency guard.
 max_iterations: 20

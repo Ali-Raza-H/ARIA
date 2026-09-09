@@ -18,6 +18,7 @@ OPENAI_COMPATIBLE = {
     "openrouter",
     "openai",
     "mistral",
+    "zai",
 }
 
 # Well-known defaults; config.yaml can override or extend any of them.
@@ -63,6 +64,12 @@ DEFAULT_PROVIDER_SETTINGS: dict[str, dict[str, Any]] = {
         "coder_api_key_env": "CODER_MISTRAL_API_KEY",
         "base_url": "https://api.mistral.ai/v1",
         "models": ["mistral-large-latest", "mistral-small-latest", "codestral-latest"],
+    },
+    "zai": {
+        "aria_api_key_env": "ARIA_ZAI_API_KEY",
+        "coder_api_key_env": "CODER_ZAI_API_KEY",
+        "base_url": "https://api.z.ai/api/paas/v4",
+        "models": ["glm-4.7", "glm-4.6", "glm-4.7-flash", "glm-4.5-air"],
     },
     "ollama": {
         "host": "http://127.0.0.1:11434",
@@ -129,10 +136,20 @@ class ProviderManager:
         """Instantiate a coder provider using its dedicated credential."""
         return self._create(provider, model, credential_role="coder")
 
-    def _create(self, provider: str, model: str, *, credential_role: str) -> Provider:
+    def create_role(self, provider: str, model: str, role: str, api_key_env: str = "") -> Provider:
+        """Instantiate a provider for background/vision work.
+
+        Hosted roles may use an explicitly configured environment variable;
+        otherwise they use the provider's ARIA credential.
+        """
+        return self._create(provider, model, credential_role=role, api_key_env=api_key_env)
+
+    def _create(self, provider: str, model: str, *, credential_role: str, api_key_env: str = "") -> Provider:
         if provider not in self._settings:
             raise ValueError(f"Unknown provider: {provider}. Available: {', '.join(self.names())}")
-        settings = self._settings[provider]
+        settings = dict(self._settings[provider])
+        if api_key_env:
+            settings["background_api_key_env"] = api_key_env
         if provider == "ollama":
             return OllamaProvider(model, settings)
         if provider in OPENAI_COMPATIBLE:

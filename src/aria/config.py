@@ -25,6 +25,7 @@ KNOWN_PROVIDERS = {
     "openrouter",
     "openai",
     "mistral",
+    "zai",
     "ollama",
 }
 
@@ -88,6 +89,111 @@ class WebConfig:
     page_cache_ttl: int = 1_800
     allowed_hosts: tuple[str, ...] = ()
     user_agent: str = "ARIA/1.0"
+    # Opt-in: let ARIA run `docker compose up -d` for SearXNG when it is not
+    # reachable at startup. Off by default so startup never changes Docker
+    # state and never blocks on an optional service (bugReport BR-1).
+    start_backend: bool = False
+
+
+@dataclass(frozen=True)
+class BrowserConfig:
+    """Persistent Playwright browser settings."""
+
+    enabled: bool = False
+    headless: bool = False
+    profile_directory: Path = Path("data/browser-profile")
+    executable_path: str = ""
+    timeout_ms: int = 15_000
+    max_text_chars: int = 30_000
+    wait_until: str = "domcontentloaded"
+    viewport_width: int = 1440
+    viewport_height: int = 900
+    launch_args: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class DesktopConfig:
+    """Hyprland control settings; managed mode is the safe default."""
+
+    enabled: bool = False
+    mode: str = "managed"  # managed | unrestricted
+    input_backend: str = "arch"  # arch | pyautogui
+    hyprctl_command: str = "hyprctl"
+    wtype_command: str = "wtype"
+    ydotool_command: str = "ydotool"
+    screenshot_command: str = "grim"
+    hyprland_config_path: str = ""
+    command_timeout_seconds: float = 15.0
+    launchers: dict[str, tuple[str, ...]] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class NotificationConfig:
+    """Desktop notification and optional speech settings for background work."""
+
+    enabled: bool = True
+    backend: str = "notify-send"  # notify-send | dbus
+    notify_send_command: str = "notify-send"
+    dbus_command: str = "gdbus"
+    app_name: str = "ARIA"
+    default_urgency: str = "normal"
+    default_timeout_ms: int = 10_000
+    tts_enabled: bool = True
+
+
+@dataclass(frozen=True)
+class AutonomyConfig:
+    """Categories ARIA may execute without an interactive prompt."""
+
+    enabled: bool = False
+    allowed_categories: tuple[str, ...] = ()
+    lifeos_write_operations: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class BackgroundConfig:
+    """Dedicated model settings for proactive analysis and briefings."""
+
+    enabled: bool = True
+    provider: str | None = None
+    model: str | None = None
+    api_key_env: str = ""
+    profile_path: Path = Path("data/proactive-profile.json")
+    max_output_chars: int = 8_000
+
+
+@dataclass(frozen=True)
+class VisionConfig:
+    """Image input/generation and visual fallback settings."""
+
+    enabled: bool = True
+    fallback_provider: str | None = None
+    fallback_model: str | None = None
+    fallback_api_key_env: str = ""
+    max_image_bytes: int = 10 * 1024 * 1024
+    clipboard_backend: str = "auto"  # auto | wl-paste | xclip | python
+    screenshot_command: str = "grim"
+    retain_images: bool = False
+    periodic_screen_enabled: bool = False
+    periodic_screen_cron: str = "*/15 * * * *"
+
+
+@dataclass(frozen=True)
+class SchedulerConfig:
+    """In-process persistent scheduler settings."""
+
+    enabled: bool = False
+    database: Path = Path("data/scheduler/scheduler.sqlite3")
+    workflow_directory: Path = Path("workflows")
+    poll_seconds: int = 15
+    default_workflows: bool = True
+    timezone: str = "system"
+    default_misfire_policy: str = "skip"  # skip | run_once
+    briefing_times: tuple[str, ...] = ("08:00", "13:00", "18:00")
+    deadline_check_minutes: int = 30
+    goal_check_minutes: int = 120
+    calendar_check_minutes: int = 60
+    briefing_web_queries: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -108,7 +214,11 @@ class LifeOSConfig:
 
 @dataclass(frozen=True)
 class MemoryConfig:
-    """Persistent three-tier memory settings."""
+    """Hybrid memory settings (SQLite + Chroma RAG).
+
+    Field set matches the new ``memory_pkg`` engine exactly: every field here
+    is consumed, and nothing the engine needs is missing.
+    """
 
     enabled: bool = True
     directory: Path = Path("data/memory")
@@ -124,24 +234,15 @@ class MemoryConfig:
         "bge-m3",
         "snowflake-arctic-embed",
     )
-    raw_retention_days: int = 30
-    archive_retention_days: int = 365
-    tier2_retention_days: int = 730
-    detail_mode: str = "raw_then_summary"
     context_token_budget: int = 4000
-    tier2_limit: int = 8
-    tier3_limit: int = 8
     rank_similarity: float = 0.25
     rank_recency: float = 0.15
     rank_frequency: float = 0.10
     rank_importance: float = 0.35
-    rank_explicit: float = 0.15
-    promotion_confidence: float = 0.80
-    promotion_importance: float = 0.70
-    promotion_repetitions: int = 2
-    promotion_recency_days: int = 365
-    retry_interval_seconds: int = 60
-    warmup_turns: int = 1
+    rank_confidence: float = 0.15
+    episodic_retention_days: int = 180
+    conversation_retention_days: int = 365
+    knowledge_retention_days: int = 0  # 0 = never expires
 
 
 @dataclass(frozen=True)
@@ -162,14 +263,27 @@ class AppConfig:
     lifeos: LifeOSConfig = field(default_factory=LifeOSConfig)
     web: WebConfig = field(default_factory=WebConfig)
     memory: MemoryConfig = field(default_factory=MemoryConfig)
+    browser: BrowserConfig = field(default_factory=BrowserConfig)
+    desktop: DesktopConfig = field(default_factory=DesktopConfig)
+    notifications: NotificationConfig = field(default_factory=NotificationConfig)
+    autonomy: AutonomyConfig = field(default_factory=AutonomyConfig)
+    background: BackgroundConfig = field(default_factory=BackgroundConfig)
+    vision: VisionConfig = field(default_factory=VisionConfig)
+    scheduler: SchedulerConfig = field(default_factory=SchedulerConfig)
     show_cot: bool = True
+    keep_cot: bool = False
+    ui_backend: str = "urwid"
     runtime_state_path: Path = Path("data/aria-state.yaml")
+    # Top-level keys the runtime state file overrode (empty when none or when
+    # state loading was skipped). Surfaced so startup can show the source of
+    # the effective provider/model (bugReport BR-2).
+    runtime_state_overrides: tuple[str, ...] = ()
 
 
 RUNTIME_STATE_RELATIVE_PATH = Path("data/aria-state.yaml")
 
 
-def _load_runtime_state(path: Path) -> dict[str, Any]:
+def _load_runtime_state(path: Path, root: Path) -> dict[str, Any]:
     """Load the small, non-secret file containing preferences changed in the REPL."""
     if not path.is_file():
         return {}
@@ -192,24 +306,48 @@ def _load_runtime_state(path: Path) -> dict[str, Any]:
         value = loaded.get(section)
         if isinstance(value, dict):
             state[section] = dict(value)
+
+    # Sanitize before applying: one stale or corrupt value (e.g. a workspace
+    # under a since-deleted pytest tmpdir, or a scratch model name) must drop
+    # that single key instead of blocking startup (bugReport BR-2).
+    for key in ("provider", "model"):
+        value = state.get(key)
+        if value is not None and (not isinstance(value, str) or not value.strip()):
+            log_error(f"Config: ignoring invalid runtime state {key}: {value!r}")
+            del state[key]
+    workspace = state.get("workspace")
+    if workspace is not None:
+        valid = isinstance(workspace, str) and workspace.strip() and (root / workspace).resolve().is_dir()
+        if valid:
+            state["workspace"] = str(workspace)
+        else:
+            log_error(f"Config: ignoring runtime state workspace (missing directory): {workspace!r}")
+            del state["workspace"]
+    iterations = state.get("max_iterations")
+    if iterations is not None and (not isinstance(iterations, int) or isinstance(iterations, bool) or iterations <= 0):
+        log_error(f"Config: ignoring invalid runtime state max_iterations: {iterations!r}")
+        del state["max_iterations"]
     return state
 
 
-def _apply_runtime_state(raw: dict[str, Any], state: dict[str, Any]) -> dict[str, Any]:
-    """Apply saved runtime preferences while retaining static YAML settings."""
+def _apply_runtime_state(raw: dict[str, Any], state: dict[str, Any]) -> set[str]:
+    """Apply saved runtime preferences; return the keys that were overridden."""
+    applied: set[str] = set()
     for key in ("provider", "model", "workspace", "max_iterations"):
         if key in state:
             raw[key] = state[key]
+            applied.add(key)
     for section in ("speech", "coder", "ui"):
         values = state.get(section)
-        if not isinstance(values, dict):
+        if not isinstance(values, dict) or not values:
             continue
         current = raw.get(section)
         if not isinstance(current, dict):
             current = {}
         current.update(values)
         raw[section] = current
-    return raw
+        applied.add(section)
+    return applied
 
 
 def save_runtime_state(
@@ -217,6 +355,7 @@ def save_runtime_state(
     config: AppConfig,
     *,
     show_cot: bool | None = None,
+    keep_cot: bool | None = None,
     coder_max_iterations: int | None = None,
 ) -> None:
     """Atomically save non-secret preferences changed during this ARIA run."""
@@ -237,7 +376,10 @@ def save_runtime_state(
             "enabled": config.speech.enabled,
             "engine": config.speech.engine,
         },
-        "ui": {"show_cot": config.show_cot if show_cot is None else show_cot},
+        "ui": {
+            "show_cot": config.show_cot if show_cot is None else show_cot,
+            "keep_cot": config.keep_cot if keep_cot is None else keep_cot,
+        },
     }
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f".{path.name}.tmp")
@@ -316,8 +458,18 @@ def _optional_positive_int(value: Any, name: str) -> int | None:
     return value
 
 
-def load_config(path: Path, launch_directory: Path | None = None) -> AppConfig:
-    """Load config from YAML (+.env), resolving the workspace from the launch directory."""
+def load_config(
+    path: Path,
+    launch_directory: Path | None = None,
+    *,
+    ignore_runtime_state: bool = False,
+) -> AppConfig:
+    """Load config from YAML (+.env), resolving the workspace from the launch directory.
+
+    With ``ignore_runtime_state`` the persisted REPL preferences in
+    ``data/aria-state.yaml`` are skipped entirely (the ``--ignore-state``
+    flag), so static ``config.yaml`` values win.
+    """
     # Load .env from the config file's directory, then the launch directory.
     for base in (path.parent, launch_directory or Path.cwd()):
         env_file = base / ".env"
@@ -339,7 +491,14 @@ def load_config(path: Path, launch_directory: Path | None = None) -> AppConfig:
         raise ConfigError("Configuration must be a YAML object")
     # Runtime state restores interactive preferences, while explicit ARIA_*
     # environment variables remain the highest-precedence override.
-    raw = _apply_runtime_state(raw, _load_runtime_state(state_path))
+    runtime_overrides: set[str] = set()
+    if ignore_runtime_state:
+        log_info("Config: runtime state ignored (--ignore-state)")
+    else:
+        state = _load_runtime_state(state_path, root)
+        runtime_overrides = _apply_runtime_state(raw, state)
+        if runtime_overrides:
+            log_info(f"Config: runtime state overrides applied: {', '.join(sorted(runtime_overrides))}")
     raw = _env_override(raw)
 
     provider = raw.get("provider")
@@ -480,7 +639,217 @@ def load_config(path: Path, launch_directory: Path | None = None) -> AppConfig:
         page_timeout=float(page_timeout),
         allowed_hosts=tuple(item.strip() for item in raw_allowed_hosts),
         user_agent=str(web_section.get("user_agent", "ARIA/1.0")),
+        start_backend=bool(web_section.get("start_backend", False)),
         **web_ints,
+    )
+
+    browser_section = raw.get("browser", {}) or {}
+    if not isinstance(browser_section, dict):
+        raise ConfigError("browser must be a YAML object")
+    browser_timeout = browser_section.get("timeout_ms", 15_000)
+    browser_text_limit = browser_section.get("max_text_chars", 30_000)
+    viewport_width = browser_section.get("viewport_width", 1440)
+    viewport_height = browser_section.get("viewport_height", 900)
+    if not isinstance(browser_timeout, int) or browser_timeout <= 0:
+        raise ConfigError("browser.timeout_ms must be a positive integer")
+    if not isinstance(browser_text_limit, int) or browser_text_limit <= 0:
+        raise ConfigError("browser.max_text_chars must be a positive integer")
+    if not isinstance(viewport_width, int) or viewport_width <= 0 or not isinstance(viewport_height, int) or viewport_height <= 0:
+        raise ConfigError("browser viewport dimensions must be positive integers")
+    wait_until = str(browser_section.get("wait_until", "domcontentloaded")).strip().lower()
+    if wait_until not in {"commit", "domcontentloaded", "load", "networkidle"}:
+        raise ConfigError("browser.wait_until must be commit, domcontentloaded, load, or networkidle")
+    launch_args = browser_section.get("launch_args", [])
+    if not isinstance(launch_args, list) or not all(isinstance(item, str) for item in launch_args):
+        raise ConfigError("browser.launch_args must be a list of strings")
+    browser_profile = Path(str(browser_section.get("profile_directory", "data/browser-profile")))
+    if not browser_profile.is_absolute():
+        browser_profile = root / browser_profile
+    browser_config = BrowserConfig(
+        enabled=bool(browser_section.get("enabled", False)),
+        headless=bool(browser_section.get("headless", False)),
+        profile_directory=browser_profile,
+        executable_path=str(browser_section.get("executable_path", "")).strip(),
+        timeout_ms=browser_timeout,
+        max_text_chars=browser_text_limit,
+        wait_until=wait_until,
+        viewport_width=viewport_width,
+        viewport_height=viewport_height,
+        launch_args=tuple(launch_args),
+    )
+
+    desktop_section = raw.get("desktop", {}) or {}
+    if not isinstance(desktop_section, dict):
+        raise ConfigError("desktop must be a YAML object")
+    desktop_mode = str(desktop_section.get("mode", "managed")).strip().lower()
+    if desktop_mode not in {"managed", "unrestricted"}:
+        raise ConfigError("desktop.mode must be managed or unrestricted")
+    input_backend = str(desktop_section.get("input_backend", "arch")).strip().lower()
+    if input_backend not in {"arch", "pyautogui"}:
+        raise ConfigError("desktop.input_backend must be arch or pyautogui")
+    desktop_timeout = desktop_section.get("command_timeout_seconds", 15.0)
+    if not isinstance(desktop_timeout, (int, float)) or desktop_timeout <= 0:
+        raise ConfigError("desktop.command_timeout_seconds must be a positive number")
+    raw_launchers = desktop_section.get("launchers", {}) or {}
+    if not isinstance(raw_launchers, dict):
+        raise ConfigError("desktop.launchers must be a YAML object")
+    launchers: dict[str, tuple[str, ...]] = {}
+    for name, command in raw_launchers.items():
+        if not isinstance(name, str) or not name.strip() or not isinstance(command, list) or not command or not all(isinstance(item, str) and item for item in command):
+            raise ConfigError("desktop.launchers must map names to non-empty command arrays")
+        launchers[name.strip()] = tuple(command)
+    desktop_config = DesktopConfig(
+        enabled=bool(desktop_section.get("enabled", False)),
+        mode=desktop_mode,
+        input_backend=input_backend,
+        hyprctl_command=str(desktop_section.get("hyprctl_command", "hyprctl")),
+        wtype_command=str(desktop_section.get("wtype_command", "wtype")),
+        ydotool_command=str(desktop_section.get("ydotool_command", "ydotool")),
+        screenshot_command=str(desktop_section.get("screenshot_command", "grim")),
+        hyprland_config_path=str(desktop_section.get("hyprland_config_path", "")).strip(),
+        command_timeout_seconds=float(desktop_timeout),
+        launchers=launchers,
+    )
+
+    notifications_section = raw.get("notifications", {}) or {}
+    if not isinstance(notifications_section, dict):
+        raise ConfigError("notifications must be a YAML object")
+    urgency = str(notifications_section.get("default_urgency", "normal")).lower()
+    if urgency not in {"low", "normal", "critical"}:
+        raise ConfigError("notifications.default_urgency must be low, normal, or critical")
+    notification_backend = str(notifications_section.get("backend", "notify-send")).lower()
+    if notification_backend not in {"notify-send", "dbus"}:
+        raise ConfigError("notifications.backend must be notify-send or dbus")
+    notification_timeout = notifications_section.get("default_timeout_ms", 10_000)
+    if not isinstance(notification_timeout, int) or notification_timeout < 0:
+        raise ConfigError("notifications.default_timeout_ms must be a non-negative integer")
+    notifications_config = NotificationConfig(
+        enabled=bool(notifications_section.get("enabled", True)),
+        backend=notification_backend,
+        notify_send_command=str(notifications_section.get("notify_send_command", "notify-send")),
+        dbus_command=str(notifications_section.get("dbus_command", "gdbus")),
+        app_name=str(notifications_section.get("app_name", "ARIA")),
+        default_urgency=urgency,
+        default_timeout_ms=notification_timeout,
+        tts_enabled=bool(notifications_section.get("tts_enabled", True)),
+    )
+
+    autonomy_section = raw.get("autonomy", {}) or {}
+    if not isinstance(autonomy_section, dict):
+        raise ConfigError("autonomy must be a YAML object")
+    allowed_categories = autonomy_section.get("allowed_categories", [])
+    valid_categories = {"analysis", "lifeos_writes", "notifications", "computer_control", "timers"}
+    if not isinstance(allowed_categories, list) or not all(isinstance(item, str) and item in valid_categories for item in allowed_categories):
+        raise ConfigError(f"autonomy.allowed_categories must contain only: {', '.join(sorted(valid_categories))}")
+    lifeos_write_operations = autonomy_section.get("lifeos_write_operations", [])
+    if not isinstance(lifeos_write_operations, list) or not all(isinstance(item, str) and item.strip() for item in lifeos_write_operations):
+        raise ConfigError("autonomy.lifeos_write_operations must be a list of operation names")
+    autonomy_config = AutonomyConfig(
+        enabled=bool(autonomy_section.get("enabled", False)),
+        allowed_categories=tuple(allowed_categories),
+        lifeos_write_operations=tuple(lifeos_write_operations),
+    )
+
+    background_section = raw.get("background", {}) or {}
+    if not isinstance(background_section, dict):
+        raise ConfigError("background must be a YAML object")
+    background_output = background_section.get("max_output_chars", 8_000)
+    if not isinstance(background_output, int) or background_output <= 0:
+        raise ConfigError("background.max_output_chars must be a positive integer")
+    background_profile = Path(str(background_section.get("profile_path", "data/proactive-profile.json")))
+    if not background_profile.is_absolute():
+        background_profile = root / background_profile
+    background_config = BackgroundConfig(
+        enabled=bool(background_section.get("enabled", True)),
+        provider=(str(background_section["provider"]).strip() if background_section.get("provider") is not None else None),
+        model=(str(background_section["model"]).strip() if background_section.get("model") is not None else None),
+        api_key_env=str(background_section.get("api_key_env", "")).strip(),
+        profile_path=background_profile,
+        max_output_chars=background_output,
+    )
+    if background_config.provider == "":
+        raise ConfigError("background.provider must be a provider name or null")
+    if background_config.model == "":
+        raise ConfigError("background.model must be a model name or null")
+    if background_config.provider is not None and background_config.provider not in providers and background_config.provider not in KNOWN_PROVIDERS:
+        raise ConfigError(f"No configuration found for background provider: {background_config.provider}")
+
+    vision_section = raw.get("vision", {}) or {}
+    if not isinstance(vision_section, dict):
+        raise ConfigError("vision must be a YAML object")
+    vision_backend = str(vision_section.get("clipboard_backend", "auto")).lower()
+    if vision_backend not in {"auto", "wl-paste", "xclip", "python"}:
+        raise ConfigError("vision.clipboard_backend must be auto, wl-paste, xclip, or python")
+    max_image_bytes = vision_section.get("max_image_bytes", 10 * 1024 * 1024)
+    if not isinstance(max_image_bytes, int) or max_image_bytes <= 0:
+        raise ConfigError("vision.max_image_bytes must be a positive integer")
+    periodic_screen_cron = str(vision_section.get("periodic_screen_cron", "*/15 * * * *")).strip()
+    if len(periodic_screen_cron.split()) != 5:
+        raise ConfigError("vision.periodic_screen_cron must be a five-field cron expression")
+    vision_config = VisionConfig(
+        enabled=bool(vision_section.get("enabled", True)),
+        fallback_provider=(str(vision_section["fallback_provider"]).strip() if vision_section.get("fallback_provider") is not None else None),
+        fallback_model=(str(vision_section["fallback_model"]).strip() if vision_section.get("fallback_model") is not None else None),
+        fallback_api_key_env=str(vision_section.get("fallback_api_key_env", "")).strip(),
+        max_image_bytes=max_image_bytes,
+        clipboard_backend=vision_backend,
+        screenshot_command=str(vision_section.get("screenshot_command", "grim")),
+        retain_images=bool(vision_section.get("retain_images", False)),
+        periodic_screen_enabled=bool(vision_section.get("periodic_screen_enabled", False)),
+        periodic_screen_cron=periodic_screen_cron,
+    )
+    if vision_config.fallback_provider == "":
+        raise ConfigError("vision.fallback_provider must be a provider name or null")
+    if vision_config.fallback_model == "":
+        raise ConfigError("vision.fallback_model must be a model name or null")
+
+    scheduler_section = raw.get("scheduler", {}) or {}
+    if not isinstance(scheduler_section, dict):
+        raise ConfigError("scheduler must be a YAML object")
+    poll_seconds = scheduler_section.get("poll_seconds", 15)
+    if not isinstance(poll_seconds, int) or poll_seconds <= 0:
+        raise ConfigError("scheduler.poll_seconds must be a positive integer")
+    misfire_policy = str(scheduler_section.get("default_misfire_policy", "skip")).lower()
+    if misfire_policy not in {"skip", "run_once"}:
+        raise ConfigError("scheduler.default_misfire_policy must be skip or run_once")
+    interval_values: dict[str, int] = {}
+    for name, default in (("deadline_check_minutes", 30), ("goal_check_minutes", 120), ("calendar_check_minutes", 60)):
+        value = scheduler_section.get(name, default)
+        if not isinstance(value, int) or value <= 0:
+            raise ConfigError(f"scheduler.{name} must be a positive integer")
+        interval_values[name] = value
+    briefing_times = scheduler_section.get("briefing_times", ["08:00", "13:00", "18:00"])
+    if len(briefing_times) != 3 or not all(isinstance(item, str) and len(item) == 5 and item[2] == ":" for item in briefing_times):
+        raise ConfigError("scheduler.briefing_times must contain three HH:MM strings")
+    for item in briefing_times:
+        try:
+            hour, minute = (int(value) for value in item.split(":", 1))
+        except ValueError as exc:
+            raise ConfigError("scheduler.briefing_times must contain valid HH:MM values") from exc
+        if not 0 <= hour <= 23 or not 0 <= minute <= 59:
+            raise ConfigError("scheduler.briefing_times must contain valid HH:MM values")
+    scheduler_database = Path(str(scheduler_section.get("database", "data/scheduler/scheduler.sqlite3")))
+    workflow_directory = Path(str(scheduler_section.get("workflow_directory", "workflows")))
+    if not scheduler_database.is_absolute():
+        scheduler_database = root / scheduler_database
+    if not workflow_directory.is_absolute():
+        workflow_directory = root / workflow_directory
+    web_queries = scheduler_section.get("briefing_web_queries", [])
+    if not isinstance(web_queries, list) or not all(isinstance(item, str) for item in web_queries):
+        raise ConfigError("scheduler.briefing_web_queries must be a list of strings")
+    if str(scheduler_section.get("timezone", "system")).strip().lower() != "system":
+        raise ConfigError("scheduler.timezone currently supports only system local time")
+    scheduler_config = SchedulerConfig(
+        enabled=bool(scheduler_section.get("enabled", False)),
+        database=scheduler_database,
+        workflow_directory=workflow_directory,
+        poll_seconds=poll_seconds,
+        default_workflows=bool(scheduler_section.get("default_workflows", True)),
+        timezone=str(scheduler_section.get("timezone", "system")),
+        default_misfire_policy=misfire_policy,
+        briefing_times=tuple(briefing_times),
+        briefing_web_queries=tuple(web_queries),
+        **interval_values,
     )
 
     memory_section = raw.get("memory", {}) or {}
@@ -501,27 +870,18 @@ def load_config(path: Path, launch_directory: Path | None = None) -> AppConfig:
     if not isinstance(fallback_models, list) or not all(isinstance(item, str) and item.strip() for item in fallback_models):
         raise ConfigError("memory.embedding_fallback_models must be a non-empty list of model names")
     int_defaults = {
-        "raw_retention_days": 30,
-        "archive_retention_days": 365,
-        "tier2_retention_days": 730,
         "context_token_budget": 4000,
-        "tier2_limit": 8,
-        "tier3_limit": 8,
-        "promotion_repetitions": 2,
-        "promotion_recency_days": 365,
-        "retry_interval_seconds": 60,
-        "warmup_turns": 1,
+        "episodic_retention_days": 180,
+        "conversation_retention_days": 365,
+        "knowledge_retention_days": 0,
     }
     memory_ints: dict[str, int] = {}
     for name, default in int_defaults.items():
         value = memory_section.get(name, default)
-        if not isinstance(value, int) or value <= 0:
-            raise ConfigError(f"memory.{name} must be a positive integer")
+        if not isinstance(value, int) or value < 0:
+            raise ConfigError(f"memory.{name} must be a non-negative integer")
         memory_ints[name] = value
-    detail_mode = str(memory_section.get("detail_mode", "raw_then_summary")).lower()
-    if detail_mode not in {"raw", "raw_then_summary", "delete_after_summary"}:
-        raise ConfigError("memory.detail_mode must be 'raw', 'raw_then_summary', or 'delete_after_summary'")
-    rank_names = ("rank_similarity", "rank_recency", "rank_frequency", "rank_importance", "rank_explicit")
+    rank_names = ("rank_similarity", "rank_recency", "rank_frequency", "rank_importance", "rank_confidence")
     ranks: dict[str, float] = {}
     for name in rank_names:
         value = memory_section.get(name, getattr(MemoryConfig, name))
@@ -530,13 +890,6 @@ def load_config(path: Path, launch_directory: Path | None = None) -> AppConfig:
         ranks[name] = float(value)
     if sum(ranks.values()) <= 0:
         raise ConfigError("memory ranking weights must not all be zero")
-    threshold_names = ("promotion_confidence", "promotion_importance")
-    thresholds: dict[str, float] = {}
-    for name in threshold_names:
-        value = memory_section.get(name, getattr(MemoryConfig, name))
-        if not isinstance(value, (int, float)) or not 0 <= value <= 1:
-            raise ConfigError(f"memory.{name} must be between 0 and 1")
-        thresholds[name] = float(value)
     memory_config = MemoryConfig(
         enabled=bool(memory_section.get("enabled", True)),
         directory=memory_directory,
@@ -546,24 +899,15 @@ def load_config(path: Path, launch_directory: Path | None = None) -> AppConfig:
         embedding_api_key_env=str(memory_section.get("embedding_api_key_env", "MEMORY_EMBEDDING_API_KEY")),
         embedding_ollama_host=str(memory_section.get("embedding_ollama_host", "http://127.0.0.1:11434")),
         embedding_fallback_models=tuple(fallback_models),
-        detail_mode=detail_mode,
         rank_similarity=ranks["rank_similarity"],
         rank_recency=ranks["rank_recency"],
         rank_frequency=ranks["rank_frequency"],
         rank_importance=ranks["rank_importance"],
-        rank_explicit=ranks["rank_explicit"],
-        promotion_confidence=thresholds["promotion_confidence"],
-        promotion_importance=thresholds["promotion_importance"],
-        raw_retention_days=memory_ints["raw_retention_days"],
-        archive_retention_days=memory_ints["archive_retention_days"],
-        tier2_retention_days=memory_ints["tier2_retention_days"],
+        rank_confidence=ranks["rank_confidence"],
+        episodic_retention_days=memory_ints["episodic_retention_days"],
+        conversation_retention_days=memory_ints["conversation_retention_days"],
+        knowledge_retention_days=memory_ints["knowledge_retention_days"],
         context_token_budget=memory_ints["context_token_budget"],
-        tier2_limit=memory_ints["tier2_limit"],
-        tier3_limit=memory_ints["tier3_limit"],
-        promotion_repetitions=memory_ints["promotion_repetitions"],
-        promotion_recency_days=memory_ints["promotion_recency_days"],
-        retry_interval_seconds=memory_ints["retry_interval_seconds"],
-        warmup_turns=memory_ints["warmup_turns"],
     )
 
     ui_section = raw.get("ui", {}) or {}
@@ -572,6 +916,12 @@ def load_config(path: Path, launch_directory: Path | None = None) -> AppConfig:
     show_cot = ui_section.get("show_cot", True)
     if not isinstance(show_cot, bool):
         raise ConfigError("ui.show_cot must be a boolean")
+    keep_cot = ui_section.get("keep_cot", False)
+    if not isinstance(keep_cot, bool):
+        raise ConfigError("ui.keep_cot must be a boolean")
+    ui_backend = str(ui_section.get("backend", "urwid")).strip().lower()
+    if ui_backend not in {"urwid", "rich"}:
+        raise ConfigError("ui.backend must be 'urwid' or 'rich'")
 
     lifeos_section = raw.get("lifeos", {}) or {}
     if not isinstance(lifeos_section, dict):
@@ -613,6 +963,16 @@ def load_config(path: Path, launch_directory: Path | None = None) -> AppConfig:
         lifeos=lifeos_config,
         web=web_config,
         memory=memory_config,
+        browser=browser_config,
+        desktop=desktop_config,
+        notifications=notifications_config,
+        autonomy=autonomy_config,
+        background=background_config,
+        vision=vision_config,
+        scheduler=scheduler_config,
         show_cot=show_cot,
+        keep_cot=keep_cot,
+        ui_backend=ui_backend,
         runtime_state_path=state_path,
+        runtime_state_overrides=tuple(sorted(runtime_overrides)),
     )

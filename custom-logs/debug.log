@@ -1,0 +1,1084 @@
+2026-09-08 21:52:04,027 [DEBUG] aria: Logging configured. Files in custom-logs
+2026-09-08 21:52:04,027 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:52:04,027 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:52:04,027 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:52:04,027 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:52:04,027 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:52:04,027 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:52:04,027 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:52:04,027 [DEBUG] aria: Config: env override ARIA_CODER_MAX_ITERATIONS applied
+2026-09-08 21:52:04,027 [DEBUG] aria: Config: env override ARIA_CODER_MAX_OUTPUT_CHARS applied
+2026-09-08 21:52:04,027 [DEBUG] aria: Config: env override ARIA_COMMAND_TIMEOUT_SECONDS applied
+2026-09-08 21:52:04,027 [DEBUG] aria: Config: env override ARIA_MAX_COMMAND_OUTPUT_CHARS applied
+2026-09-08 21:52:04,027 [DEBUG] aria: Config: env override ARIA_SPEECH_ENABLED applied
+2026-09-08 21:52:04,028 [DEBUG] aria: Config: env override ARIA_LOG_DIR applied
+2026-09-08 21:52:04,028 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-44/test_env_overrides_match_docum0 max_iterations=20 persona=jarvis
+2026-09-08 21:52:04,029 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:52:04,030 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:52:04,030 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:52:04,030 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:52:04,030 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:52:04,030 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:52:04,030 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:52:04,030 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-44/test_mistral_provider_and_koko0 max_iterations=20 persona=jarvis
+2026-09-08 21:52:04,031 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:52:04,032 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:52:04,032 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:52:04,032 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:52:04,032 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:52:04,032 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:52:04,032 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:52:04,032 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-44/test_legacy_kokoro_engine_alia0 max_iterations=20 persona=jarvis
+2026-09-08 21:52:04,033 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:52:04,034 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:52:04,034 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:52:04,034 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:52:04,034 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:52:04,034 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:52:04,034 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:52:04,034 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-44/test_zai_provider_is_known0 max_iterations=20 persona=jarvis
+2026-09-08 21:52:04,036 [INFO] aria: Config: loaded environment variables from /home/aliraza/Devs/ai/inProgress/ARIA/.env
+2026-09-08 21:52:04,044 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:52:04,044 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:52:04,044 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:52:04,044 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:52:04,044 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:52:04,044 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:52:04,044 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:52:04,045 [DEBUG] aria: Config: provider=gemini model=gemini-2.5-flash workspace=/tmp/pytest-of-aliraza/pytest-44/test_memory_config_fields_matc0 max_iterations=20 persona=jarvis
+2026-09-08 21:52:04,046 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:52:04,046 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:52:04,046 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:52:04,046 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:52:04,046 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:52:04,046 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:52:04,046 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:52:04,047 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-44/test_coder_provider_and_model_0 max_iterations=20 persona=jarvis
+2026-09-08 21:52:04,048 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:52:04,048 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:52:04,048 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:52:04,048 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:52:04,048 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:52:04,048 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:52:04,048 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:52:04,048 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-44/test_coder_backend_settings_ar0 max_iterations=20 persona=jarvis
+2026-09-08 21:52:04,050 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:52:04,050 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:52:04,050 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:52:04,050 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:52:04,050 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:52:04,050 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:52:04,050 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:52:04,051 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:52:04,051 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:52:04,052 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:52:04,052 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:52:04,052 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:52:04,052 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:52:04,052 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:52:04,052 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-44/test_runtime_state_restores_pr0 max_iterations=20 persona=jarvis
+2026-09-08 21:52:04,054 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:52:04,054 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:52:04,054 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:52:04,054 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:52:04,054 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:52:04,054 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:52:04,054 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:52:04,054 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-44/test_runtime_state_restores_pr0 max_iterations=20 persona=jarvis
+2026-09-08 21:52:04,055 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:52:04,055 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:52:04,055 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:52:04,056 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:52:04,056 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:52:04,056 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:52:04,056 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:52:04,056 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-44/test_runtime_state_overrides_s0 max_iterations=20 persona=jarvis
+2026-09-08 21:52:04,057 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:52:04,057 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:52:04,058 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:52:04,058 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:52:04,058 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:52:04,058 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:52:04,058 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:52:04,058 [DEBUG] aria: Config: provider=mistral model=mistral-small-latest workspace=/tmp/pytest-of-aliraza/pytest-44/test_runtime_state_overrides_s0 max_iterations=20 persona=jarvis
+2026-09-08 21:52:04,059 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:52:04,059 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:52:04,059 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:52:04,059 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:52:04,059 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:52:04,059 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:52:04,060 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:52:04,060 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-44/test_environment_override_beat0 max_iterations=20 persona=jarvis
+2026-09-08 21:52:04,061 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:52:04,061 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:52:04,061 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:52:04,061 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:52:04,061 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:52:04,062 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:52:04,062 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:52:04,062 [DEBUG] aria: Config: env override ARIA_PROVIDER applied
+2026-09-08 21:52:04,062 [DEBUG] aria: Config: env override ARIA_MODEL applied
+2026-09-08 21:52:04,062 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-44/test_environment_override_beat0 max_iterations=20 persona=jarvis
+2026-09-08 21:52:04,063 [DEBUG] aria: CustomToolRouter: parsed 2 call(s), 0 error(s)
+2026-09-08 21:52:04,063 [ERROR] aria: CustomToolRouter: invalid tool call JSON: Expecting ',' delimiter
+2026-09-08 21:52:04,063 [DEBUG] aria: CustomToolRouter: parsed 0 call(s), 1 error(s)
+2026-09-08 21:52:04,064 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:52:04,064 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:04,064 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:04,064 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:04,064 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:04,064 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:04,064 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:04,064 [ERROR] aria: Filesystem: path escaped workspace: ../outside.txt
+2026-09-08 21:52:04,064 [ERROR] aria: ToolRegistry: 'read_file' raised ValueError: path must remain inside the workspace
+2026-09-08 21:52:04,065 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:52:04,065 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:04,065 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:04,065 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:04,065 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:04,065 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:04,066 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:04,066 [INFO] aria: ToolRegistry: 'edit_file' -> error in 0.00s
+2026-09-08 21:52:04,066 [DEBUG] aria: ToolRegistry: 'edit_file' arguments={'path': 'notes.txt', 'old_text': 'todo', 'new_text': 'done'} output='old_text occurs 2 times; set replace_all=true to edit all occurrences'
+2026-09-08 21:52:04,066 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:52:04,066 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:04,067 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:04,067 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:04,067 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:04,067 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:04,067 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:04,067 [DEBUG] aria: Filesystem: wrote /tmp/pytest-of-aliraza/pytest-44/test_write_and_read_file0/a/b.txt (5 chars)
+2026-09-08 21:52:04,067 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:52:04,067 [DEBUG] aria: ToolRegistry: 'write_file' arguments={'path': 'a/b.txt', 'content': 'hello'} output='Wrote a/b.txt'
+2026-09-08 21:52:04,067 [INFO] aria: ToolRegistry: 'read_file' -> ok in 0.00s
+2026-09-08 21:52:04,067 [DEBUG] aria: ToolRegistry: 'read_file' arguments={'path': 'a/b.txt'} output='hello'
+2026-09-08 21:52:04,068 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:52:04,068 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:04,068 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:04,068 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:04,068 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:04,068 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:04,068 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:04,069 [INFO] aria: ToolRegistry: 'search_workspace' -> ok in 0.00s
+2026-09-08 21:52:04,069 [DEBUG] aria: ToolRegistry: 'search_workspace' arguments={'pattern': 'alpha', 'glob': '*.py'} output='one.py:1: def alpha():\nskipped/three.py:1: alpha in git dir\nsrc/two.py:1: x = 1  # alpha here'
+2026-09-08 21:52:04,070 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:52:04,070 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:04,070 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:04,070 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:04,070 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:04,070 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:04,070 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:04,070 [DEBUG] aria: Filesystem: batch_edit on /tmp/pytest-of-aliraza/pytest-44/test_batch_edit_applies_multip0/code.txt: 2 applied
+2026-09-08 21:52:04,070 [INFO] aria: ToolRegistry: 'batch_edit' -> ok in 0.00s
+2026-09-08 21:52:04,070 [DEBUG] aria: ToolRegistry: 'batch_edit' arguments={'path': 'code.txt', 'edits': [{'old_text': 'foo', 'new_text': 'FOO'}, {'old_text': 'baz', 'new_text': 'BAZ'}]} output='applied 2/2 edits'
+2026-09-08 21:52:04,071 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:52:04,071 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:04,071 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:04,071 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:04,071 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:04,071 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:04,071 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:04,071 [DEBUG] aria: Filesystem: batch_edit on /tmp/pytest-of-aliraza/pytest-44/test_batch_edit_reports_failur0/code.txt: 1 applied
+2026-09-08 21:52:04,071 [INFO] aria: ToolRegistry: 'batch_edit' -> ok in 0.00s
+2026-09-08 21:52:04,072 [DEBUG] aria: ToolRegistry: 'batch_edit' arguments={'path': 'code.txt', 'edits': [{'old_text': 'missing', 'new_text': 'x'}, {'old_text': 'foo', 'new_text': 'FOO'}]} output='applied 1/2 edits\nfailed edits:\nedit 0: old_text not found'
+2026-09-08 21:52:04,073 [DEBUG] aria: ToolRegistry: registered tool 'desktop_monitors'
+2026-09-08 21:52:04,073 [DEBUG] aria: ToolRegistry: registered tool 'desktop_workspaces'
+2026-09-08 21:52:04,073 [DEBUG] aria: ToolRegistry: registered tool 'desktop_clients'
+2026-09-08 21:52:04,073 [DEBUG] aria: ToolRegistry: registered tool 'desktop_active_window'
+2026-09-08 21:52:04,073 [DEBUG] aria: ToolRegistry: registered tool 'desktop_keybinds'
+2026-09-08 21:52:04,073 [DEBUG] aria: ToolRegistry: registered tool 'desktop_dispatch'
+2026-09-08 21:52:04,073 [DEBUG] aria: ToolRegistry: registered tool 'desktop_launch'
+2026-09-08 21:52:04,073 [DEBUG] aria: ToolRegistry: registered tool 'desktop_input'
+2026-09-08 21:52:04,073 [DEBUG] aria: ToolRegistry: registered tool 'desktop_screenshot'
+2026-09-08 21:52:04,073 [DEBUG] aria: ToolRegistry: registered tool 'desktop_raw_dispatch'
+2026-09-08 21:52:04,073 [DEBUG] aria: ToolRegistry: registered tool 'desktop_set_keybind'
+2026-09-08 21:52:04,073 [DEBUG] aria: ToolRegistry: registered tool 'desktop_exec'
+2026-09-08 21:52:04,073 [DEBUG] aria: ToolRegistry: registered tool 'desktop_shell'
+2026-09-08 21:52:04,075 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:04,075 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:04,075 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:04,075 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:04,075 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:04,075 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:04,075 [DEBUG] aria: BaseAgent initialized: iterations=3 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:52:04,076 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:52:04,076 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:52:04,076 [DEBUG] aria: BaseAgent.run: iteration 1/3
+2026-09-08 21:52:04,076 [DEBUG] aria: BaseAgent.run: executing tool 'write_file'
+2026-09-08 21:52:04,076 [DEBUG] aria: Filesystem: wrote /tmp/pytest-of-aliraza/pytest-44/test_aria_runs_tools_until_com0/result.txt (4 chars)
+2026-09-08 21:52:04,077 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:52:04,077 [DEBUG] aria: ToolRegistry: 'write_file' arguments={'path': 'result.txt', 'content': 'done'} output='Wrote result.txt'
+2026-09-08 21:52:04,077 [DEBUG] aria: BaseAgent.run: iteration 2/3
+2026-09-08 21:52:04,077 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:52:04,077 [DEBUG] aria: SessionMemory: cleaned up aria-session-82f78a7866324850a496afb9bbaeb6a3.json
+2026-09-08 21:52:04,078 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:04,078 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:04,078 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:04,078 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:04,079 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:04,079 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:04,079 [DEBUG] aria: BaseAgent initialized: iterations=3 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:52:04,079 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:52:04,079 [INFO] aria: BaseAgent.run: starting turn with 13 chars of user input
+2026-09-08 21:52:04,079 [DEBUG] aria: BaseAgent.run: iteration 1/3
+2026-09-08 21:52:04,079 [DEBUG] aria: CustomToolRouter: parsed 1 call(s), 0 error(s)
+2026-09-08 21:52:04,079 [DEBUG] aria: BaseAgent.run: executing tool 'write_file'
+2026-09-08 21:52:04,080 [DEBUG] aria: Filesystem: wrote /tmp/pytest-of-aliraza/pytest-44/test_aria_routes_text_tool_cal0/custom.txt (23 chars)
+2026-09-08 21:52:04,080 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:52:04,080 [DEBUG] aria: ToolRegistry: 'write_file' arguments={'path': 'custom.txt', 'content': 'created by text routing'} output='Wrote custom.txt'
+2026-09-08 21:52:04,080 [DEBUG] aria: BaseAgent.run: iteration 2/3
+2026-09-08 21:52:04,080 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:52:04,080 [DEBUG] aria: SessionMemory: cleaned up aria-session-49e52996eeda4b23bff35a1b2da23aa0.json
+2026-09-08 21:52:04,081 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:04,082 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:04,082 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:04,082 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:04,082 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:04,082 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:04,082 [DEBUG] aria: BaseAgent initialized: iterations=2 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:52:04,082 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:52:04,082 [INFO] aria: BaseAgent.run: starting turn with 10 chars of user input
+2026-09-08 21:52:04,082 [DEBUG] aria: BaseAgent.run: iteration 1/2
+2026-09-08 21:52:04,083 [DEBUG] aria: BaseAgent.run: executing tool 'missing'
+2026-09-08 21:52:04,083 [ERROR] aria: ToolRegistry: model requested unknown tool 'missing'
+2026-09-08 21:52:04,083 [DEBUG] aria: BaseAgent.run: iteration 2/2
+2026-09-08 21:52:04,083 [DEBUG] aria: BaseAgent.run: executing tool 'missing'
+2026-09-08 21:52:04,083 [ERROR] aria: ToolRegistry: model requested unknown tool 'missing'
+2026-09-08 21:52:04,083 [ERROR] aria: BaseAgent.run: hit the iteration safety limit
+2026-09-08 21:52:04,084 [DEBUG] aria: SessionMemory: cleaned up aria-session-3aa26c46e03a422e97e188b60e765f4b.json
+2026-09-08 21:52:04,085 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:04,085 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:04,085 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:04,085 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:04,085 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:04,085 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:04,085 [DEBUG] aria: BaseAgent initialized: iterations=3 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:52:04,085 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:52:04,085 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:52:04,085 [DEBUG] aria: BaseAgent.run: iteration 1/3
+2026-09-08 21:52:04,086 [DEBUG] aria: BaseAgent.run: executing tool 'write_file'
+2026-09-08 21:52:04,086 [DEBUG] aria: Filesystem: wrote /tmp/pytest-of-aliraza/pytest-44/test_agent_emits_chain_of_thou0/result.txt (4 chars)
+2026-09-08 21:52:04,086 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:52:04,086 [DEBUG] aria: ToolRegistry: 'write_file' arguments={'path': 'result.txt', 'content': 'done'} output='Wrote result.txt'
+2026-09-08 21:52:04,086 [DEBUG] aria: BaseAgent.run: iteration 2/3
+2026-09-08 21:52:04,086 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:52:04,086 [DEBUG] aria: SessionMemory: cleaned up aria-session-a8d561fbc332408da7f873ab8d545a36.json
+2026-09-08 21:52:04,088 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:04,088 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:04,088 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:04,088 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:04,088 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:04,088 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:04,088 [DEBUG] aria: BaseAgent initialized: iterations=3 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:52:04,088 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:52:04,088 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:52:04,088 [DEBUG] aria: BaseAgent.run: iteration 1/3
+2026-09-08 21:52:04,088 [DEBUG] aria: BaseAgent.run: executing tool 'write_file'
+2026-09-08 21:52:04,089 [DEBUG] aria: Filesystem: wrote /tmp/pytest-of-aliraza/pytest-44/test_agent_events_work_without0/result.txt (4 chars)
+2026-09-08 21:52:04,089 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:52:04,089 [DEBUG] aria: ToolRegistry: 'write_file' arguments={'path': 'result.txt', 'content': 'done'} output='Wrote result.txt'
+2026-09-08 21:52:04,089 [DEBUG] aria: BaseAgent.run: iteration 2/3
+2026-09-08 21:52:04,089 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:52:04,089 [DEBUG] aria: SessionMemory: cleaned up aria-session-dcc5afcc18a2484ebb1e0f3608f8653a.json
+2026-09-08 21:52:04,090 [DEBUG] aria: CoderService: initialized provider=stub model=stub-model
+2026-09-08 21:52:04,090 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:04,090 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:04,090 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:04,090 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:04,090 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:04,090 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:04,091 [DEBUG] aria: ToolRegistry: registered tool 'deploy_coder'
+2026-09-08 21:52:04,091 [DEBUG] aria: BaseAgent initialized: iterations=3 tools=['batch_edit', 'deploy_coder', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:52:04,091 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:52:04,091 [INFO] aria: BaseAgent.run: starting turn with 24 chars of user input
+2026-09-08 21:52:04,091 [DEBUG] aria: BaseAgent.run: iteration 1/3
+2026-09-08 21:52:04,091 [DEBUG] aria: CustomToolRouter: parsed 1 call(s), 0 error(s)
+2026-09-08 21:52:04,091 [DEBUG] aria: BaseAgent.run: executing tool 'deploy_coder'
+2026-09-08 21:52:04,091 [INFO] aria: DeployCoderTool: ARIA deployed the coder (38 chars)
+2026-09-08 21:52:04,091 [INFO] aria: CoderService: deployment requested (38 chars of instructions)
+2026-09-08 21:52:04,092 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:04,092 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:04,092 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:04,092 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:04,092 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:04,092 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:04,092 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:52:04,092 [DEBUG] aria: BaseAgent initialized: iterations=2 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'run_shell_command', 'search_workspace', 'write_file']
+2026-09-08 21:52:04,092 [DEBUG] aria: CoderAgent: initialized with filesystem + shell tools
+2026-09-08 21:52:04,092 [INFO] aria: BaseAgent.run: starting turn with 38 chars of user input
+2026-09-08 21:52:04,093 [DEBUG] aria: BaseAgent.run: iteration 1/2
+2026-09-08 21:52:04,093 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:52:04,093 [INFO] aria: CoderService: deployment finished in 0.0s
+2026-09-08 21:52:04,093 [DEBUG] aria: SessionMemory: cleaned up aria-coder-session-58282322da354dd2a9eeb2ff9b5a4e23.json
+2026-09-08 21:52:04,093 [INFO] aria: ToolRegistry: 'deploy_coder' -> ok in 0.00s
+2026-09-08 21:52:04,093 [DEBUG] aria: ToolRegistry: 'deploy_coder' arguments={'task': "create report.txt with today's summary"} output='All done: created report.txt'
+2026-09-08 21:52:04,094 [DEBUG] aria: BaseAgent.run: iteration 2/3
+2026-09-08 21:52:04,094 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:52:04,094 [DEBUG] aria: SessionMemory: cleaned up aria-session-ed1ed0af57c14484bc08ea9d6b1abbe6.json
+2026-09-08 21:52:04,095 [DEBUG] aria: CoderService: initialized provider=stub model=stub-model
+2026-09-08 21:52:04,095 [INFO] aria: CoderService: deployment requested (12 chars of instructions)
+2026-09-08 21:52:04,095 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:04,095 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:04,095 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:04,095 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:04,095 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:04,095 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:04,095 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:52:04,095 [DEBUG] aria: BaseAgent initialized: iterations=2 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'run_shell_command', 'search_workspace', 'write_file']
+2026-09-08 21:52:04,096 [DEBUG] aria: CoderAgent: initialized with filesystem + shell tools
+2026-09-08 21:52:04,096 [INFO] aria: BaseAgent.run: starting turn with 12 chars of user input
+2026-09-08 21:52:04,096 [DEBUG] aria: BaseAgent.run: iteration 1/2
+2026-09-08 21:52:04,096 [ERROR] aria: CoderService: deployment failed: RuntimeError: provider exploded
+2026-09-08 21:52:04,096 [DEBUG] aria: SessionMemory: cleaned up aria-coder-session-7853da5e08084e009c755c052401612f.json
+2026-09-08 21:52:04,097 [DEBUG] aria: CoderService: initialized provider=stub model=stub-model
+2026-09-08 21:52:04,097 [INFO] aria: CoderService: deployment requested (10 chars of instructions)
+2026-09-08 21:52:04,097 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:04,098 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:04,098 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:04,098 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:04,098 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:04,098 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:04,098 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:52:04,098 [DEBUG] aria: BaseAgent initialized: iterations=2 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'run_shell_command', 'search_workspace', 'write_file']
+2026-09-08 21:52:04,098 [DEBUG] aria: CoderAgent: initialized with filesystem + shell tools
+2026-09-08 21:52:04,098 [INFO] aria: BaseAgent.run: starting turn with 10 chars of user input
+2026-09-08 21:52:04,099 [DEBUG] aria: BaseAgent.run: iteration 1/2
+2026-09-08 21:52:04,099 [INFO] aria: CoderService: deployment requested (11 chars of instructions)
+2026-09-08 21:52:05,099 [ERROR] aria: CoderService: a deployment is already running
+2026-09-08 21:52:05,099 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:52:05,100 [INFO] aria: CoderService: deployment finished in 1.0s
+2026-09-08 21:52:05,100 [DEBUG] aria: SessionMemory: cleaned up aria-coder-session-b97065bbb7304ae4aeede31b0410ffe6.json
+2026-09-08 21:52:05,101 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:05,101 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:05,101 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:05,101 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:05,101 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:05,101 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:05,101 [DEBUG] aria: BaseAgent initialized: iterations=1 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:52:05,101 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:52:05,101 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:05,101 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:05,102 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:05,102 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:05,102 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:05,102 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:05,102 [DEBUG] aria: BaseAgent initialized: iterations=1 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:52:05,102 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:52:05,103 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:05,103 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:05,103 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:05,103 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:05,103 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:05,103 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:05,103 [DEBUG] aria: BaseAgent initialized: iterations=1 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:52:05,104 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:52:05,104 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:52:05,104 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:52:05,104 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:52:05,104 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:52:05,104 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:52:05,105 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:52:05,105 [DEBUG] aria: BaseAgent initialized: iterations=1 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:52:05,105 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:54:47,956 [DEBUG] aria: Logging configured. Files in custom-logs
+2026-09-08 21:54:47,957 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:54:47,957 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:54:47,957 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:54:47,957 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:54:47,957 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:54:47,957 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:54:47,957 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:54:47,957 [DEBUG] aria: Config: env override ARIA_CODER_MAX_ITERATIONS applied
+2026-09-08 21:54:47,957 [DEBUG] aria: Config: env override ARIA_CODER_MAX_OUTPUT_CHARS applied
+2026-09-08 21:54:47,957 [DEBUG] aria: Config: env override ARIA_COMMAND_TIMEOUT_SECONDS applied
+2026-09-08 21:54:47,957 [DEBUG] aria: Config: env override ARIA_MAX_COMMAND_OUTPUT_CHARS applied
+2026-09-08 21:54:47,957 [DEBUG] aria: Config: env override ARIA_SPEECH_ENABLED applied
+2026-09-08 21:54:47,957 [DEBUG] aria: Config: env override ARIA_LOG_DIR applied
+2026-09-08 21:54:47,957 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-45/test_env_overrides_match_docum0 max_iterations=20 persona=jarvis
+2026-09-08 21:54:47,959 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:54:47,959 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:54:47,959 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:54:47,959 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:54:47,959 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:54:47,959 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:54:47,960 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:54:47,960 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-45/test_mistral_provider_and_koko0 max_iterations=20 persona=jarvis
+2026-09-08 21:54:47,961 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:54:47,961 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:54:47,961 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:54:47,961 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:54:47,961 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:54:47,961 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:54:47,961 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:54:47,962 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-45/test_legacy_kokoro_engine_alia0 max_iterations=20 persona=jarvis
+2026-09-08 21:54:47,963 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:54:47,963 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:54:47,963 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:54:47,963 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:54:47,963 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:54:47,963 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:54:47,963 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:54:47,964 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-45/test_zai_provider_is_known0 max_iterations=20 persona=jarvis
+2026-09-08 21:54:47,966 [INFO] aria: Config: loaded environment variables from /home/aliraza/Devs/ai/inProgress/ARIA/.env
+2026-09-08 21:54:47,974 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:54:47,974 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:54:47,975 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:54:47,975 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:54:47,975 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:54:47,975 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:54:47,975 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:54:47,975 [DEBUG] aria: Config: provider=gemini model=gemini-2.5-flash workspace=/tmp/pytest-of-aliraza/pytest-45/test_memory_config_fields_matc0 max_iterations=20 persona=jarvis
+2026-09-08 21:54:47,977 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:54:47,977 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:54:47,977 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:54:47,977 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:54:47,977 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:54:47,977 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:54:47,978 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:54:47,978 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-45/test_coder_provider_and_model_0 max_iterations=20 persona=jarvis
+2026-09-08 21:54:47,979 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:54:47,979 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:54:47,980 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:54:47,980 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:54:47,980 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:54:47,980 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:54:47,980 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:54:47,980 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-45/test_coder_backend_settings_ar0 max_iterations=20 persona=jarvis
+2026-09-08 21:54:47,981 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:54:47,981 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:54:47,981 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:54:47,982 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:54:47,982 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:54:47,982 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:54:47,982 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:54:47,983 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:54:47,983 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:54:47,983 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:54:47,983 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:54:47,983 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:54:47,983 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:54:47,983 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:54:47,983 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-45/test_runtime_state_restores_pr0 max_iterations=20 persona=jarvis
+2026-09-08 21:54:47,985 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:54:47,985 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:54:47,985 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:54:47,985 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:54:47,985 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:54:47,985 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:54:47,985 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:54:47,985 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-45/test_runtime_state_restores_pr0 max_iterations=20 persona=jarvis
+2026-09-08 21:54:47,987 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:54:47,987 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:54:47,987 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:54:47,987 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:54:47,987 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:54:47,987 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:54:47,987 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:54:47,987 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-45/test_runtime_state_overrides_s0 max_iterations=20 persona=jarvis
+2026-09-08 21:54:47,989 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:54:47,989 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:54:47,989 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:54:47,989 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:54:47,989 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:54:47,989 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:54:47,989 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:54:47,989 [DEBUG] aria: Config: provider=mistral model=mistral-small-latest workspace=/tmp/pytest-of-aliraza/pytest-45/test_runtime_state_overrides_s0 max_iterations=20 persona=jarvis
+2026-09-08 21:54:47,990 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:54:47,990 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:54:47,990 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:54:47,990 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:54:47,991 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:54:47,991 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:54:47,991 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:54:47,991 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-45/test_environment_override_beat0 max_iterations=20 persona=jarvis
+2026-09-08 21:54:47,992 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:54:47,992 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:54:47,992 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:54:47,992 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:54:47,992 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:54:47,993 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:54:47,993 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:54:47,993 [DEBUG] aria: Config: env override ARIA_PROVIDER applied
+2026-09-08 21:54:47,993 [DEBUG] aria: Config: env override ARIA_MODEL applied
+2026-09-08 21:54:47,993 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-45/test_environment_override_beat0 max_iterations=20 persona=jarvis
+2026-09-08 21:54:47,994 [DEBUG] aria: CustomToolRouter: parsed 2 call(s), 0 error(s)
+2026-09-08 21:54:47,994 [ERROR] aria: CustomToolRouter: invalid tool call JSON: Expecting ',' delimiter
+2026-09-08 21:54:47,994 [DEBUG] aria: CustomToolRouter: parsed 0 call(s), 1 error(s)
+2026-09-08 21:54:47,995 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:54:47,995 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:47,995 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:47,995 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:47,995 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:47,995 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:47,995 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:47,995 [ERROR] aria: Filesystem: path escaped workspace: ../outside.txt
+2026-09-08 21:54:47,995 [ERROR] aria: ToolRegistry: 'read_file' raised ValueError: path must remain inside the workspace
+2026-09-08 21:54:47,996 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:54:47,996 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:47,996 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:47,996 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:47,996 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:47,996 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:47,996 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:47,996 [INFO] aria: ToolRegistry: 'edit_file' -> error in 0.00s
+2026-09-08 21:54:47,997 [DEBUG] aria: ToolRegistry: 'edit_file' arguments={'path': 'notes.txt', 'old_text': 'todo', 'new_text': 'done'} output='old_text occurs 2 times; set replace_all=true to edit all occurrences'
+2026-09-08 21:54:47,997 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:54:47,997 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:47,997 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:47,997 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:47,997 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:47,997 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:47,997 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:47,998 [DEBUG] aria: Filesystem: wrote /tmp/pytest-of-aliraza/pytest-45/test_write_and_read_file0/a/b.txt (5 chars)
+2026-09-08 21:54:47,998 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:54:47,998 [DEBUG] aria: ToolRegistry: 'write_file' arguments={'path': 'a/b.txt', 'content': 'hello'} output='Wrote a/b.txt'
+2026-09-08 21:54:47,998 [INFO] aria: ToolRegistry: 'read_file' -> ok in 0.00s
+2026-09-08 21:54:47,998 [DEBUG] aria: ToolRegistry: 'read_file' arguments={'path': 'a/b.txt'} output='hello'
+2026-09-08 21:54:47,999 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:54:47,999 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:47,999 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:47,999 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:47,999 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:47,999 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:47,999 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:47,999 [INFO] aria: ToolRegistry: 'search_workspace' -> ok in 0.00s
+2026-09-08 21:54:47,999 [DEBUG] aria: ToolRegistry: 'search_workspace' arguments={'pattern': 'alpha', 'glob': '*.py'} output='one.py:1: def alpha():\nskipped/three.py:1: alpha in git dir\nsrc/two.py:1: x = 1  # alpha here'
+2026-09-08 21:54:48,000 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:54:48,000 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:48,000 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:48,000 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:48,000 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:48,000 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:48,000 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:48,000 [DEBUG] aria: Filesystem: batch_edit on /tmp/pytest-of-aliraza/pytest-45/test_batch_edit_applies_multip0/code.txt: 2 applied
+2026-09-08 21:54:48,001 [INFO] aria: ToolRegistry: 'batch_edit' -> ok in 0.00s
+2026-09-08 21:54:48,001 [DEBUG] aria: ToolRegistry: 'batch_edit' arguments={'path': 'code.txt', 'edits': [{'old_text': 'foo', 'new_text': 'FOO'}, {'old_text': 'baz', 'new_text': 'BAZ'}]} output='applied 2/2 edits'
+2026-09-08 21:54:48,001 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:54:48,001 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:48,001 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:48,002 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:48,002 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:48,002 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:48,002 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:48,002 [DEBUG] aria: Filesystem: batch_edit on /tmp/pytest-of-aliraza/pytest-45/test_batch_edit_reports_failur0/code.txt: 1 applied
+2026-09-08 21:54:48,002 [INFO] aria: ToolRegistry: 'batch_edit' -> ok in 0.00s
+2026-09-08 21:54:48,002 [DEBUG] aria: ToolRegistry: 'batch_edit' arguments={'path': 'code.txt', 'edits': [{'old_text': 'missing', 'new_text': 'x'}, {'old_text': 'foo', 'new_text': 'FOO'}]} output='applied 1/2 edits\nfailed edits:\nedit 0: old_text not found'
+2026-09-08 21:54:48,003 [DEBUG] aria: ToolRegistry: registered tool 'desktop_monitors'
+2026-09-08 21:54:48,003 [DEBUG] aria: ToolRegistry: registered tool 'desktop_workspaces'
+2026-09-08 21:54:48,003 [DEBUG] aria: ToolRegistry: registered tool 'desktop_clients'
+2026-09-08 21:54:48,003 [DEBUG] aria: ToolRegistry: registered tool 'desktop_active_window'
+2026-09-08 21:54:48,003 [DEBUG] aria: ToolRegistry: registered tool 'desktop_keybinds'
+2026-09-08 21:54:48,003 [DEBUG] aria: ToolRegistry: registered tool 'desktop_dispatch'
+2026-09-08 21:54:48,003 [DEBUG] aria: ToolRegistry: registered tool 'desktop_launch'
+2026-09-08 21:54:48,003 [DEBUG] aria: ToolRegistry: registered tool 'desktop_input'
+2026-09-08 21:54:48,003 [DEBUG] aria: ToolRegistry: registered tool 'desktop_screenshot'
+2026-09-08 21:54:48,003 [DEBUG] aria: ToolRegistry: registered tool 'desktop_raw_dispatch'
+2026-09-08 21:54:48,003 [DEBUG] aria: ToolRegistry: registered tool 'desktop_set_keybind'
+2026-09-08 21:54:48,003 [DEBUG] aria: ToolRegistry: registered tool 'desktop_exec'
+2026-09-08 21:54:48,003 [DEBUG] aria: ToolRegistry: registered tool 'desktop_shell'
+2026-09-08 21:54:48,005 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:48,005 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:48,005 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:48,005 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:48,005 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:48,005 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:48,005 [DEBUG] aria: BaseAgent initialized: iterations=3 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:54:48,006 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:54:48,006 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:54:48,006 [DEBUG] aria: BaseAgent.run: iteration 1/3
+2026-09-08 21:54:48,006 [DEBUG] aria: BaseAgent.run: executing tool 'write_file'
+2026-09-08 21:54:48,006 [DEBUG] aria: Filesystem: wrote /tmp/pytest-of-aliraza/pytest-45/test_aria_runs_tools_until_com0/result.txt (4 chars)
+2026-09-08 21:54:48,006 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:54:48,006 [DEBUG] aria: ToolRegistry: 'write_file' arguments={'path': 'result.txt', 'content': 'done'} output='Wrote result.txt'
+2026-09-08 21:54:48,006 [DEBUG] aria: BaseAgent.run: iteration 2/3
+2026-09-08 21:54:48,007 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:54:48,007 [DEBUG] aria: SessionMemory: cleaned up aria-session-80c9a7d50dc44405b968834555342c48.json
+2026-09-08 21:54:48,008 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:48,008 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:48,008 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:48,008 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:48,008 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:48,008 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:48,008 [DEBUG] aria: BaseAgent initialized: iterations=3 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:54:48,008 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:54:48,008 [INFO] aria: BaseAgent.run: starting turn with 13 chars of user input
+2026-09-08 21:54:48,008 [DEBUG] aria: BaseAgent.run: iteration 1/3
+2026-09-08 21:54:48,009 [DEBUG] aria: CustomToolRouter: parsed 1 call(s), 0 error(s)
+2026-09-08 21:54:48,009 [DEBUG] aria: BaseAgent.run: executing tool 'write_file'
+2026-09-08 21:54:48,009 [DEBUG] aria: Filesystem: wrote /tmp/pytest-of-aliraza/pytest-45/test_aria_routes_text_tool_cal0/custom.txt (23 chars)
+2026-09-08 21:54:48,009 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:54:48,009 [DEBUG] aria: ToolRegistry: 'write_file' arguments={'path': 'custom.txt', 'content': 'created by text routing'} output='Wrote custom.txt'
+2026-09-08 21:54:48,009 [DEBUG] aria: BaseAgent.run: iteration 2/3
+2026-09-08 21:54:48,009 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:54:48,009 [DEBUG] aria: SessionMemory: cleaned up aria-session-250732974d884c17a643effd87873649.json
+2026-09-08 21:54:48,010 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:48,010 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:48,010 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:48,010 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:48,010 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:48,010 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:48,011 [DEBUG] aria: BaseAgent initialized: iterations=2 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:54:48,011 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:54:48,011 [INFO] aria: BaseAgent.run: starting turn with 10 chars of user input
+2026-09-08 21:54:48,011 [DEBUG] aria: BaseAgent.run: iteration 1/2
+2026-09-08 21:54:48,011 [DEBUG] aria: BaseAgent.run: executing tool 'missing'
+2026-09-08 21:54:48,011 [ERROR] aria: ToolRegistry: model requested unknown tool 'missing'
+2026-09-08 21:54:48,011 [DEBUG] aria: BaseAgent.run: iteration 2/2
+2026-09-08 21:54:48,012 [DEBUG] aria: BaseAgent.run: executing tool 'missing'
+2026-09-08 21:54:48,012 [ERROR] aria: ToolRegistry: model requested unknown tool 'missing'
+2026-09-08 21:54:48,012 [ERROR] aria: BaseAgent.run: hit the iteration safety limit
+2026-09-08 21:54:48,012 [DEBUG] aria: SessionMemory: cleaned up aria-session-9debbf529aa54f7b937d6507c5caa405.json
+2026-09-08 21:54:48,013 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:48,013 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:48,013 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:48,013 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:48,013 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:48,013 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:48,013 [DEBUG] aria: BaseAgent initialized: iterations=3 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:54:48,014 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:54:48,014 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:54:48,014 [DEBUG] aria: BaseAgent.run: iteration 1/3
+2026-09-08 21:54:48,014 [DEBUG] aria: BaseAgent.run: executing tool 'write_file'
+2026-09-08 21:54:48,015 [DEBUG] aria: Filesystem: wrote /tmp/pytest-of-aliraza/pytest-45/test_agent_emits_chain_of_thou0/result.txt (4 chars)
+2026-09-08 21:54:48,015 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:54:48,015 [DEBUG] aria: ToolRegistry: 'write_file' arguments={'path': 'result.txt', 'content': 'done'} output='Wrote result.txt'
+2026-09-08 21:54:48,015 [DEBUG] aria: BaseAgent.run: iteration 2/3
+2026-09-08 21:54:48,015 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:54:48,015 [DEBUG] aria: SessionMemory: cleaned up aria-session-c415d7a148004a249cc76b2e7d47c99d.json
+2026-09-08 21:54:48,016 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:48,016 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:48,016 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:48,016 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:48,016 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:48,016 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:48,016 [DEBUG] aria: BaseAgent initialized: iterations=3 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:54:48,017 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:54:48,017 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:54:48,017 [DEBUG] aria: BaseAgent.run: iteration 1/3
+2026-09-08 21:54:48,017 [DEBUG] aria: BaseAgent.run: executing tool 'write_file'
+2026-09-08 21:54:48,017 [DEBUG] aria: Filesystem: wrote /tmp/pytest-of-aliraza/pytest-45/test_agent_events_work_without0/result.txt (4 chars)
+2026-09-08 21:54:48,017 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:54:48,017 [DEBUG] aria: ToolRegistry: 'write_file' arguments={'path': 'result.txt', 'content': 'done'} output='Wrote result.txt'
+2026-09-08 21:54:48,017 [DEBUG] aria: BaseAgent.run: iteration 2/3
+2026-09-08 21:54:48,018 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:54:48,018 [DEBUG] aria: SessionMemory: cleaned up aria-session-d0b7153177a8428bbe7f7379a35f620d.json
+2026-09-08 21:54:48,018 [DEBUG] aria: CoderService: initialized provider=stub model=stub-model
+2026-09-08 21:54:48,018 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:48,019 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:48,019 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:48,019 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:48,019 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:48,019 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:48,019 [DEBUG] aria: ToolRegistry: registered tool 'deploy_coder'
+2026-09-08 21:54:48,019 [DEBUG] aria: BaseAgent initialized: iterations=3 tools=['batch_edit', 'deploy_coder', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:54:48,019 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:54:48,019 [INFO] aria: BaseAgent.run: starting turn with 24 chars of user input
+2026-09-08 21:54:48,019 [DEBUG] aria: BaseAgent.run: iteration 1/3
+2026-09-08 21:54:48,019 [DEBUG] aria: CustomToolRouter: parsed 1 call(s), 0 error(s)
+2026-09-08 21:54:48,019 [DEBUG] aria: BaseAgent.run: executing tool 'deploy_coder'
+2026-09-08 21:54:48,020 [INFO] aria: DeployCoderTool: ARIA deployed the coder (38 chars)
+2026-09-08 21:54:48,020 [INFO] aria: CoderService: deployment requested (38 chars of instructions)
+2026-09-08 21:54:48,020 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:48,020 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:48,020 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:48,020 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:48,020 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:48,020 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:48,020 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:54:48,020 [DEBUG] aria: BaseAgent initialized: iterations=2 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'run_shell_command', 'search_workspace', 'write_file']
+2026-09-08 21:54:48,021 [DEBUG] aria: CoderAgent: initialized with filesystem + shell tools
+2026-09-08 21:54:48,021 [INFO] aria: BaseAgent.run: starting turn with 38 chars of user input
+2026-09-08 21:54:48,021 [DEBUG] aria: BaseAgent.run: iteration 1/2
+2026-09-08 21:54:48,021 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:54:48,021 [INFO] aria: CoderService: deployment finished in 0.0s
+2026-09-08 21:54:48,021 [DEBUG] aria: SessionMemory: cleaned up aria-coder-session-29dc33b8c45a42aaaaea92b916508a43.json
+2026-09-08 21:54:48,021 [INFO] aria: ToolRegistry: 'deploy_coder' -> ok in 0.00s
+2026-09-08 21:54:48,021 [DEBUG] aria: ToolRegistry: 'deploy_coder' arguments={'task': "create report.txt with today's summary"} output='All done: created report.txt'
+2026-09-08 21:54:48,022 [DEBUG] aria: BaseAgent.run: iteration 2/3
+2026-09-08 21:54:48,022 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:54:48,022 [DEBUG] aria: SessionMemory: cleaned up aria-session-e6978973d54147aea475621478dcfc00.json
+2026-09-08 21:54:48,023 [DEBUG] aria: CoderService: initialized provider=stub model=stub-model
+2026-09-08 21:54:48,023 [INFO] aria: CoderService: deployment requested (12 chars of instructions)
+2026-09-08 21:54:48,023 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:48,023 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:48,023 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:48,023 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:48,023 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:48,023 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:48,023 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:54:48,024 [DEBUG] aria: BaseAgent initialized: iterations=2 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'run_shell_command', 'search_workspace', 'write_file']
+2026-09-08 21:54:48,024 [DEBUG] aria: CoderAgent: initialized with filesystem + shell tools
+2026-09-08 21:54:48,024 [INFO] aria: BaseAgent.run: starting turn with 12 chars of user input
+2026-09-08 21:54:48,024 [DEBUG] aria: BaseAgent.run: iteration 1/2
+2026-09-08 21:54:48,024 [ERROR] aria: CoderService: deployment failed: RuntimeError: provider exploded
+2026-09-08 21:54:48,024 [DEBUG] aria: SessionMemory: cleaned up aria-coder-session-f8af5c98553e4740917240b752901bdb.json
+2026-09-08 21:54:48,025 [DEBUG] aria: CoderService: initialized provider=stub model=stub-model
+2026-09-08 21:54:48,025 [INFO] aria: CoderService: deployment requested (10 chars of instructions)
+2026-09-08 21:54:48,025 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:48,025 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:48,025 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:48,025 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:48,026 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:48,026 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:48,026 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:54:48,026 [DEBUG] aria: BaseAgent initialized: iterations=2 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'run_shell_command', 'search_workspace', 'write_file']
+2026-09-08 21:54:48,026 [DEBUG] aria: CoderAgent: initialized with filesystem + shell tools
+2026-09-08 21:54:48,026 [INFO] aria: BaseAgent.run: starting turn with 10 chars of user input
+2026-09-08 21:54:48,026 [DEBUG] aria: BaseAgent.run: iteration 1/2
+2026-09-08 21:54:48,026 [INFO] aria: CoderService: deployment requested (11 chars of instructions)
+2026-09-08 21:54:49,027 [ERROR] aria: CoderService: a deployment is already running
+2026-09-08 21:54:49,027 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:54:49,028 [INFO] aria: CoderService: deployment finished in 1.0s
+2026-09-08 21:54:49,028 [DEBUG] aria: SessionMemory: cleaned up aria-coder-session-115c76ddc9f64a29b808f593c23219ec.json
+2026-09-08 21:54:49,029 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:49,029 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:49,029 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:49,029 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:49,029 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:49,029 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:49,029 [DEBUG] aria: BaseAgent initialized: iterations=1 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:54:49,029 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:54:49,030 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:49,030 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:49,030 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:49,030 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:49,030 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:49,030 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:49,030 [DEBUG] aria: BaseAgent initialized: iterations=1 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:54:49,030 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:54:49,031 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:49,031 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:49,031 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:49,031 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:49,031 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:49,031 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:49,031 [DEBUG] aria: BaseAgent initialized: iterations=1 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:54:49,031 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:54:49,032 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:54:49,032 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:54:49,032 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:54:49,032 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:54:49,032 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:54:49,032 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:54:49,032 [DEBUG] aria: BaseAgent initialized: iterations=1 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:54:49,032 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:58:32,456 [DEBUG] aria: Logging configured. Files in custom-logs
+2026-09-08 21:58:32,456 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:58:32,456 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:58:32,456 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:58:32,456 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:58:32,456 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:58:32,456 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:58:32,456 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:58:32,456 [DEBUG] aria: Config: env override ARIA_CODER_MAX_ITERATIONS applied
+2026-09-08 21:58:32,457 [DEBUG] aria: Config: env override ARIA_CODER_MAX_OUTPUT_CHARS applied
+2026-09-08 21:58:32,457 [DEBUG] aria: Config: env override ARIA_COMMAND_TIMEOUT_SECONDS applied
+2026-09-08 21:58:32,457 [DEBUG] aria: Config: env override ARIA_MAX_COMMAND_OUTPUT_CHARS applied
+2026-09-08 21:58:32,457 [DEBUG] aria: Config: env override ARIA_SPEECH_ENABLED applied
+2026-09-08 21:58:32,457 [DEBUG] aria: Config: env override ARIA_LOG_DIR applied
+2026-09-08 21:58:32,457 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-46/test_env_overrides_match_docum0 max_iterations=20 persona=jarvis
+2026-09-08 21:58:32,459 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:58:32,459 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:58:32,459 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:58:32,459 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:58:32,459 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:58:32,459 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:58:32,459 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:58:32,459 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-46/test_mistral_provider_and_koko0 max_iterations=20 persona=jarvis
+2026-09-08 21:58:32,461 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:58:32,461 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:58:32,461 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:58:32,461 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:58:32,461 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:58:32,461 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:58:32,461 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:58:32,461 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-46/test_legacy_kokoro_engine_alia0 max_iterations=20 persona=jarvis
+2026-09-08 21:58:32,463 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:58:32,463 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:58:32,463 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:58:32,463 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:58:32,463 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:58:32,463 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:58:32,463 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:58:32,463 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-46/test_zai_provider_is_known0 max_iterations=20 persona=jarvis
+2026-09-08 21:58:32,465 [INFO] aria: Config: loaded environment variables from /home/aliraza/Devs/ai/inProgress/ARIA/.env
+2026-09-08 21:58:32,473 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:58:32,473 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:58:32,473 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:58:32,474 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:58:32,474 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:58:32,474 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:58:32,474 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:58:32,474 [DEBUG] aria: Config: provider=gemini model=gemini-2.5-flash workspace=/tmp/pytest-of-aliraza/pytest-46/test_memory_config_fields_matc0 max_iterations=20 persona=jarvis
+2026-09-08 21:58:32,475 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:58:32,475 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:58:32,475 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:58:32,475 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:58:32,476 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:58:32,476 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:58:32,476 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:58:32,476 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-46/test_coder_provider_and_model_0 max_iterations=20 persona=jarvis
+2026-09-08 21:58:32,477 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:58:32,477 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:58:32,477 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:58:32,477 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:58:32,477 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:58:32,477 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:58:32,477 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:58:32,478 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-46/test_coder_backend_settings_ar0 max_iterations=20 persona=jarvis
+2026-09-08 21:58:32,479 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:58:32,479 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:58:32,479 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:58:32,479 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:58:32,479 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:58:32,479 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:58:32,479 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:58:32,480 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:58:32,481 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:58:32,481 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:58:32,481 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:58:32,481 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:58:32,481 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:58:32,481 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:58:32,481 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-46/test_runtime_state_restores_pr0 max_iterations=20 persona=jarvis
+2026-09-08 21:58:32,483 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:58:32,483 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:58:32,483 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:58:32,483 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:58:32,483 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:58:32,483 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:58:32,483 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:58:32,483 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-46/test_runtime_state_restores_pr0 max_iterations=20 persona=jarvis
+2026-09-08 21:58:32,484 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:58:32,484 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:58:32,484 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:58:32,484 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:58:32,484 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:58:32,485 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:58:32,485 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:58:32,485 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-46/test_runtime_state_overrides_s0 max_iterations=20 persona=jarvis
+2026-09-08 21:58:32,486 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:58:32,486 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:58:32,486 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:58:32,487 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:58:32,487 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:58:32,487 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:58:32,487 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:58:32,487 [DEBUG] aria: Config: provider=mistral model=mistral-small-latest workspace=/tmp/pytest-of-aliraza/pytest-46/test_runtime_state_overrides_s0 max_iterations=20 persona=jarvis
+2026-09-08 21:58:32,488 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:58:32,488 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:58:32,488 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:58:32,488 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:58:32,488 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:58:32,488 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:58:32,488 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:58:32,489 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-46/test_environment_override_beat0 max_iterations=20 persona=jarvis
+2026-09-08 21:58:32,490 [DEBUG] aria: Config: env override ARIA_CEREBRAS_API_KEY applied
+2026-09-08 21:58:32,490 [DEBUG] aria: Config: env override ARIA_GEMINI_API_KEY applied
+2026-09-08 21:58:32,490 [DEBUG] aria: Config: env override ARIA_GROQ_API_KEY applied
+2026-09-08 21:58:32,490 [DEBUG] aria: Config: env override ARIA_MISTRAL_API_KEY applied
+2026-09-08 21:58:32,490 [DEBUG] aria: Config: env override ARIA_NVIDIA_API_KEY applied
+2026-09-08 21:58:32,490 [DEBUG] aria: Config: env override ARIA_OPENAI_API_KEY applied
+2026-09-08 21:58:32,490 [DEBUG] aria: Config: env override ARIA_OPENROUTER_API_KEY applied
+2026-09-08 21:58:32,490 [DEBUG] aria: Config: env override ARIA_PROVIDER applied
+2026-09-08 21:58:32,490 [DEBUG] aria: Config: env override ARIA_MODEL applied
+2026-09-08 21:58:32,491 [DEBUG] aria: Config: provider=ollama model=gemma2:9b workspace=/tmp/pytest-of-aliraza/pytest-46/test_environment_override_beat0 max_iterations=20 persona=jarvis
+2026-09-08 21:58:32,491 [DEBUG] aria: CustomToolRouter: parsed 2 call(s), 0 error(s)
+2026-09-08 21:58:32,492 [ERROR] aria: CustomToolRouter: invalid tool call JSON: Expecting ',' delimiter
+2026-09-08 21:58:32,492 [DEBUG] aria: CustomToolRouter: parsed 0 call(s), 1 error(s)
+2026-09-08 21:58:32,493 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:58:32,493 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,493 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,493 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,493 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,493 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,493 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,493 [ERROR] aria: Filesystem: path escaped workspace: ../outside.txt
+2026-09-08 21:58:32,493 [ERROR] aria: ToolRegistry: 'read_file' raised ValueError: path must remain inside the workspace
+2026-09-08 21:58:32,494 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:58:32,494 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,494 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,494 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,494 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,494 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,494 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,494 [INFO] aria: ToolRegistry: 'edit_file' -> error in 0.00s
+2026-09-08 21:58:32,494 [DEBUG] aria: ToolRegistry: 'edit_file' arguments={'path': 'notes.txt', 'old_text': 'todo', 'new_text': 'done'} output='old_text occurs 2 times; set replace_all=true to edit all occurrences'
+2026-09-08 21:58:32,495 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:58:32,495 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,495 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,495 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,495 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,495 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,495 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,495 [DEBUG] aria: Filesystem: wrote /tmp/pytest-of-aliraza/pytest-46/test_write_and_read_file0/a/b.txt (5 chars)
+2026-09-08 21:58:32,495 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:58:32,496 [DEBUG] aria: ToolRegistry: 'write_file' arguments={'path': 'a/b.txt', 'content': 'hello'} output='Wrote a/b.txt'
+2026-09-08 21:58:32,496 [INFO] aria: ToolRegistry: 'read_file' -> ok in 0.00s
+2026-09-08 21:58:32,496 [DEBUG] aria: ToolRegistry: 'read_file' arguments={'path': 'a/b.txt'} output='hello'
+2026-09-08 21:58:32,496 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:58:32,497 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,497 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,497 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,497 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,497 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,497 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,497 [INFO] aria: ToolRegistry: 'search_workspace' -> ok in 0.00s
+2026-09-08 21:58:32,497 [DEBUG] aria: ToolRegistry: 'search_workspace' arguments={'pattern': 'alpha', 'glob': '*.py'} output='one.py:1: def alpha():\nskipped/three.py:1: alpha in git dir\nsrc/two.py:1: x = 1  # alpha here'
+2026-09-08 21:58:32,498 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:58:32,498 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,498 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,498 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,498 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,498 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,498 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,498 [DEBUG] aria: Filesystem: batch_edit on /tmp/pytest-of-aliraza/pytest-46/test_batch_edit_applies_multip0/code.txt: 2 applied
+2026-09-08 21:58:32,498 [INFO] aria: ToolRegistry: 'batch_edit' -> ok in 0.00s
+2026-09-08 21:58:32,498 [DEBUG] aria: ToolRegistry: 'batch_edit' arguments={'path': 'code.txt', 'edits': [{'old_text': 'foo', 'new_text': 'FOO'}, {'old_text': 'baz', 'new_text': 'BAZ'}]} output='applied 2/2 edits'
+2026-09-08 21:58:32,499 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:58:32,499 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,499 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,499 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,499 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,499 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,499 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,500 [DEBUG] aria: Filesystem: batch_edit on /tmp/pytest-of-aliraza/pytest-46/test_batch_edit_reports_failur0/code.txt: 1 applied
+2026-09-08 21:58:32,500 [INFO] aria: ToolRegistry: 'batch_edit' -> ok in 0.00s
+2026-09-08 21:58:32,500 [DEBUG] aria: ToolRegistry: 'batch_edit' arguments={'path': 'code.txt', 'edits': [{'old_text': 'missing', 'new_text': 'x'}, {'old_text': 'foo', 'new_text': 'FOO'}]} output='applied 1/2 edits\nfailed edits:\nedit 0: old_text not found'
+2026-09-08 21:58:32,501 [DEBUG] aria: ToolRegistry: registered tool 'desktop_monitors'
+2026-09-08 21:58:32,501 [DEBUG] aria: ToolRegistry: registered tool 'desktop_workspaces'
+2026-09-08 21:58:32,501 [DEBUG] aria: ToolRegistry: registered tool 'desktop_clients'
+2026-09-08 21:58:32,501 [DEBUG] aria: ToolRegistry: registered tool 'desktop_active_window'
+2026-09-08 21:58:32,501 [DEBUG] aria: ToolRegistry: registered tool 'desktop_keybinds'
+2026-09-08 21:58:32,501 [DEBUG] aria: ToolRegistry: registered tool 'desktop_dispatch'
+2026-09-08 21:58:32,501 [DEBUG] aria: ToolRegistry: registered tool 'desktop_launch'
+2026-09-08 21:58:32,501 [DEBUG] aria: ToolRegistry: registered tool 'desktop_input'
+2026-09-08 21:58:32,501 [DEBUG] aria: ToolRegistry: registered tool 'desktop_screenshot'
+2026-09-08 21:58:32,501 [DEBUG] aria: ToolRegistry: registered tool 'desktop_raw_dispatch'
+2026-09-08 21:58:32,502 [DEBUG] aria: ToolRegistry: registered tool 'desktop_set_keybind'
+2026-09-08 21:58:32,502 [DEBUG] aria: ToolRegistry: registered tool 'desktop_exec'
+2026-09-08 21:58:32,502 [DEBUG] aria: ToolRegistry: registered tool 'desktop_shell'
+2026-09-08 21:58:32,503 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,503 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,503 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,503 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,503 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,504 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,504 [DEBUG] aria: BaseAgent initialized: iterations=3 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:58:32,504 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:58:32,504 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:58:32,504 [DEBUG] aria: BaseAgent.run: iteration 1/3
+2026-09-08 21:58:32,590 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,590 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,590 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,590 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,590 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,590 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,590 [DEBUG] aria: BaseAgent initialized: iterations=3 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:58:32,591 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:58:32,591 [INFO] aria: BaseAgent.run: starting turn with 13 chars of user input
+2026-09-08 21:58:32,591 [DEBUG] aria: BaseAgent.run: iteration 1/3
+2026-09-08 21:58:32,598 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,598 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,598 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,598 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,598 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,598 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,598 [DEBUG] aria: BaseAgent initialized: iterations=2 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:58:32,598 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:58:32,598 [INFO] aria: BaseAgent.run: starting turn with 10 chars of user input
+2026-09-08 21:58:32,599 [DEBUG] aria: BaseAgent.run: iteration 1/2
+2026-09-08 21:58:32,606 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,606 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,606 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,606 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,606 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,606 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,606 [DEBUG] aria: BaseAgent initialized: iterations=3 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:58:32,606 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:58:32,606 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:58:32,606 [DEBUG] aria: BaseAgent.run: iteration 1/3
+2026-09-08 21:58:32,613 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,613 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,613 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,613 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,613 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,614 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,614 [DEBUG] aria: BaseAgent initialized: iterations=3 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:58:32,614 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:58:32,614 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:58:32,614 [DEBUG] aria: BaseAgent.run: iteration 1/3
+2026-09-08 21:58:32,679 [DEBUG] aria: CoderService: initialized provider=stub model=stub-model
+2026-09-08 21:58:32,679 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,680 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,680 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,680 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,680 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,680 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,680 [DEBUG] aria: ToolRegistry: registered tool 'deploy_coder'
+2026-09-08 21:58:32,680 [DEBUG] aria: BaseAgent initialized: iterations=3 tools=['batch_edit', 'deploy_coder', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:58:32,680 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:58:32,680 [INFO] aria: BaseAgent.run: starting turn with 24 chars of user input
+2026-09-08 21:58:32,680 [DEBUG] aria: BaseAgent.run: iteration 1/3
+2026-09-08 21:58:32,688 [DEBUG] aria: CoderService: initialized provider=stub model=stub-model
+2026-09-08 21:58:32,688 [INFO] aria: CoderService: deployment requested (12 chars of instructions)
+2026-09-08 21:58:32,688 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,688 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,688 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,689 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,689 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,689 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,689 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:58:32,689 [DEBUG] aria: BaseAgent initialized: iterations=2 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'run_shell_command', 'search_workspace', 'write_file']
+2026-09-08 21:58:32,689 [DEBUG] aria: CoderAgent: initialized with filesystem + shell tools
+2026-09-08 21:58:32,689 [INFO] aria: BaseAgent.run: starting turn with 12 chars of user input
+2026-09-08 21:58:32,689 [DEBUG] aria: BaseAgent.run: iteration 1/2
+2026-09-08 21:58:32,690 [ERROR] aria: CoderService: deployment failed: TypeError: Value after * must be an iterable, not NoneType
+2026-09-08 21:58:32,690 [DEBUG] aria: SessionMemory: cleaned up aria-coder-session-d148aa28aee54f0dbe087753a7ce00ac.json
+2026-09-08 21:58:32,695 [DEBUG] aria: CoderService: initialized provider=stub model=stub-model
+2026-09-08 21:58:32,695 [INFO] aria: CoderService: deployment requested (10 chars of instructions)
+2026-09-08 21:58:32,695 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,695 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,695 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,695 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,695 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,695 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,695 [DEBUG] aria: ToolRegistry: registered tool 'run_shell_command'
+2026-09-08 21:58:32,695 [DEBUG] aria: BaseAgent initialized: iterations=2 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'run_shell_command', 'search_workspace', 'write_file']
+2026-09-08 21:58:32,696 [DEBUG] aria: CoderAgent: initialized with filesystem + shell tools
+2026-09-08 21:58:32,696 [INFO] aria: BaseAgent.run: starting turn with 10 chars of user input
+2026-09-08 21:58:32,696 [DEBUG] aria: BaseAgent.run: iteration 1/2
+2026-09-08 21:58:32,696 [ERROR] aria: CoderService: deployment failed: TypeError: Value after * must be an iterable, not NoneType
+2026-09-08 21:58:32,696 [DEBUG] aria: SessionMemory: cleaned up aria-coder-session-e932f7ec9930469e83370b3e394ebcb8.json
+2026-09-08 21:58:32,700 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,700 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,700 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,700 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,700 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,700 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,700 [DEBUG] aria: BaseAgent initialized: iterations=1 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:58:32,700 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:58:32,701 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,701 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,701 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,701 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,701 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,701 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,701 [DEBUG] aria: BaseAgent initialized: iterations=1 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:58:32,701 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:58:32,702 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,702 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,702 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,702 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,702 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,702 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,702 [DEBUG] aria: BaseAgent initialized: iterations=1 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:58:32,702 [DEBUG] aria: AriaAgent: initialized
+2026-09-08 21:58:32,703 [DEBUG] aria: ToolRegistry: registered tool 'list_directory'
+2026-09-08 21:58:32,703 [DEBUG] aria: ToolRegistry: registered tool 'read_file'
+2026-09-08 21:58:32,703 [DEBUG] aria: ToolRegistry: registered tool 'write_file'
+2026-09-08 21:58:32,703 [DEBUG] aria: ToolRegistry: registered tool 'edit_file'
+2026-09-08 21:58:32,703 [DEBUG] aria: ToolRegistry: registered tool 'search_workspace'
+2026-09-08 21:58:32,703 [DEBUG] aria: ToolRegistry: registered tool 'batch_edit'
+2026-09-08 21:58:32,703 [DEBUG] aria: BaseAgent initialized: iterations=1 tools=['batch_edit', 'edit_file', 'list_directory', 'read_file', 'search_workspace', 'write_file']
+2026-09-08 21:58:32,703 [DEBUG] aria: AriaAgent: initialized

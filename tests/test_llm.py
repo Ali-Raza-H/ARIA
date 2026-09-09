@@ -78,6 +78,43 @@ def test_cerebras_and_groq_support_aria_and_coder_roles(
     ]
 
 
+def test_zai_uses_shared_openai_compatible_provider(monkeypatch) -> None:
+    created: list[dict[str, Any]] = []
+
+    class FakeOpenAI:
+        def __init__(self, **kwargs: Any) -> None:
+            created.append(kwargs)
+
+    monkeypatch.setenv("ARIA_ZAI_API_KEY", "test-key")
+    monkeypatch.setattr("aria.llm.openai_compat.OpenAI", FakeOpenAI)
+
+    manager = ProviderManager({})
+    provider = manager.create("zai", "glm-4.7")
+
+    assert isinstance(provider, OpenAICompatProvider)
+    assert provider.name == "zai"
+    assert provider.model == "glm-4.7"
+    assert created == [{"api_key": "test-key", "base_url": "https://api.z.ai/api/paas/v4"}]
+
+
+def test_zai_coder_role_uses_dedicated_key(monkeypatch) -> None:
+    created: list[dict[str, Any]] = []
+
+    class FakeOpenAI:
+        def __init__(self, **kwargs: Any) -> None:
+            created.append(kwargs)
+
+    monkeypatch.setenv("ARIA_ZAI_API_KEY", "aria-key")
+    monkeypatch.setenv("CODER_ZAI_API_KEY", "coder-key")
+    monkeypatch.setattr("aria.llm.openai_compat.OpenAI", FakeOpenAI)
+
+    manager = ProviderManager({})
+    provider = manager.create_coder("zai", "glm-4.7")
+
+    assert isinstance(provider, OpenAICompatProvider)
+    assert created == [{"api_key": "coder-key", "base_url": "https://api.z.ai/api/paas/v4"}]
+
+
 def test_coder_uses_a_dedicated_provider_key(monkeypatch) -> None:
     created: list[dict[str, Any]] = []
 

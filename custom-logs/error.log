@@ -1,0 +1,21 @@
+2026-09-08 21:52:04,063 [ERROR] aria: CustomToolRouter: invalid tool call JSON: Expecting ',' delimiter
+2026-09-08 21:52:04,064 [ERROR] aria: Filesystem: path escaped workspace: ../outside.txt
+2026-09-08 21:52:04,064 [ERROR] aria: ToolRegistry: 'read_file' raised ValueError: path must remain inside the workspace
+2026-09-08 21:52:04,083 [ERROR] aria: ToolRegistry: model requested unknown tool 'missing'
+2026-09-08 21:52:04,083 [ERROR] aria: ToolRegistry: model requested unknown tool 'missing'
+2026-09-08 21:52:04,083 [ERROR] aria: BaseAgent.run: hit the iteration safety limit
+2026-09-08 21:52:04,096 [ERROR] aria: CoderService: deployment failed: RuntimeError: provider exploded
+2026-09-08 21:52:05,099 [ERROR] aria: CoderService: a deployment is already running
+2026-09-08 21:54:47,994 [ERROR] aria: CustomToolRouter: invalid tool call JSON: Expecting ',' delimiter
+2026-09-08 21:54:47,995 [ERROR] aria: Filesystem: path escaped workspace: ../outside.txt
+2026-09-08 21:54:47,995 [ERROR] aria: ToolRegistry: 'read_file' raised ValueError: path must remain inside the workspace
+2026-09-08 21:54:48,011 [ERROR] aria: ToolRegistry: model requested unknown tool 'missing'
+2026-09-08 21:54:48,012 [ERROR] aria: ToolRegistry: model requested unknown tool 'missing'
+2026-09-08 21:54:48,012 [ERROR] aria: BaseAgent.run: hit the iteration safety limit
+2026-09-08 21:54:48,024 [ERROR] aria: CoderService: deployment failed: RuntimeError: provider exploded
+2026-09-08 21:54:49,027 [ERROR] aria: CoderService: a deployment is already running
+2026-09-08 21:58:32,492 [ERROR] aria: CustomToolRouter: invalid tool call JSON: Expecting ',' delimiter
+2026-09-08 21:58:32,493 [ERROR] aria: Filesystem: path escaped workspace: ../outside.txt
+2026-09-08 21:58:32,493 [ERROR] aria: ToolRegistry: 'read_file' raised ValueError: path must remain inside the workspace
+2026-09-08 21:58:32,690 [ERROR] aria: CoderService: deployment failed: TypeError: Value after * must be an iterable, not NoneType
+2026-09-08 21:58:32,696 [ERROR] aria: CoderService: deployment failed: TypeError: Value after * must be an iterable, not NoneType

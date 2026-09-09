@@ -58,6 +58,34 @@ def test_legacy_kokoro_engine_aliases_to_hosted_mode(tmp_path: Path) -> None:
     assert config.speech.engine == "kokoro_hf"
 
 
+def test_zai_provider_is_known(tmp_path: Path) -> None:
+    path = write_config(
+        tmp_path,
+        "providers:\n  zai:\n    aria_api_key_env: ARIA_ZAI_API_KEY\n"
+        "    coder_api_key_env: CODER_ZAI_API_KEY\n"
+        "    base_url: https://api.z.ai/api/paas/v4\n",
+    )
+    config = load_config(path, tmp_path)
+
+    assert "zai" in config.providers
+
+
+def test_memory_config_fields_match_example(tmp_path: Path) -> None:
+    """The shipped example must parse cleanly and set every memory field."""
+    repo_example = Path(__file__).resolve().parents[1] / "config.example.yaml"
+    config = load_config(repo_example, tmp_path)
+
+    memory = config.memory
+    assert memory.enabled is True
+    assert memory.rank_similarity > 0 and memory.rank_importance > 0
+    assert memory.rank_confidence >= 0
+    assert memory.episodic_retention_days > 0
+    assert memory.conversation_retention_days > 0
+    assert memory.knowledge_retention_days >= 0
+    assert memory.context_token_budget > 0
+    assert "qwen3-embedding:0.6b" in memory.embedding_fallback_models
+
+
 def test_coder_provider_and_model_are_loaded_from_config(tmp_path: Path) -> None:
     config = load_config(
         write_config(

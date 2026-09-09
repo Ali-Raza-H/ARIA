@@ -1,0 +1,108 @@
+2026-09-08 21:52:04,036 [INFO] aria: Config: loaded environment variables from /home/aliraza/Devs/ai/inProgress/ARIA/.env
+2026-09-08 21:52:04,063 [ERROR] aria: CustomToolRouter: invalid tool call JSON: Expecting ',' delimiter
+2026-09-08 21:52:04,064 [ERROR] aria: Filesystem: path escaped workspace: ../outside.txt
+2026-09-08 21:52:04,064 [ERROR] aria: ToolRegistry: 'read_file' raised ValueError: path must remain inside the workspace
+2026-09-08 21:52:04,066 [INFO] aria: ToolRegistry: 'edit_file' -> error in 0.00s
+2026-09-08 21:52:04,067 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:52:04,067 [INFO] aria: ToolRegistry: 'read_file' -> ok in 0.00s
+2026-09-08 21:52:04,069 [INFO] aria: ToolRegistry: 'search_workspace' -> ok in 0.00s
+2026-09-08 21:52:04,070 [INFO] aria: ToolRegistry: 'batch_edit' -> ok in 0.00s
+2026-09-08 21:52:04,071 [INFO] aria: ToolRegistry: 'batch_edit' -> ok in 0.00s
+2026-09-08 21:52:04,076 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:52:04,077 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:52:04,077 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:52:04,079 [INFO] aria: BaseAgent.run: starting turn with 13 chars of user input
+2026-09-08 21:52:04,080 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:52:04,080 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:52:04,082 [INFO] aria: BaseAgent.run: starting turn with 10 chars of user input
+2026-09-08 21:52:04,083 [ERROR] aria: ToolRegistry: model requested unknown tool 'missing'
+2026-09-08 21:52:04,083 [ERROR] aria: ToolRegistry: model requested unknown tool 'missing'
+2026-09-08 21:52:04,083 [ERROR] aria: BaseAgent.run: hit the iteration safety limit
+2026-09-08 21:52:04,085 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:52:04,086 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:52:04,086 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:52:04,088 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:52:04,089 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:52:04,089 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:52:04,091 [INFO] aria: BaseAgent.run: starting turn with 24 chars of user input
+2026-09-08 21:52:04,091 [INFO] aria: DeployCoderTool: ARIA deployed the coder (38 chars)
+2026-09-08 21:52:04,091 [INFO] aria: CoderService: deployment requested (38 chars of instructions)
+2026-09-08 21:52:04,092 [INFO] aria: BaseAgent.run: starting turn with 38 chars of user input
+2026-09-08 21:52:04,093 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:52:04,093 [INFO] aria: CoderService: deployment finished in 0.0s
+2026-09-08 21:52:04,093 [INFO] aria: ToolRegistry: 'deploy_coder' -> ok in 0.00s
+2026-09-08 21:52:04,094 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:52:04,095 [INFO] aria: CoderService: deployment requested (12 chars of instructions)
+2026-09-08 21:52:04,096 [INFO] aria: BaseAgent.run: starting turn with 12 chars of user input
+2026-09-08 21:52:04,096 [ERROR] aria: CoderService: deployment failed: RuntimeError: provider exploded
+2026-09-08 21:52:04,097 [INFO] aria: CoderService: deployment requested (10 chars of instructions)
+2026-09-08 21:52:04,098 [INFO] aria: BaseAgent.run: starting turn with 10 chars of user input
+2026-09-08 21:52:04,099 [INFO] aria: CoderService: deployment requested (11 chars of instructions)
+2026-09-08 21:52:05,099 [ERROR] aria: CoderService: a deployment is already running
+2026-09-08 21:52:05,099 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:52:05,100 [INFO] aria: CoderService: deployment finished in 1.0s
+2026-09-08 21:54:47,966 [INFO] aria: Config: loaded environment variables from /home/aliraza/Devs/ai/inProgress/ARIA/.env
+2026-09-08 21:54:47,994 [ERROR] aria: CustomToolRouter: invalid tool call JSON: Expecting ',' delimiter
+2026-09-08 21:54:47,995 [ERROR] aria: Filesystem: path escaped workspace: ../outside.txt
+2026-09-08 21:54:47,995 [ERROR] aria: ToolRegistry: 'read_file' raised ValueError: path must remain inside the workspace
+2026-09-08 21:54:47,996 [INFO] aria: ToolRegistry: 'edit_file' -> error in 0.00s
+2026-09-08 21:54:47,998 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:54:47,998 [INFO] aria: ToolRegistry: 'read_file' -> ok in 0.00s
+2026-09-08 21:54:47,999 [INFO] aria: ToolRegistry: 'search_workspace' -> ok in 0.00s
+2026-09-08 21:54:48,001 [INFO] aria: ToolRegistry: 'batch_edit' -> ok in 0.00s
+2026-09-08 21:54:48,002 [INFO] aria: ToolRegistry: 'batch_edit' -> ok in 0.00s
+2026-09-08 21:54:48,006 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:54:48,006 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:54:48,007 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:54:48,008 [INFO] aria: BaseAgent.run: starting turn with 13 chars of user input
+2026-09-08 21:54:48,009 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:54:48,009 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:54:48,011 [INFO] aria: BaseAgent.run: starting turn with 10 chars of user input
+2026-09-08 21:54:48,011 [ERROR] aria: ToolRegistry: model requested unknown tool 'missing'
+2026-09-08 21:54:48,012 [ERROR] aria: ToolRegistry: model requested unknown tool 'missing'
+2026-09-08 21:54:48,012 [ERROR] aria: BaseAgent.run: hit the iteration safety limit
+2026-09-08 21:54:48,014 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:54:48,015 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:54:48,015 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:54:48,017 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:54:48,017 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:54:48,018 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:54:48,019 [INFO] aria: BaseAgent.run: starting turn with 24 chars of user input
+2026-09-08 21:54:48,020 [INFO] aria: DeployCoderTool: ARIA deployed the coder (38 chars)
+2026-09-08 21:54:48,020 [INFO] aria: CoderService: deployment requested (38 chars of instructions)
+2026-09-08 21:54:48,021 [INFO] aria: BaseAgent.run: starting turn with 38 chars of user input
+2026-09-08 21:54:48,021 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:54:48,021 [INFO] aria: CoderService: deployment finished in 0.0s
+2026-09-08 21:54:48,021 [INFO] aria: ToolRegistry: 'deploy_coder' -> ok in 0.00s
+2026-09-08 21:54:48,022 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:54:48,023 [INFO] aria: CoderService: deployment requested (12 chars of instructions)
+2026-09-08 21:54:48,024 [INFO] aria: BaseAgent.run: starting turn with 12 chars of user input
+2026-09-08 21:54:48,024 [ERROR] aria: CoderService: deployment failed: RuntimeError: provider exploded
+2026-09-08 21:54:48,025 [INFO] aria: CoderService: deployment requested (10 chars of instructions)
+2026-09-08 21:54:48,026 [INFO] aria: BaseAgent.run: starting turn with 10 chars of user input
+2026-09-08 21:54:48,026 [INFO] aria: CoderService: deployment requested (11 chars of instructions)
+2026-09-08 21:54:49,027 [ERROR] aria: CoderService: a deployment is already running
+2026-09-08 21:54:49,027 [INFO] aria: BaseAgent.run: turn complete
+2026-09-08 21:54:49,028 [INFO] aria: CoderService: deployment finished in 1.0s
+2026-09-08 21:58:32,465 [INFO] aria: Config: loaded environment variables from /home/aliraza/Devs/ai/inProgress/ARIA/.env
+2026-09-08 21:58:32,492 [ERROR] aria: CustomToolRouter: invalid tool call JSON: Expecting ',' delimiter
+2026-09-08 21:58:32,493 [ERROR] aria: Filesystem: path escaped workspace: ../outside.txt
+2026-09-08 21:58:32,493 [ERROR] aria: ToolRegistry: 'read_file' raised ValueError: path must remain inside the workspace
+2026-09-08 21:58:32,494 [INFO] aria: ToolRegistry: 'edit_file' -> error in 0.00s
+2026-09-08 21:58:32,495 [INFO] aria: ToolRegistry: 'write_file' -> ok in 0.00s
+2026-09-08 21:58:32,496 [INFO] aria: ToolRegistry: 'read_file' -> ok in 0.00s
+2026-09-08 21:58:32,497 [INFO] aria: ToolRegistry: 'search_workspace' -> ok in 0.00s
+2026-09-08 21:58:32,498 [INFO] aria: ToolRegistry: 'batch_edit' -> ok in 0.00s
+2026-09-08 21:58:32,500 [INFO] aria: ToolRegistry: 'batch_edit' -> ok in 0.00s
+2026-09-08 21:58:32,504 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:58:32,591 [INFO] aria: BaseAgent.run: starting turn with 13 chars of user input
+2026-09-08 21:58:32,598 [INFO] aria: BaseAgent.run: starting turn with 10 chars of user input
+2026-09-08 21:58:32,606 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:58:32,614 [INFO] aria: BaseAgent.run: starting turn with 22 chars of user input
+2026-09-08 21:58:32,680 [INFO] aria: BaseAgent.run: starting turn with 24 chars of user input
+2026-09-08 21:58:32,688 [INFO] aria: CoderService: deployment requested (12 chars of instructions)
+2026-09-08 21:58:32,689 [INFO] aria: BaseAgent.run: starting turn with 12 chars of user input
+2026-09-08 21:58:32,690 [ERROR] aria: CoderService: deployment failed: TypeError: Value after * must be an iterable, not NoneType
+2026-09-08 21:58:32,695 [INFO] aria: CoderService: deployment requested (10 chars of instructions)
+2026-09-08 21:58:32,696 [INFO] aria: BaseAgent.run: starting turn with 10 chars of user input
+2026-09-08 21:58:32,696 [ERROR] aria: CoderService: deployment failed: TypeError: Value after * must be an iterable, not NoneType

@@ -8,11 +8,66 @@ from __future__ import annotations
 
 import io
 import os
+import re
 from dataclasses import replace
 from typing import Any
 
 from ..config import SpeechConfig
 from ..logging_setup import log_debug, log_error, log_info
+
+# --- Markdown stripping ----------------------------------------------------
+#
+# LLM replies arrive as Markdown and TTS engines should read the words, not
+# the syntax. These patterns cover the constructs the assistant actually
+# emits: headings, emphasis, lists, quotes, links, tables, horizontal rules,
+# and the fences around code blocks (the code itself is kept).
+
+_FENCED_CODE_RE = re.compile(r"(?ms)^(?:```|~~~).*?(?:```|~~~|\Z)")
+_FENCE_LINE_RE = re.compile(r"^\s*(?:```|~~~)")
+_INLINE_CODE_RE = re.compile(r"`([^`]+)`")
+_BOLD_RE = re.compile(r"(\*\*|__)(?=\S)(.+?)(?<=\S)\1")
+_ITALIC_STAR_RE = re.compile(r"\*(?=\S)([^*]+?)(?<=\S)\*")
+_ITALIC_UNDERSCORE_RE = re.compile(r"(?<![\w*])_(?=\S)([^_]+?)_(?![\w*])")
+_IMAGE_RE = re.compile(r"!\[([^\]]*)\]\([^)]*\)")
+_LINK_RE = re.compile(r"\[([^\]]*)\]\([^)]*\)")
+_AUTOLINK_RE = re.compile(r"<(https?://[^>\s]+)>")
+_HEADING_RE = re.compile(r"^#{1,6}\s+")
+_QUOTE_RE = re.compile(r"^\s*>+\s?")
+_BULLET_RE = re.compile(r"^\s*[-*+]\s+")
+_HRULE_RE = re.compile(r"^\s*(?:[-*_]\s*){3,}$")
+_TABLE_SEPARATOR_RE = re.compile(r"^\s*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?\s*$")
+
+
+def strip_markdown_for_speech(text: str) -> str:
+    """Return *text* with Markdown syntax removed, ready for text-to-speech."""
+
+    def _unfence(match: re.Match[str]) -> str:
+        return "\n".join(
+            line for line in match.group(0).splitlines() if not _FENCE_LINE_RE.match(line)
+        )
+
+    text = _FENCED_CODE_RE.sub(_unfence, text)
+
+    cleaned: list[str] = []
+    for line in text.splitlines():
+        if _HRULE_RE.match(line) or _TABLE_SEPARATOR_RE.match(line):
+            continue
+        line = _HEADING_RE.sub("", line)
+        line = _QUOTE_RE.sub("", line)
+        line = _BULLET_RE.sub("", line)
+        cleaned.append(line)
+    text = "\n".join(cleaned)
+
+    text = _INLINE_CODE_RE.sub(r"\1", text)
+    text = _IMAGE_RE.sub(r"\1", text)  # images: keep the alt text only
+    text = _LINK_RE.sub(r"\1", text)  # links: keep the label, drop the URL
+    text = _AUTOLINK_RE.sub(r"\1", text)
+    text = _BOLD_RE.sub(r"\2", text)
+    text = _ITALIC_STAR_RE.sub(r"\1", text)
+    text = _ITALIC_UNDERSCORE_RE.sub(r"\1", text)
+    text = text.replace("|", " ")  # remaining table pipes become pauses
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
 
 
 class KokoroHFBackend:
@@ -224,6 +279,7 @@ class SpeechController:
 
     def say(self, text: str) -> None:
         """Speak *text*; failures are logged and never crash the REPL."""
+        text = strip_markdown_for_speech(text)
         if not self._config.enabled or not text.strip():
             return
         if self._unavailable:

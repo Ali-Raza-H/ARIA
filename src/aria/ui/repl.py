@@ -8,6 +8,7 @@ the prompt never moves below the output.
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 import termios
@@ -30,9 +31,12 @@ from ..agent.aria import AriaAgent, DeployCoderTool
 from ..agent.base import AgentEvent
 from ..agent.coder import CoderService
 from ..config import AppConfig, save_runtime_state
+from ..images import capture_clipboard, capture_screen, load_image
+from ..proactive import ProfileStore
 from ..llm.factory import ProviderManager
 from ..logging_setup import log_error, log_info
 from ..memory import MemoryStore, SessionMemory
+from ..skills import SkillManager
 from ..speech import SpeechController
 from ..tools.web import WebToolService
 
@@ -46,11 +50,17 @@ HELP_TEXT = """\
   /workspace [path]        Show or change the workspace directory
   /iterations [n]          Show or set ARIA's iteration limit
   /agent [n]               Show or set the coder agent's iteration limit
-  /cot [on|off]            Show/hide the live chain of thought (tool calls + results)
+  /cot [on|off|keep]       Show/hide the live chain of thought; keep keeps it in the transcript
   /tts [on|off|engine]     Toggle speech or switch engine (kokoro_hf|kokoro_local|chatterbox)
   /memory                  Show memory status (status|search|facts|summarize|promote|retention)
   /memory search <text>    Search semantic memories and chat history
   /memory wipe <scope> DELETE  Wipe all, session, or tier 1/2/3 memory
+  /timer <action>         Create/control/list persistent timers and reminders
+  /scheduler              Show scheduler and autonomous-action status
+  /profile                Show locally inferred working-style traits
+  /attach clipboard|path Attach an ephemeral PNG/JPEG/WebP image to next turn
+  /screen                 Capture an ephemeral screen image for next turn
+  /skills                  List active skill files from the skills/ folder
   /clear                   Start a fresh conversation and clear its persistent session
   /save [path]             Export the session transcript to a text file
   /status                  Overview of the current configuration
@@ -59,8 +69,8 @@ HELP_TEXT = """\
   /ollama clear-vram       Unload all Ollama models from VRAM
   /quit, /exit             Leave (alias: Ctrl+C, Ctrl+D)
 
-While the prompt is active, PageUp/PageDown scroll the transcript by a page;
-Home jumps to the oldest messages and End returns to the newest messages.
+While the prompt is active, the mouse wheel scrolls the transcript. Home jumps
+to the oldest messages and End returns to the newest messages.
 Anything else is a message to ARIA."""
 
 _LOGO_LINES = (
@@ -114,6 +124,11 @@ class Repl:
         coder_service: CoderService | None = None,
         deploy_handler: DeployCoderTool | None = None,
         web_service: WebToolService | None = None,
+        skill_manager: SkillManager | None = None,
+        vision_config: Any | None = None,
+        image_fallback_provider: Any | None = None,
+        scheduler_service: Any | None = None,
+        proactive_service: Any | None = None,
         show_cot: bool = True,
     ) -> None:
         self.agent = agent
@@ -124,7 +139,13 @@ class Repl:
         self.coder_service = coder_service
         self._deploy_handler = deploy_handler
         self.web_service = web_service
+        self.skill_manager = skill_manager
+        self.vision_config = vision_config
+        self.image_fallback_provider = image_fallback_provider
+        self.scheduler_service = scheduler_service
+        self.proactive_service = proactive_service
         self.show_cot = config.show_cot if config is not None else show_cot
+        self.keep_cot = config.keep_cot if config is not None else True
         self._transcript: list[RenderableType] = []
         self._streaming_body: RenderableType | None = None
         self._input_history: list[str] = []
@@ -132,6 +153,7 @@ class Repl:
         self._scroll_offset = 0
         self._visible_transcript_count = 1  # rendered terminal rows, not messages
         self._max_scroll_offset = 0
+        self._tui_screen_active = False
 
     def _persist_runtime_state(self) -> None:
         if not self.config:
@@ -141,6 +163,7 @@ class Repl:
                 self.config.runtime_state_path,
                 self.config,
                 show_cot=self.show_cot,
+                keep_cot=self.keep_cot,
                 coder_max_iterations=(
                     self.coder_service.max_iterations if self.coder_service else None
                 ),
@@ -174,6 +197,7 @@ class Repl:
 
     # ------------------------------------------------------------------ run
     def run(self) -> None:
+        self._enter_tui_screen()
         try:
             while True:
                 self._redraw_screen()
@@ -195,6 +219,11 @@ class Repl:
 
                 self._remember_input(user_text)
                 try:
+                    # Skills are re-read every turn so edits to the Markdown
+                    # files apply without restarting ARIA.
+                    refresh_skills = getattr(self.agent, "refresh_skills", None)
+                    if callable(refresh_skills):
+                        refresh_skills()
                     self._run_turn(user_text)
                 except KeyboardInterrupt:
                     self._remember_response(Text("Interrupted.", style="yellow"))
@@ -204,7 +233,38 @@ class Repl:
         except KeyboardInterrupt:
             pass
         finally:
-            self.agent.memory.cleanup()
+            try:
+                self.agent.memory.cleanup()
+            finally:
+                self._leave_tui_screen()
+
+    def _enter_tui_screen(self) -> None:
+        """Take ownership of the terminal while the full-screen TUI runs."""
+        if not (sys.stdin.isatty() and sys.stdout.isatty()):
+            return
+        sys.stdout.write(
+            # Alternate screen prevents the terminal's scrollback viewport
+            # from moving underneath the frame. SGR mouse reporting sends
+            # wheel events to the TUI instead of letting the terminal scroll.
+            "\x1b[?1049h\x1b[?25l\x1b[?1000h\x1b[?1006h"
+        )
+        sys.stdout.flush()
+        self._tui_screen_active = True
+
+    def _leave_tui_screen(self) -> None:
+        """Restore the user's normal terminal screen and mouse behavior."""
+        if not self._tui_screen_active:
+            return
+        sys.stdout.write("\x1b[?1006l\x1b[?1000l\x1b[?25h\x1b[0m\x1b[?1049l")
+        sys.stdout.flush()
+        self._tui_screen_active = False
+
+    @staticmethod
+    def _mouse_scroll_destination(button: int) -> str | None:
+        """Translate an SGR mouse wheel button into a transcript direction."""
+        if button < 64:
+            return None
+        return "older" if button % 2 == 0 else "newer"
 
     # -------------------------------------------------------- screen layout
     def _chat_header(self) -> RenderableType:
@@ -227,6 +287,8 @@ class Repl:
         model = self.agent.model_name or "unknown model"
         speech = "TTS on" if self.speech and self.speech.enabled else "TTS off"
         cot = "CoT on" if self.show_cot else "CoT off"
+        if self.keep_cot:
+            cot += "+keep"
         return Text.assemble(
             ("  ● ", "green"),
             ("ONLINE", "bold green"),
@@ -334,14 +396,16 @@ class Repl:
         self._sync_console_width()
         # Flush any pending raw bytes before Rich takes over stdout.
         stream.flush()
-        stream.write("\x1b[2J\x1b[H")
+        stream.write("\x1b[2J\x1b[1;1H")
         stream.flush()
         self.console.print(self._frame(), end="")
         # Flush Rich's output before we write raw cursor-positioning escapes.
         stream.flush()
-        # The prompt panel is three rows tall. Move up to the content row so
-        # the raw editor line lands inside the panel, not below it.
-        stream.write("\x1b[2A\r")
+        # Put the raw editor line on the prompt's content row using an
+        # absolute position. Relative cursor movement is fragile when Rich
+        # wraps a frame at the terminal edge and was causing split redraws.
+        prompt_row = max(self.console.size.height - 1, 1)
+        stream.write(f"\x1b[{prompt_row};1H")
         self._draw_input_line(text, cursor)
 
     # ------------------------------------------------------------- prompt
@@ -411,10 +475,26 @@ class Repl:
 
                 if key == "\x1b":
                     sequence = input_stream.read(2)
-                    if sequence in {"[5", "[6"}:
-                        input_stream.read(1)  # trailing '~'
-                        self._scroll_transcript("older" if sequence == "[5" else "newer")
-                        self._redraw_tty_frame("".join(chars), cursor)
+                    if sequence == "[<":
+                        # SGR mouse format: ESC [ < button ; column ; row M.
+                        mouse_event: list[str] = []
+                        while True:
+                            mouse_key = input_stream.read(1)
+                            if not mouse_key:
+                                break
+                            mouse_event.append(mouse_key)
+                            if mouse_key in {"M", "m"}:
+                                break
+                        event = "".join(mouse_event)
+                        if event and event[-1] in {"M", "m"}:
+                            try:
+                                button = int(event[:-1].split(";", 1)[0])
+                            except (TypeError, ValueError):
+                                button = -1
+                            destination = self._mouse_scroll_destination(button)
+                            if destination is not None:
+                                self._scroll_transcript(destination)
+                                self._redraw_tty_frame("".join(chars), cursor)
                     elif sequence == "[H":
                         self._scroll_transcript("oldest")
                         self._redraw_tty_frame("".join(chars), cursor)
@@ -427,15 +507,13 @@ class Repl:
                     elif sequence == "[C" and cursor < len(chars):
                         cursor += 1
                         self._draw_input_line("".join(chars), cursor)
+                    elif sequence in {"[5", "[6"}:
+                        # PageUp/PageDown are deliberately not transcript
+                        # shortcuts; consume the rest of the escape sequence.
+                        input_stream.read(1)  # trailing '~'
                     elif sequence in {"[1", "[4", "[3"}:
                         input_stream.read(1)  # trailing '~'
-                        if sequence == "[1":
-                            self._scroll_transcript("oldest")
-                            self._redraw_tty_frame("".join(chars), cursor)
-                        elif sequence == "[4":
-                            self._scroll_transcript("newest")
-                            self._redraw_tty_frame("".join(chars), cursor)
-                        elif sequence == "[3" and cursor < len(chars):
+                        if sequence == "[3" and cursor < len(chars):
                             del chars[cursor]
                             self._draw_input_line("".join(chars), cursor)
                     elif sequence == "[A":  # Up — history older
@@ -555,7 +633,7 @@ class Repl:
                 self._deploy_handler.set_stream_hook(on_coder, on_event)
 
             try:
-                result = self.agent.run(user_text, on_text=on_text, on_event=on_event)
+                result = self.agent.run_with_attachments(user_text, on_text=on_text, on_event=on_event)
                 update()
             finally:
                 if self._deploy_handler:
@@ -563,6 +641,18 @@ class Repl:
                 self._streaming_body = None
 
         self._remember_response(self._render_aria_body(result))
+        if self.keep_cot and steps:
+            # Re-render the chain of thought above the final answer so it
+            # remains in the transcript after the transient live frame ends.
+            cot_panel = Panel(
+                Group(*steps),
+                title="Chain of thought",
+                title_align="left",
+                border_style="bright_black",
+                expand=True,
+                padding=(0, 1),
+            )
+            self._transcript.insert(-1, cot_panel)
         if self.speech:
             self.speech.say(result)
             if self.speech.last_error:
@@ -624,6 +714,12 @@ class Repl:
             "/cot": self._cmd_cot,
             "/tts": self._cmd_tts,
             "/memory": self._cmd_memory,
+            "/timer": self._cmd_timer,
+            "/scheduler": self._cmd_scheduler,
+            "/profile": self._cmd_profile,
+            "/attach": self._cmd_attach,
+            "/screen": self._cmd_screen,
+            "/skills": self._cmd_skills,
             "/clear": self._cmd_clear,
             "/save": self._cmd_save,
             "/status": self._cmd_status,
@@ -791,18 +887,32 @@ class Repl:
     def _cmd_cot(self, argument: str) -> None:
         value = argument.lower()
         if value in {"", "status"}:
-            self._remember_command("/cot", Text(f"chain of thought: {'on' if self.show_cot else 'off'}"))
+            detail = (
+                f"chain of thought: {'on' if self.show_cot else 'off'}  "
+                f"keep: {'on' if self.keep_cot else 'off'}"
+            )
+            self._remember_command("/cot", Text(detail))
             return
         if value == "on":
             self.show_cot = True
         elif value == "off":
             self.show_cot = False
+        elif value == "keep":
+            self.keep_cot = not self.keep_cot
+            self.config = dataclass_replace(self.config, keep_cot=self.keep_cot) if self.config else self.config
+            self._persist_runtime_state()
+            self._remember_command("/cot", Text(f"Keep chain of thought in transcript: {'on' if self.keep_cot else 'off'}"))
+            return
         else:
-            self._remember_command("/cot", Text("Usage: /cot [on|off]", style="yellow"))
+            self._remember_command("/cot", Text("Usage: /cot [on|off|keep]", style="yellow"))
             return
         self.config = dataclass_replace(self.config, show_cot=self.show_cot) if self.config else self.config
         self._persist_runtime_state()
-        self._remember_command("/cot", Text(f"Chain of thought: {'on' if self.show_cot else 'off'}"))
+        detail = (
+            f"Chain of thought: {'on' if self.show_cot else 'off'}  "
+            f"keep: {'on' if self.keep_cot else 'off'}"
+        )
+        self._remember_command("/cot", detail)
 
     def _cmd_tts(self, argument: str) -> None:
         if not self.speech or not self.config:
@@ -927,6 +1037,90 @@ class Repl:
                 "/memory",
                 Text("Usage: /memory [status|search|facts|summarize|promote|retention|wipe]", style="yellow"),
             )
+
+    def _cmd_timer(self, argument: str) -> None:
+        if self.scheduler_service is None:
+            self._remember_command("/timer", Text("Scheduler is disabled. Enable scheduler.enabled first.", style="yellow"))
+            return
+        parts = argument.split()
+        if not parts or parts[0].lower() in {"list", "status"}:
+            self._remember_command("/timer", Text(json.dumps(self.scheduler_service.list_timers(), indent=2)))
+            return
+        action = parts[0].lower()
+        if action == "create" and len(parts) >= 4:
+            name = parts[1]
+            kind = parts[2]
+            try:
+                duration = float(parts[3])
+            except ValueError:
+                self._remember_command("/timer", Text("Duration must be seconds.", style="yellow"))
+                return
+            persistent = len(parts) < 5 or parts[4].lower() != "session"
+            timer_id = self.scheduler_service.create_timer(name, kind, duration, persistent)
+            self._remember_command("/timer", Text(f"Created {timer_id}. Use /timer start {timer_id}."))
+            return
+        if action in {"start", "pause", "resume", "restart", "finish", "stop", "cancel"} and len(parts) == 2:
+            result = self.scheduler_service.control_timer(parts[1], action)
+            self._remember_command("/timer", Text(json.dumps(result, indent=2)))
+            return
+        self._remember_command("/timer", Text("Usage: /timer create <name> <kind> <seconds> [session] | /timer <start|pause|resume|restart|finish|stop|cancel> <id> | /timer list", style="yellow"))
+
+    def _cmd_scheduler(self, _argument: str) -> None:
+        if self.config is None:
+            return
+        service = self.scheduler_service
+        details = {
+            "enabled": service is not None,
+            "autonomy_enabled": self.config.autonomy.enabled,
+            "allowed_categories": self.config.autonomy.allowed_categories,
+            "workflow_directory": str(self.config.scheduler.workflow_directory),
+            "database": str(self.config.scheduler.database),
+            "jobs": len(service.store.jobs()) if service is not None else 0,
+            "timers": len(service.list_timers()) if service is not None else 0,
+        }
+        self._remember_command("/scheduler", Text(json.dumps(details, indent=2)))
+
+    def _cmd_profile(self, _argument: str) -> None:
+        if self.proactive_service is None:
+            self._remember_command("/profile", Text("Proactive analysis is unavailable.", style="yellow"))
+            return
+        data = self.proactive_service.profile.load()
+        self._remember_command("/profile", Text(json.dumps(data, indent=2)))
+
+    def _cmd_attach(self, argument: str) -> None:
+        if self.vision_config is None or not bool(getattr(self.vision_config, "enabled", True)):
+            self._remember_command("/attach", Text("Vision input is disabled.", style="yellow"))
+            return
+        try:
+            if argument.lower() == "clipboard":
+                attachment = capture_clipboard(self.vision_config)
+            else:
+                path = Path(argument).expanduser().resolve()
+                attachment = load_image(path, self.vision_config)
+            self.agent.attach_image(attachment)
+            self._remember_command("/attach", Text(f"Attached ephemeral image from {attachment.source}; it will be used on the next message."))
+        except Exception as exc:
+            self._error_panel(f"Could not attach image: {type(exc).__name__}: {exc}")
+
+    def _cmd_screen(self, _argument: str) -> None:
+        if self.vision_config is None or not bool(getattr(self.vision_config, "enabled", True)):
+            self._remember_command("/screen", Text("Vision input is disabled.", style="yellow"))
+            return
+        try:
+            attachment = capture_screen(self.vision_config, self.agent.context.workspace)
+            self.agent.attach_image(attachment)
+            self._remember_command("/screen", Text("Attached an ephemeral screen capture for the next message."))
+        except Exception as exc:
+            self._error_panel(f"Could not capture screen: {type(exc).__name__}: {exc}")
+
+    def _cmd_skills(self, _argument: str) -> None:
+        if self.skill_manager is None:
+            self._remember_command("/skills", Text("Skills are not enabled.", style="yellow"))
+            return
+        refresh_skills = getattr(self.agent, "refresh_skills", None)
+        if callable(refresh_skills):
+            refresh_skills()
+        self._remember_command("/skills", Text(self.skill_manager.describe()))
 
     def _cmd_clear(self, _argument: str) -> None:
         clear_session = getattr(self.agent.memory, "clear_current_session", None)

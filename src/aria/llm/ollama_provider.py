@@ -25,6 +25,9 @@ class OllamaProvider:
         host = settings.get("host")
         self.client = ollama.Client(host=host) if host else ollama.Client()
         self.model = model
+        image_models = settings.get("image_input_models", [])
+        self.supports_image_input = model in image_models if isinstance(image_models, list) else False
+        self.supports_image_generation = False
         # Many Ollama models do not implement native function calling. The
         # assistant's text protocol is therefore the safe default; native
         # tools can be enabled explicitly for models that support them.
@@ -43,7 +46,7 @@ class OllamaProvider:
         log_debug(f"OllamaProvider: request model={self.model} messages={len(messages)}")
         request: dict[str, Any] = {
             "model": self.model,
-            "messages": list(messages),
+            "messages": [self._normalize_message(message) for message in messages],
             "stream": True,
         }
         if tools and self.native_tools:
@@ -107,6 +110,30 @@ class OllamaProvider:
             )
         log_info(f"OllamaProvider: completed model={self.model}, {len(calls)} tool call(s)")
         return AssistantMessage("".join(content_parts), calls)
+
+    @staticmethod
+    def _normalize_message(message: dict[str, Any]) -> dict[str, Any]:
+        """Convert provider-neutral image parts to Ollama's message shape."""
+        content = message.get("content")
+        if not isinstance(content, list):
+            return dict(message)
+        text_parts: list[str] = []
+        images: list[str] = []
+        for part in content:
+            if not isinstance(part, dict):
+                continue
+            if part.get("type") == "text" and isinstance(part.get("text"), str):
+                text_parts.append(part["text"])
+            elif part.get("type") == "image_url":
+                image_url = part.get("image_url")
+                url = image_url.get("url") if isinstance(image_url, dict) else None
+                if isinstance(url, str) and "," in url:
+                    images.append(url.split(",", 1)[1])
+        normalized = dict(message)
+        normalized["content"] = "\n".join(text_parts)
+        if images:
+            normalized["images"] = images
+        return normalized
 
     @staticmethod
     def _is_oom(error: Exception) -> bool:

@@ -12,8 +12,8 @@ much larger iteration budget, so ARIA's conversation stays clean.
   personal assistant; work on your machine is delegated to the coding agent
   through the `deploy_coder` tool and reported back in plain language.
 - **Multi-provider** - Cerebras, Groq, Gemini, Mistral, NVIDIA NIM, OpenRouter,
-  OpenAI (all through one OpenAI-compatible adapter: base URL + key), and local
-  Ollama.
+  OpenAI, Z.ai (all through one OpenAI-compatible adapter: base URL + key), and
+  local Ollama.
   Ollama uses
   ARIA's custom `<tool_call>` protocol by default so models without native tool
   calling still work; native tools are opt-in per provider configuration.
@@ -31,8 +31,8 @@ much larger iteration budget, so ARIA's conversation stays clean.
 - **Live chain of thought** - watch ARIA's reasoning as it happens: every
   round, tool call with arguments, and tool result streams inside the response
   panel. `/cot on|off` toggles it.
-- **Chat-style TUI** - the conversation fills the screen with a visible
-  scrollbar; PageUp/PageDown browse older/newer messages and Home/End jump to
+- **Chat-style TUI** - the conversation owns the terminal screen while open;
+  mouse-wheel scrolling browses older/newer messages and Home/End jump to
   either end while the prompt stays pinned. `/save` exports the transcript.
 - **Human-like three-tier memory** - persistent Tier 1 hard facts in SQLite,
   Tier 2 semantic summaries in Chroma, and Tier 3 cross-session chat history in
@@ -41,7 +41,18 @@ much larger iteration budget, so ARIA's conversation stays clean.
 - **Switchable speech** - Kokoro through Hugging Face (`kokoro_hf`) or the
   local `KPipeline` backend (`kokoro_local`), plus Chatterbox for local custom
   voice cloning; off by default, `/tts on|off|kokoro_hf|kokoro_local|chatterbox`.
+- **Markdown-aware speech** - TTS engines read the words, not the syntax:
+  emphasis, links, fences, and tables are stripped before synthesis.
+- **Skills folder** - drop Markdown files into `skills/` to shape personality,
+  behavior, and workflows; re-read every turn, `/skills` lists what is active.
+- **Two TUI backends** - modern urwid TUI by default (`--extra tui`), legacy
+  Rich full-screen REPL still available via `ui.backend: rich`.
 - **Self-hosted web research** - bounded `web_search` and `open_webpage` tools backed by local SearXNG, with source tracking, citations, extraction, caching, retries, and SSRF protection; no search API key is required.
+- **Playwright browser control** - optional ARIA-only persistent Chromium automation for navigation, tabs, snapshots, clicks, typing, key presses, screenshots, downloads, and uploads. Install the browser binary with `playwright install chromium`.
+- **Hyprland desktop control** - optional ARIA-only desktop tools for monitors, windows, workspaces, keybind inspection, managed dispatch, app launchers, keyboard/mouse input, and screenshots. `desktop.mode: unrestricted` additionally enables raw Hyprland dispatch, marked keybind edits, and arbitrary desktop shell commands.
+- **Proactive LifeOS work** - optional in-process cron scheduling with persistent SQLite jobs, morning/afternoon/end-of-day briefings, deadline/goal/calendar/routine checks, conservative calendar-conflict signals, inferred local working-style profiles, configurable LifeOS writes, category allowlists, and an immutable autonomous-action audit log.
+- **Reminders and notifications** - persistent or session-only timers, alarms, pomodoros, stopwatches, pause/resume/restart/finish controls, Dunst-compatible `notify-send` delivery, and optional TTS.
+- **Multimodal input** - ephemeral clipboard/file/screen image attachments, native provider image messages, Ollama image normalization, and a configured visual-model fallback for text-only models. Periodic screen context is separately opt-in.
   (tasks, projects, goals, habits, calendar, journal, health, gym, finance...)
   via the `lifeos` tool; enabled by simply setting `lifeos.base_url` and
   `LIFEOS_API_KEY`, silently inert otherwise.
@@ -57,8 +68,61 @@ dependencies:
 
 ```bash
 uv venv --python 3.11
-uv sync --extra dev
+uv sync --extra dev --extra tui
+```(`--extra tui` installs urwid for the default TUI; without it ARIA falls back
+ to the legacy Rich interface. Use `--extra voice`/`--extra voice-local` for
+ speech as described below. Playwright is a normal dependency; install its
+ Chromium runtime with `uv run playwright install chromium`. Install the
+ optional PyAutoGUI fallback with `uv sync --extra desktop`.)
+
+
+### System packages (Arch Linux)
+
+ARIA's optional features need a few host packages. Install the ones you plan to
+use with `pacman` or `yay`:
+
+```bash
+# Web search backend (local SearXNG)
+sudo pacman -S docker docker-compose
+
+# Local Kokoro speech (voice-local)
+sudo pacman -S espeak-ng
+
+# Hosted Kokoro / Chatterbox / local speech playback (sounddevice)
+sudo pacman -S portaudio pipewire pipewire-alsa pipewire-pulse
 ```
+
+Optional but useful for the full local voice + embedding stack:
+
+```bash
+sudo pacman -S ollama
+ollama pull qwen3-embedding:0.6b
+```
+
+For Hyprland input on Arch, install the utilities selected in `config.yaml`:
+
+```bash
+sudo pacman -S hyprland wtype ydotool grim slurp
+```
+
+`wtype`/`ydotool` require the permissions and setup appropriate to your local
+Wayland session. If those utilities do not work, set `desktop.input_backend:
+pyautogui` and install `uv sync --extra desktop`; PyAutoGUI has different
+Wayland limitations and is not a universal replacement.
+
+Docker must be running before ARIA can use web search:
+
+```bash
+sudo systemctl enable --now docker
+docker compose -f infrastructure/searxng/docker-compose.yml up -d
+```
+
+Web search is optional: if SearXNG is unreachable at startup, ARIA prints a
+warning and continues without the web tools (set `web.start_backend: true` to
+let ARIA attempt the `docker compose up -d` command itself). Memory works the
+same way — with no embedding backend available, ARIA starts in a degraded
+mode that keeps structured facts/preferences and skips semantic recall until
+Ollama is back.
 
 Configure and run:
 
@@ -66,6 +130,14 @@ Configure and run:
 cp config.example.yaml config.yaml
 cp .env.example .env          # then fill in the API key(s) you use
 uv run aria
+```
+
+Command-line flags:
+
+```text
+-c, --config PATH   Path to config.yaml (default: config.yaml)
+    --ignore-state  Ignore data/aria-state.yaml for this run; config.yaml wins
+    --reset-state   Delete data/aria-state.yaml, then behave like --ignore-state
 ```
 
 The independent coding agent can use a different backend from ARIA. Set these
@@ -88,6 +160,54 @@ coder:
 ```
 
 No runtime command is required; restart ARIA after changing these settings.
+
+### Proactive work, scheduling, and multimodal input
+
+The scheduler is intentionally **in-process**. Jobs and timers are persisted in
+SQLite, but no work runs while ARIA is closed. Enable it only after reviewing
+`autonomy.allowed_categories`; each scheduled attempt, including blocked and
+failed actions, is recorded in `scheduler.sqlite3`.
+
+Additional YAML workflows belong in `workflows/`; the complete schema and
+examples are documented in [`workflows/README.md`](workflows/README.md). The
+built-in schedules cover three daily briefings and periodic deadline, goal,
+calendar, and profile checks. Briefings can include configured SearXNG queries
+through `scheduler.briefing_web_queries`, and calendar conflicts are surfaced
+as deterministic signals before the background model writes prose.
+
+Timers are available through `/timer` or model tools:
+
+```text
+/timer create focus pomodoro 1500
+/timer start <id>
+/timer pause <id>
+/timer resume <id>
+/timer restart <id>
+/timer finish <id>
+/timer list
+```
+
+`/attach clipboard`, `/attach /path/to/image.png`, and `/screen` queue an
+image for the next message. Images are ephemeral. Native image-capable models
+receive image parts; text-only models require a configured visual fallback.
+Periodic screen analysis is disabled unless both `vision.periodic_screen_enabled`
+and its scheduler/autonomy settings are enabled.
+
+### Browser and desktop operation
+
+Enable `browser.enabled` and/or `desktop.enabled` in `config.yaml`. Browser
+state is persisted in `browser.profile_directory`, so cookies and login state
+survive restarts; do not point it at a profile used by an already-running
+browser. Browser tools are available only to ARIA, not the independent coder.
+
+Desktop defaults to `managed`. It can inspect Hyprland and execute validated
+window/workspace actions, use named `desktop.launchers`, send input, and capture
+screenshots. Set `desktop.mode: unrestricted` only when you want raw
+`hyprctl dispatch`, marked `desktop_set_keybind`, and arbitrary `desktop_shell`.
+The current implementation follows the configured no-extra-prompt policy: it
+does not ask for confirmation before clicks, typing, downloads, uploads, input,
+window changes, app launch/close, or unrestricted commands. Treat unrestricted
+mode and persistent browser credentials as trusted-local-agent capabilities.
 
 ### Persistent memory
 
@@ -133,11 +253,11 @@ If every embedding backend is unavailable, chat continues and records remain
 queued in SQLite for retry; vector retrieval is temporarily empty rather than
 blocking the assistant.
 
-The default retention policy keeps raw Tier 3 content for 30 days, archives it
-with lower retrieval priority, and removes archived records after one year.
-Tier 2 summaries are retained for two years; Tier 1 facts are retained until
-explicitly wiped. Change `memory.detail_mode` to `raw` or
-`delete_after_summary` when appropriate.
+Retention is configured through `memory.episodic_retention_days`,
+`memory.conversation_retention_days`, and `memory.knowledge_retention_days`
+(0 = never expires). Stale low-value memories decay in importance before they
+are removed; confirmed and important memories are never auto-deleted purely
+for age. Structured facts are retained until explicitly wiped.
 
 Memory commands:
 
@@ -166,7 +286,11 @@ Changes made through the REPL are saved automatically to
 includes the active provider/model, workspace, ARIA and coder iteration limits,
 TTS engine/enabled state, and `/cot` visibility. The YAML configuration remains
 the source for provider definitions, credentials, and other static settings.
-Delete `data/aria-state.yaml` to return to the values in `config.yaml`.
+Delete `data/aria-state.yaml` (or start with `--ignore-state` / `--reset-state`)
+to return to the values in `config.yaml`. At startup ARIA prints the effective
+provider/model and which keys the state file overrode, and it validates the
+model against the provider's inventory — an unavailable model from stale state
+falls back to a working one with a warning instead of failing every turn.
 Explicit `ARIA_*` environment variables take precedence over saved runtime
 settings.
 
@@ -199,12 +323,20 @@ src/aria/
 │   ├── registry.py      Tool registry with execution logging
 │   ├── router.py        <tool_call> text protocol for non-native models
 │   ├── filesystem.py    list/read/write/edit + search_workspace + batch_edit
+│   ├── browser.py       persistent Playwright browser automation (ARIA only)
+│   ├── desktop.py       Hyprland/window/workspace/input control (ARIA only)
 │   ├── lifeos.py        LifeOS API connection (ported from CIEL)
+│   ├── scheduler.py     Persistent cron jobs, timers, and autonomous audit
+│   ├── proactive.py     LifeOS briefings, monitoring, and local profile inference
+│   ├── notifications.py Dunst-compatible notifications and TTS dispatch
+│   ├── images.py        Ephemeral image capture and multimodal routing
 │   └── shell.py         Run shell commands with optional limits
 ├── speech/
 │   └── __init__.py      SpeechController + Kokoro/Chatterbox backends
 └── ui/
-    └── repl.py          Rich REPL and the /command suite
+    ├── repl.py          Legacy Rich REPL and the /command suite
+    ├── urwid_tui.py     Modern urwid TUI (default backend)
+    └── factory.py       UI backend selection (urwid | rich)
 ```
 
 ## Commands
@@ -217,17 +349,24 @@ src/aria/
 | `/workspace [path]` | Show or change the workspace |
 | `/iterations [n]` | ARIA's model/tool round limit |
 | `/agent [n]` | The coding agent's iteration limit (default 60) |
-| `/cot [on\|off]` | Show/hide the live chain of thought (default on) |
+| `/cot [on\|off\|keep]` | Show/hide the live chain of thought; `keep` also retains it in the transcript |
 | `/tts on\|off\|kokoro_hf\|kokoro_local\|chatterbox` | Speech on/off or engine switch |
 | `/memory [action]` | Persistent memory status, search, facts, summarization, retention, or wipe |
+| `/timer ...` | Create, control, and list reminders, alarms, pomodoros, and stopwatches |
+| `/scheduler` | Show scheduler, workflow, timer, and autonomy status |
+| `/profile` | Show locally stored inferred working-style traits |
+| `/attach ...`, `/screen` | Queue an ephemeral image or screen capture for the next message |
+| `/skills` | List active skill files from the skills/ folder |
 | `/clear` | Clear the current persistent session while retaining long-term facts |
 | `/save [path]` | Export the session transcript to a text file |
 | `/status` | Full configuration overview |
+| `browser_*` tools | Persistent Playwright browser actions, when enabled |
+| `desktop_*` tools | Hyprland and desktop actions, when enabled |
 | `/logs` | Log file locations and sizes |
 | `/ollama clear-vram` | Unload all currently running Ollama models |
 | `/quit`, `/exit` | Leave |
 
-When entering a message, use PageUp/PageDown to scroll one viewport and
+When entering a message, use the mouse wheel to scroll the transcript and
 Home/End to jump to the oldest/newest transcript position.
 
 ## Custom Tool Protocol
@@ -264,3 +403,6 @@ reports that it is not configured instead of breaking the conversation.
 uv run pytest
 uv run pyright
 ```
+
+A detailed implementation audit, including current limitations and request
+size estimates, is in `REPORT(2026-09-08).md`.
