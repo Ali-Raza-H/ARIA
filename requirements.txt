@@ -1,0 +1,41 @@
+# ARIA - Adaptive Reasoning and Intelligence Assistant
+# Python 3.11+ required
+# Generated from pyproject.toml
+# For development, use: pip install -e ".[dev,tui,voice]"
+
+# Core dependencies
+chromadb>=1.0.0
+ollama>=0.4.7
+openai>=1.68.0
+pyyaml>=6.0.2
+rich>=13.9.4
+python-dotenv>=1.0.1
+httpx>=0.27.0
+beautifulsoup4>=4.12.3
+trafilatura>=1.12.0
+playwright>=1.52.0
+
+# Development (optional)
+pytest>=8.3.5
+pyright>=1.1.390
+
+# TUI backend (optional, default)
+urwid>=4.1.0
+
+# Speech engines (optional)
+# For hosted Kokoro: uncomment following
+# huggingface_hub>=0.30.0
+# sounddevice>=0.5.1
+# soundfile>=0.12.1
+
+# For local Kokoro: uncomment following
+# kokoro>=0.9.4
+# sounddevice>=0.5.1
+
+# For Chatterbox: uncomment following
+# chatterbox-tts>=0.1.0
+# sounddevice>=0.5.1
+# soundfile>=0.12.1
+
+# Desktop automation (optional)
+# pyautogui>=0.9.54
