@@ -340,6 +340,11 @@ class SchedulerService:
         self._tick_timers(moment)
 
     def _allowed(self, category: str) -> bool:
+        # Briefings and monitoring are read-only analysis. They must not be
+        # blocked by the write/autonomy allowlist, otherwise the shipped
+        # default briefs silently become "blocked" when autonomy is false.
+        if category == "analysis":
+            return self.config.analysis_enabled
         return self.autonomy.enabled and category in set(self.autonomy.allowed_categories)
 
     def _execute_job(self, row: sqlite3.Row, moment: datetime) -> None:

@@ -9,6 +9,9 @@ from __future__ import annotations
 import io
 import os
 import re
+import sys
+import warnings
+from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from dataclasses import replace
 from typing import Any
 
@@ -36,6 +39,33 @@ _QUOTE_RE = re.compile(r"^\s*>+\s?")
 _BULLET_RE = re.compile(r"^\s*[-*+]\s+")
 _HRULE_RE = re.compile(r"^\s*(?:[-*_]\s*){3,}$")
 _TABLE_SEPARATOR_RE = re.compile(r"^\s*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?\s*$")
+_TORCH_NOISE_RE = re.compile(
+    r"(?i)(torch|torchaudio|cuda|cudnn|tensorflow|triton|mps|userwarning|futurewarning|"
+    r"not compiled|not available|falling back)"
+)
+
+
+@contextmanager
+def _quiet_torch_output():
+    """Hide noisy torch/Kokoro startup warnings while preserving exceptions.
+
+    Some local Kokoro/torch builds print non-actionable backend notices directly
+    to stdout/stderr instead of using Python logging. Capture only while the
+    optional backend is loading or synthesizing; unexpected non-torch output is
+    retained in the file log at DEBUG rather than shown over the user's prompt.
+    """
+    stdout = io.StringIO()
+    stderr = io.StringIO()
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning, module=r"(?i)(torch|torchaudio|kokoro)")
+        warnings.filterwarnings("ignore", category=FutureWarning, module=r"(?i)(torch|torchaudio|kokoro)")
+        warnings.filterwarnings("ignore", message=r"(?i).*\\b(torch|cuda|cudnn|torchaudio)\\b.*")
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            yield
+    for captured in (stdout.getvalue(), stderr.getvalue()):
+        for line in captured.splitlines():
+            if line.strip() and not _TORCH_NOISE_RE.search(line):
+                log_debug(f"Speech backend output: {line[:500]}")
 
 
 def strip_markdown_for_speech(text: str) -> str:
@@ -130,10 +160,11 @@ class KokoroLocalBackend:
 
     def _ensure_pipeline(self):
         if self._pipeline is None:
-            from kokoro import KPipeline
+            with _quiet_torch_output():
+                from kokoro import KPipeline
 
-            log_info(f"Speech: loading local Kokoro model lang_code={self._config.lang_code}")
-            self._pipeline = KPipeline(lang_code=self._config.lang_code)
+                log_info(f"Speech: loading local Kokoro model lang_code={self._config.lang_code}")
+                self._pipeline = KPipeline(lang_code=self._config.lang_code)
         return self._pipeline
 
     def speak(self, text: str) -> None:
@@ -150,14 +181,16 @@ class KokoroLocalBackend:
         except Exception as exc:
             raise RuntimeError(f"No usable audio output at 24 kHz: {exc}") from exc
         log_debug(f"Speech: synthesizing local Kokoro audio for {len(text)} chars")
-        generator = pipeline(
-            text,
-            voice=self._config.voice,
-            speed=self._config.speed,
-            split_pattern=r"\n+",
-        )
         chunks = 0
-        for _, _, audio in generator:
+        with _quiet_torch_output():
+            generator = pipeline(
+                text,
+                voice=self._config.voice,
+                speed=self._config.speed,
+                split_pattern=r"\n+",
+            )
+            audio_chunks = list(generator)
+        for _, _, audio in audio_chunks:
             # Kokoro's optional dependency stubs expose several possible
             # tensor/array types; normalize through Any after runtime checks.
             audio_value: Any = audio

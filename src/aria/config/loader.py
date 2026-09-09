@@ -183,6 +183,9 @@ class SchedulerConfig:
     """In-process persistent scheduler settings."""
 
     enabled: bool = False
+    # Read-only briefings/monitoring are independent from consequential
+    # autonomy permissions and are enabled by default when scheduling is on.
+    analysis_enabled: bool = True
     database: Path = Path("data/scheduler/scheduler.sqlite3")
     workflow_directory: Path = Path("workflows")
     poll_seconds: int = 15
@@ -841,6 +844,7 @@ def load_config(
         raise ConfigError("scheduler.timezone currently supports only system local time")
     scheduler_config = SchedulerConfig(
         enabled=bool(scheduler_section.get("enabled", False)),
+        analysis_enabled=bool(scheduler_section.get("analysis_enabled", True)),
         database=scheduler_database,
         workflow_directory=workflow_directory,
         poll_seconds=poll_seconds,

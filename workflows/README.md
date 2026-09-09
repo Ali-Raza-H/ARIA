@@ -34,8 +34,10 @@ allowlist status.
 
 ## Autonomy categories
 
-A workflow runs only when both `autonomy.enabled: true` and its category appears
-in `autonomy.allowed_categories`.
+Read-only `analysis` workflows (briefings and monitoring) run when
+`scheduler.analysis_enabled: true` (the default). Consequential workflows run
+only when both `autonomy.enabled: true` and their category appears in
+`autonomy.allowed_categories`.
 
 - `analysis`: briefings, deadline/goal/calendar/routine checks, profile checks.
 - `lifeos_writes`: LifeOS writes, additionally restricted by the explicit
@@ -46,8 +48,9 @@ in `autonomy.allowed_categories`.
 - `timers`: timer creation and timer controls.
 
 The default scheduler jobs provide morning, afternoon, and end-of-day briefings
-plus deadline, goal, calendar, and private profile checks. They remain blocked
-until the relevant category is explicitly allowlisted.
+plus deadline, goal, calendar, and private profile checks. These read-only
+analysis jobs run by default when `scheduler.analysis_enabled` is true; they do
+not require the autonomy write allowlist.
 
 ## Built-in action forms
 

@@ -110,6 +110,36 @@ def test_ollama_normalizes_openai_style_image_parts() -> None:
     assert normalized["images"] == ["cG5n"]
 
 
+def test_analysis_briefing_runs_without_autonomy_allowlist(tmp_path: Path) -> None:
+    calls: list[dict] = []
+    config = SchedulerConfig(
+        enabled=True,
+        database=tmp_path / "scheduler.sqlite3",
+        workflow_directory=tmp_path / "workflows",
+        default_workflows=False,
+        analysis_enabled=True,
+    )
+    service = SchedulerService(
+        config,
+        AutonomyConfig(enabled=False, allowed_categories=()),
+        lambda category, action: calls.append(action) or {"notification": "briefing delivered"},
+        lambda *_args: None,
+    )
+    service.store.upsert_job(
+        __import__("aria.scheduler", fromlist=["ScheduledJob"]).ScheduledJob(
+            "briefing", "briefing", "15 10 * * *", "analysis", {"type": "briefing", "period": "morning"}
+        )
+    )
+
+    from datetime import datetime
+
+    service.tick(datetime(2026, 9, 8, 10, 15))
+
+    assert calls == [{"type": "briefing", "period": "morning"}]
+    assert service.store.audit_entries(1)[0]["status"] == "success"
+    service.stop()
+
+
 def test_scheduler_audits_blocked_category(tmp_path: Path) -> None:
     calls: list[dict] = []
     notifications: list[str] = []

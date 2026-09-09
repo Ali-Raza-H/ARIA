@@ -168,7 +168,10 @@ No runtime command is required; restart ARIA after changing these settings.
 ### Proactive work, scheduling, and multimodal input
 
 The scheduler is intentionally **in-process**. Jobs and timers are persisted in
-`data/scheduler/scheduler.sqlite3`, but no work runs while ARIA is closed. Enable it only after reviewing
+`data/scheduler/scheduler.sqlite3`, but no work runs while ARIA is closed.
+Read-only briefings and monitoring run when `scheduler.analysis_enabled: true`;
+write/autonomy permissions remain separately controlled by `autonomy.enabled` and
+`autonomy.allowed_categories`. Enable it only after reviewing
 `autonomy.allowed_categories`; each scheduled attempt, including blocked and
 failed actions, is recorded in `scheduler.sqlite3`.
 

@@ -173,6 +173,7 @@ notifications:
 
 scheduler:
   enabled: true
+  analysis_enabled: true              # read-only briefings/checks do not require autonomy
   database: data/scheduler/scheduler.sqlite3
   workflow_directory: workflows
   poll_seconds: 15
