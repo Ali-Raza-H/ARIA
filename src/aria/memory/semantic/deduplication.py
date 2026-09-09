@@ -15,10 +15,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
-from .chroma_store import ChromaStore
-from .classifier import CandidateMemory
-from .models import MemoryType, SemanticMemory, utc_now
-from ..logging.setup import log_debug, log_info
+from .chroma import ChromaStore
+from ..classifier import CandidateMemory
+from ..models import MemoryType, SemanticMemory, utc_now
+from ...logging.setup import log_debug, log_info
 
 
 class DedupVerdict(str, Enum):

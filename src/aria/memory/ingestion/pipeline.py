@@ -12,12 +12,12 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from .models import MemoryType, SemanticMemory
-from .sqlite_store import content_hash, new_id
-from ..logging.setup import log_error, log_info
+from ..models import MemoryType, SemanticMemory
+from ..sqlite.store import content_hash, new_id
+from ...logging.setup import log_error, log_info
 
 if TYPE_CHECKING:
-    from .manager import MemoryManager
+    from ..manager import MemoryManager
 
 # Extensions accepted by the text/code parser (spec §65 scope for v1).
 TEXT_EXTENSIONS = {

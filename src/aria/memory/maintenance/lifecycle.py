@@ -11,11 +11,11 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import Any
 
-from .chroma_store import ChromaStore
-from .config import MemorySettings
-from .models import MemoryType, utc_now
-from .sqlite_store import SQLiteStore
-from ..logging.setup import log_error, log_info
+from ..semantic.chroma import ChromaStore
+from ..config import MemorySettings
+from ..models import MemoryType, utc_now
+from ..sqlite.store import SQLiteStore
+from ...logging.setup import log_error, log_info
 
 
 class LifecycleManager:

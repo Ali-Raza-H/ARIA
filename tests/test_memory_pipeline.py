@@ -15,12 +15,12 @@ from memory_fakes import FakeEmbeddings, make_settings  # noqa: E402
 
 from aria.memory.classifier import MemoryClassifier, MemoryDecisionType  # noqa: E402
 from aria.memory.config import MemorySettings  # noqa: E402
-from aria.memory.lifecycle import LifecycleManager  # noqa: E402
+from aria.memory.maintenance.lifecycle import LifecycleManager  # noqa: E402
 from aria.memory.manager import MemoryManager  # noqa: E402
 from aria.memory.models import MemoryResult, MemoryType, StorageType  # noqa: E402
-from aria.memory.retriever import QueryKind, classify_query  # noqa: E402
+from aria.memory.semantic.retriever import QueryKind, classify_query  # noqa: E402
 from aria.memory.models import utc_now  # noqa: E402
-from aria.memory.reranker import Reranker  # noqa: E402
+from aria.memory.semantic.reranker import Reranker  # noqa: E402
 
 
 # ---------------------------------------------------------------- classifier

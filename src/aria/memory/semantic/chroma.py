@@ -19,10 +19,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .embeddings import EmbeddingProvider
-from .exceptions import MemoryError, StorageUnavailableError
-from .models import MemoryType, SemanticMemory, clamp_score
-from ..logging.setup import log_error, log_info
+from ..embeddings.providers import EmbeddingProvider
+from ..exceptions import MemoryError, StorageUnavailableError
+from ..models import MemoryType, SemanticMemory, clamp_score
+from ...logging.setup import log_error, log_info
 
 try:
     import chromadb

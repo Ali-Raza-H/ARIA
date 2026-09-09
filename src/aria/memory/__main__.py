@@ -43,7 +43,7 @@ def main(argv: list[str] | None = None) -> int:
     wipe.add_argument("--yes", action="store_true", help="Skip confirmation")
 
     args = parser.parse_args(argv)
-    configure_logging(Path("logs"))
+    configure_logging(Path("data/logs"))
     root = Path(".")
 
     if args.command == "wipe":

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from aria.memory.chroma_store import ChromaStore, collection_name_for
+from aria.memory.semantic.chroma import ChromaStore, collection_name_for
 from aria.memory.models import MemoryType, SemanticMemory
 from memory_fakes import FakeEmbeddings
 

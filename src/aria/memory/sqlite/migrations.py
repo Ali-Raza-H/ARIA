@@ -11,7 +11,7 @@ from __future__ import annotations
 import sqlite3
 from collections.abc import Callable
 
-from .exceptions import StorageUnavailableError
+from ..exceptions import StorageUnavailableError
 
 Migration = Callable[[sqlite3.Connection], None]
 

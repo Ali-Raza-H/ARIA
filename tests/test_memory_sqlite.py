@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from aria.memory.exceptions import ValidationError
-from aria.memory.sqlite_store import SQLiteStore
+from aria.memory.sqlite.store import SQLiteStore
 
 
 @pytest.fixture()

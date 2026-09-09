@@ -11,8 +11,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from .config import MemorySettings
-from .models import MemoryResult, MemoryType, utc_now
+from ..config import MemorySettings
+from ..models import MemoryResult, MemoryType, utc_now
 
 # Per-type recency decay half-lives in days (spec §35: memory types specify
 # their decay behavior). None means no decay.

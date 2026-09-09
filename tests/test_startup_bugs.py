@@ -18,7 +18,7 @@ from aria.config import (
     save_runtime_state,
 )
 from aria.memory.config import MemorySettings
-from aria.memory.embeddings import FallbackEmbeddingProvider
+from aria.memory.embeddings.providers import FallbackEmbeddingProvider
 from aria.memory.exceptions import MemoryError
 from aria.memory.manager import MemoryManager
 

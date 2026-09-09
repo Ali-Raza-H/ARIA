@@ -13,11 +13,11 @@ from __future__ import annotations
 
 from enum import Enum
 
-from .config import MemorySettings
-from .models import MemoryContext, MemoryResult, MemoryType, StorageType
+from ..config import MemorySettings
+from ..models import MemoryContext, MemoryResult, MemoryType, StorageType
 from .reranker import Reranker
-from .sqlite_store import SQLiteStore
-from ..logging.setup import log_debug
+from ..sqlite.store import SQLiteStore
+from ...logging.setup import log_debug
 
 
 class QueryKind(str, Enum):

@@ -14,9 +14,9 @@ import time
 from collections.abc import Iterator
 from typing import Protocol
 
-from .config import MemorySettings
-from .exceptions import MemoryError
-from ..logging.setup import log_debug, log_error, log_info
+from ..config import MemorySettings
+from ..exceptions import MemoryError
+from ...logging.setup import log_debug, log_error, log_info
 
 
 class EmbeddingProvider(Protocol):

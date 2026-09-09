@@ -17,18 +17,18 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
-from .chroma_store import ChromaStore
+from .semantic.chroma import ChromaStore
 from .classifier import CandidateMemory, MemoryClassifier, MemoryDecisionType
 from .config import MemorySettings
-from .deduplicator import ConflictResolver, DedupVerdict, Deduplicator, source_rank
-from .embeddings import FallbackEmbeddingProvider
+from .semantic.deduplication import ConflictResolver, DedupVerdict, Deduplicator, source_rank
+from .embeddings.providers import FallbackEmbeddingProvider
 from .exceptions import MemoryError
-from .lifecycle import LifecycleManager
-from .migrations import SCHEMA_VERSION
+from .maintenance.lifecycle import LifecycleManager
+from .sqlite.migrations import SCHEMA_VERSION
 from .models import MemoryType, SemanticMemory, STRUCTURED_TYPES, utc_now
-from .retriever import ContextBuilder, QueryKind, Retriever, classify_query
-from .reranker import Reranker
-from .sqlite_store import SQLiteStore, content_hash, new_id
+from .semantic.retriever import ContextBuilder, QueryKind, Retriever, classify_query
+from .semantic.reranker import Reranker
+from .sqlite.store import SQLiteStore, content_hash, new_id
 from ..logging.setup import log_debug, log_error, log_info
 
 # The agent's minimal memory contract (src/aria/memory.py MemoryStore).
@@ -613,7 +613,7 @@ class MemoryManager:
         configurable target size. Returns a summary dict for the caller.
         """
         try:
-            from .ingestion import ingest_file
+            from .ingestion.pipeline import ingest_file
 
             return ingest_file(self, path, user_id=user_id, topic=topic)
         except Exception as exc:  # noqa: BLE001 - §43: ingestion must not crash
