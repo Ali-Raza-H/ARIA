@@ -19,7 +19,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from ..config import LifeOSConfig
-from ..logging_setup import log_debug, log_error, log_info
+from ..logging.setup import log_debug, log_error, log_info
 from .base import Tool, ToolContext, ToolResult
 from .registry import ToolRegistry
 

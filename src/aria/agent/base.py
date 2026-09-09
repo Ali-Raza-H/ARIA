@@ -9,7 +9,7 @@ from typing import Any
 
 from ..images import ImageAttachment, prepare_image_message
 from ..llm.base import AssistantMessage, Provider, ToolCall
-from ..logging_setup import log_debug, log_error, log_info
+from ..logging.setup import log_debug, log_error, log_info
 from ..memory import MemoryStore, SessionMemory
 from ..tools.base import ToolContext, ToolResult
 from ..tools.registry import ToolRegistry

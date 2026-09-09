@@ -7,7 +7,7 @@ import subprocess
 from collections.abc import Callable
 
 from .config import NotificationConfig
-from .logging_setup import log_error, log_info
+from .logging.setup import log_error, log_info
 
 
 class NotificationService:

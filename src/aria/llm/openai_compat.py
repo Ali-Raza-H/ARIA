@@ -13,7 +13,7 @@ from typing import Any, cast
 
 from openai import OpenAI
 
-from ..logging_setup import log_debug, log_error, log_info
+from ..logging.setup import log_debug, log_error, log_info
 from .base import AssistantMessage, ToolCall
 
 

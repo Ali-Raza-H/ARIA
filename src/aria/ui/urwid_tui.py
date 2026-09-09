@@ -38,7 +38,7 @@ from typing import Any, cast
 import urwid
 
 from .repl import _LOGO_LINES, Repl
-from ..logging_setup import log_error
+from ..logging.setup import log_error
 
 # Bright-on-dark palette: terminal backgrounds are usually a very dark shade,
 # so "dark gray" accents are nearly invisible. Dim text uses "light gray" and
@@ -695,7 +695,7 @@ class UrwidRepl(Repl):
         try:
             self._run_turn(user_text)
         except Exception as exc:
-            from ..logging_setup import log_error
+            from ..logging.setup import log_error
 
             log_error(f"Repl: turn failed: {type(exc).__name__}: {exc}")
             message = f"{type(exc).__name__}: {exc}"

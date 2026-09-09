@@ -29,7 +29,7 @@ from .models import MemoryType, SemanticMemory, STRUCTURED_TYPES, utc_now
 from .retriever import ContextBuilder, QueryKind, Retriever, classify_query
 from .reranker import Reranker
 from .sqlite_store import SQLiteStore, content_hash, new_id
-from ..logging_setup import log_debug, log_error, log_info
+from ..logging.setup import log_debug, log_error, log_info
 
 # The agent's minimal memory contract (src/aria/memory.py MemoryStore).
 _MESSAGE_KEYS = ("role", "content")

@@ -16,7 +16,7 @@ from typing import Protocol
 
 from .config import MemorySettings
 from .exceptions import MemoryError
-from ..logging_setup import log_debug, log_error, log_info
+from ..logging.setup import log_debug, log_error, log_info
 
 
 class EmbeddingProvider(Protocol):

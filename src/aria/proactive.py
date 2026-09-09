@@ -18,7 +18,7 @@ from typing import Any
 from .config import AutonomyConfig, BackgroundConfig, LifeOSConfig, SchedulerConfig, VisionConfig
 from .images import ImageAttachment, capture_screen, prepare_image_message
 from .llm.base import Provider
-from .logging_setup import log_error, log_info
+from .logging.setup import log_error, log_info
 from .tools.lifeos import READ_OPERATIONS, WRITE_OPERATIONS, run_lifeos_action
 from .tools.web import WebToolService
 

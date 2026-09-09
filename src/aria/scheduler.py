@@ -20,7 +20,7 @@ from typing import Any, Callable
 import yaml
 
 from .config import AutonomyConfig, SchedulerConfig
-from .logging_setup import log_error, log_info
+from .logging.setup import log_error, log_info
 
 
 @dataclass(frozen=True)

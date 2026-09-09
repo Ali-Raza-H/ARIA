@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 
 from .models import MemoryType, SemanticMemory
 from .sqlite_store import content_hash, new_id
-from ..logging_setup import log_error, log_info
+from ..logging.setup import log_error, log_info
 
 if TYPE_CHECKING:
     from .manager import MemoryManager

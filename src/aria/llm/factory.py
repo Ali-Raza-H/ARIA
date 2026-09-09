@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from ..logging_setup import log_debug, log_error, log_info
+from ..logging.setup import log_debug, log_error, log_info
 from .base import Provider, list_models
 from .ollama_provider import OllamaProvider
 from .openai_compat import OpenAICompatProvider

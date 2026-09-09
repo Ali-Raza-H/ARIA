@@ -11,7 +11,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from .logging_setup import log_debug, log_error, log_info
+from .logging.setup import log_debug, log_error, log_info
 
 _FRONT_MATTER_RE = re.compile(r"\A---\s*\n(.*?)\n---\s*\n?", re.DOTALL)
 _NAME_RE = re.compile(r"^[\w][\w .-]{0,63}$")

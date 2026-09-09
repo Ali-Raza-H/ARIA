@@ -10,7 +10,7 @@ from typing import Any
 import yaml
 from dotenv import load_dotenv
 
-from .logging_setup import log_debug, log_error, log_info
+from ..logging.setup import log_debug, log_error, log_info
 
 
 class ConfigError(ValueError):

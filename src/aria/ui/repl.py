@@ -34,7 +34,7 @@ from ..config import AppConfig, save_runtime_state
 from ..images import capture_clipboard, capture_screen, load_image
 from ..proactive import ProfileStore
 from ..llm.factory import ProviderManager
-from ..logging_setup import log_error, log_info
+from ..logging.setup import log_error, log_info
 from ..memory import MemoryStore, SessionMemory
 from ..skills import SkillManager
 from ..speech import SpeechController

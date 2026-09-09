@@ -15,7 +15,7 @@ from typing import Any, Callable
 
 from .config import VisionConfig
 from .llm.base import Provider
-from .logging_setup import log_error
+from .logging.setup import log_error
 from .tools.base import Tool, ToolContext, ToolResult
 from .tools.registry import ToolRegistry
 

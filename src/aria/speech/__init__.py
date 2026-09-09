@@ -13,7 +13,7 @@ from dataclasses import replace
 from typing import Any
 
 from ..config import SpeechConfig
-from ..logging_setup import log_debug, log_error, log_info
+from ..logging.setup import log_debug, log_error, log_info
 
 # --- Markdown stripping ----------------------------------------------------
 #

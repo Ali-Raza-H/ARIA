@@ -14,7 +14,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from ..config import BrowserConfig
-from ..logging_setup import log_error, log_info
+from ..logging.setup import log_error, log_info
 from .base import Tool, ToolContext, ToolResult
 from .registry import ToolRegistry
 

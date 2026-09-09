@@ -8,7 +8,7 @@ from urllib.parse import urlparse, urlunparse
 
 import httpx
 
-from ...logging_setup import log_error, log_info
+from ...logging.setup import log_error, log_info
 from .exceptions import SearchConnectionError, SearchResponseError, SearchTimeoutError
 from .models import SearchResult
 from .provider import SearchProvider

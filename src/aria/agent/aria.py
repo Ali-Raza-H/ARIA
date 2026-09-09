@@ -9,7 +9,7 @@ from typing import Any
 from ..agent.base import AgentEvent as _AgentEvent
 from ..images import ImageAttachment
 from ..llm.base import Provider
-from ..logging_setup import log_debug, log_info
+from ..logging.setup import log_debug, log_info
 from ..memory import MemoryStore
 from ..prompts import build_system_prompt
 from ..skills import SkillManager, inject_skills

@@ -15,7 +15,7 @@ from pathlib import Path
 from .config import MemorySettings
 from .manager import MemoryManager
 from ..config import MemoryConfig
-from ..logging_setup import configure_logging
+from ..logging.setup import configure_logging
 
 
 def _build_manager(root: Path) -> MemoryManager:

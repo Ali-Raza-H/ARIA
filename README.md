@@ -314,7 +314,7 @@ Hosted Kokoro requires `HF_TOKEN` in `.env`.
 src/aria/
 ├── __main__.py          Entry point: wires config, logging, providers, agents, UI
 ├── config.py            YAML + .env configuration, validated
-├── logging_setup.py     Single rotating aria.log handler with secret redaction
+├── logging/             Centralized single aria.log handler with secret redaction
 ├── prompts.py           ARIA's persona and the coder agent's mission prompt
 ├── memory/              MemoryManager facade plus session/storage internals
 ├── agent/               Core reasoning and optional coder deployment

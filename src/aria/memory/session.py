@@ -8,7 +8,7 @@ import uuid
 from pathlib import Path
 from typing import Any, Protocol
 
-from ..logging_setup import log_debug, log_error
+from ..logging.setup import log_debug, log_error
 
 
 class MemoryStore(Protocol):

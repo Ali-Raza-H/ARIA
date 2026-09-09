@@ -18,7 +18,7 @@ from enum import Enum
 from .chroma_store import ChromaStore
 from .classifier import CandidateMemory
 from .models import MemoryType, SemanticMemory, utc_now
-from ..logging_setup import log_debug, log_info
+from ..logging.setup import log_debug, log_info
 
 
 class DedupVerdict(str, Enum):

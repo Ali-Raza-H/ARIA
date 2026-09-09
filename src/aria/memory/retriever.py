@@ -17,7 +17,7 @@ from .config import MemorySettings
 from .models import MemoryContext, MemoryResult, MemoryType, StorageType
 from .reranker import Reranker
 from .sqlite_store import SQLiteStore
-from ..logging_setup import log_debug
+from ..logging.setup import log_debug
 
 
 class QueryKind(str, Enum):

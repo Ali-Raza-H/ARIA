@@ -6,7 +6,7 @@ import fnmatch
 from pathlib import Path
 from typing import Any
 
-from ..logging_setup import log_debug, log_error
+from ..logging.setup import log_debug, log_error
 from .base import Tool, ToolContext, ToolResult
 from .registry import ToolRegistry
 

@@ -6,7 +6,7 @@ import os
 import subprocess
 from typing import Any
 
-from ..logging_setup import log_debug, log_info
+from ..logging.setup import log_debug, log_info
 from .base import Tool, ToolContext, ToolResult
 from .registry import ToolRegistry
 

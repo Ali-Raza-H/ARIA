@@ -8,7 +8,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
-from ..logging_setup import log_debug, log_error
+from ..logging.setup import log_debug, log_error
 from ..llm.base import ToolCall
 from .base import ToolResult
 

@@ -23,7 +23,7 @@ from .notifications import NotificationService
 from .proactive import ProactiveService
 from .scheduler import ScheduledJob, SchedulerService, register_scheduler_tools
 from .llm.factory import ProviderManager
-from .logging_setup import configure_logging, log_error, log_info
+from .logging.setup import configure_logging, log_error, log_info
 from .memory import MemoryManager, MemoryError, MemoryStore, MemorySettings, SessionMemory
 from .memory.tools import register_memory_tools
 from .skills import SkillManager

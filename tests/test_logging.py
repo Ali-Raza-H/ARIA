@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from aria.logging_setup import configure_logging, log, log_call
+from aria.logging.setup import configure_logging, log, log_call
 
 
 def make_logger(tmp_path: Path):
@@ -63,6 +63,8 @@ def test_log_call_traces_entry_exit_and_errors(tmp_path: Path) -> None:
 def test_log_level_filtering_matches_config(tmp_path: Path) -> None:
     make_logger(tmp_path)
     logger = logging.getLogger("aria")
-    file_handlers = [handler for handler in logger.handlers if isinstance(handler, logging.handlers.RotatingFileHandler)]
+    from logging.handlers import RotatingFileHandler
+
+    file_handlers = [handler for handler in logger.handlers if isinstance(handler, RotatingFileHandler)]
     assert len(file_handlers) == 1
     assert file_handlers[0].level == logging.DEBUG

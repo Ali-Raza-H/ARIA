@@ -23,7 +23,7 @@ def create_repl(agent, console=None, *, config: AppConfig | None = None, **kwarg
         try:
             import urwid  # noqa: F401
         except ImportError:
-            from ..logging_setup import log_error
+            from ..logging.setup import log_error
 
             log_error("ui.backend=urwid but the urwid extra is missing; falling back to rich")
             backend = "rich"

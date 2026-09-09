@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from ..logging_setup import log_debug, log_error, log_info
+from ..logging.setup import log_debug, log_error, log_info
 from .base import Tool, ToolContext, ToolResult
 
 

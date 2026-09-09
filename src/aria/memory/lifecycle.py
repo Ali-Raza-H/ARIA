@@ -15,7 +15,7 @@ from .chroma_store import ChromaStore
 from .config import MemorySettings
 from .models import MemoryType, utc_now
 from .sqlite_store import SQLiteStore
-from ..logging_setup import log_error, log_info
+from ..logging.setup import log_error, log_info
 
 
 class LifecycleManager:

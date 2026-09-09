@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Protocol, cast
 
 from ..llm.base import Provider
-from ..logging_setup import log_debug, log_error, log_info
+from ..logging.setup import log_debug, log_error, log_info
 from ..memory import SessionMemory
 from ..prompts import build_coder_prompt
 from ..tools.base import ToolContext

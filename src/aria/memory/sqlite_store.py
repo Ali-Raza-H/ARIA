@@ -22,7 +22,7 @@ from typing import Any
 from .exceptions import ValidationError
 from .migrations import apply_migrations, connect
 from .models import MemoryType, utc_now
-from ..logging_setup import log_error
+from ..logging.setup import log_error
 
 _ID_PREFIX = {
     MemoryType.FACT: "fact_",

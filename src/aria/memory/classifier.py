@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from typing import Any, Protocol
 
 from .models import MemoryType
-from ..logging_setup import log_debug, log_error
+from ..logging.setup import log_debug, log_error
 
 # --------------------------------------------------------------- classifier
 
