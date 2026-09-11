@@ -23,3 +23,8 @@ data/browser-profile
 # Runtime files are never committed.
 *.log
 *.sqlite3
+
+oauth-token.json
+
+scheduler/
+telemetry/
