@@ -13,6 +13,7 @@ import sys
 import warnings
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from dataclasses import replace
+from datetime import datetime
 from typing import Any
 
 from ...config import SpeechConfig
@@ -39,6 +40,38 @@ _QUOTE_RE = re.compile(r"^\s*>+\s?")
 _BULLET_RE = re.compile(r"^\s*[-*+]\s+")
 _HRULE_RE = re.compile(r"^\s*(?:[-*_]\s*){3,}$")
 _TABLE_SEPARATOR_RE = re.compile(r"^\s*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?\s*$")
+_TIME_RE = re.compile(r"(?<![\w:])(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*([APap][Mm]))?")
+_ISO_DATE_RE = re.compile(r"\b(\d{4})-(\d{2})-(\d{2})\b")
+
+
+def conversationalize_for_speech(text: str) -> str:
+    """Turn machine-formatted dates/times into phrases speech engines say naturally."""
+    def replace_time(match: re.Match[str]) -> str:
+        hour = int(match.group(1))
+        minute = int(match.group(2))
+        second = match.group(3)
+        suffix = match.group(4)
+        if suffix:
+            meridiem = suffix.upper()
+            hour = hour % 12 or 12
+        else:
+            meridiem = "AM" if hour < 12 else "PM"
+            hour = hour % 12 or 12
+        value = f"{hour}:{minute:02d} {meridiem}"
+        if second is not None:
+            value = f"{hour}:{minute:02d}:{int(second):02d} {meridiem}"
+        return value
+
+    def replace_date(match: re.Match[str]) -> str:
+        try:
+            return datetime.strptime(match.group(0), "%Y-%m-%d").strftime("%B %-d, %Y")
+        except ValueError:
+            return match.group(0)
+
+    text = _ISO_DATE_RE.sub(replace_date, text)
+    return _TIME_RE.sub(replace_time, text)
+
+
 _TORCH_NOISE_RE = re.compile(
     r"(?i)(torch|torchaudio|cuda|cudnn|tensorflow|triton|mps|userwarning|futurewarning|"
     r"not compiled|not available|falling back)"
@@ -312,7 +345,7 @@ class SpeechController:
 
     def say(self, text: str) -> None:
         """Speak *text*; failures are logged and never crash the REPL."""
-        text = strip_markdown_for_speech(text)
+        text = strip_markdown_for_speech(conversationalize_for_speech(text))
         if not self._config.enabled or not text.strip():
             return
         if self._unavailable:

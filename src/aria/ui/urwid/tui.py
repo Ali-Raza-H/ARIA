@@ -300,6 +300,11 @@ class UrwidRepl(Repl):
         # Set when the UI thread dies from anything other than a clean stop;
         # run() re-raises it so the process exits non-zero or falls back (BR-3).
         self._ui_error: BaseException | None = None
+        self._telemetry = getattr(self.agent, "telemetry", None)
+        self._telemetry_snapshot: dict[str, Any] = self._telemetry.snapshot() if self._telemetry is not None else {"enabled": False}
+        self._telemetry_listener = self._on_telemetry_event
+        if self._telemetry is not None:
+            self._telemetry.add_listener(self._telemetry_listener)
 
     # ------------------------------------------------------------ plumbing
     def _post_ui(self, action: Callable[[], None]) -> None:
@@ -408,6 +413,10 @@ class UrwidRepl(Repl):
             widget.set_text(markdown_to_markup(plain))
         header = urwid.Text(("aria-title", f"─ ARIA ─ {self._timestamp()} "))
         self._append_widget(urwid.Pile([header, widget, urwid.Text("")]))
+
+    def receive_notification(self, title: str, body: str) -> None:
+        """Append a scheduler result to the active chat transcript."""
+        self._remember_command(title, body)
 
     def _remember_command(self, command: str, output: Any = None) -> None:
         plain = self._plain(output)
@@ -594,6 +603,29 @@ class UrwidRepl(Repl):
         lines.append(("stamp", f"{datetime.now():%a %d %b %Y}  ·  ready"))
         return urwid.Text(lines, align="center")
 
+    def _on_telemetry_event(self, event: Any) -> None:
+        data = event.data if isinstance(getattr(event, "data", None), dict) else {}
+        if event.kind == "context_update":
+            self._telemetry_snapshot["context_chars"] = int(data.get("context_chars", 0) or 0)
+            self._telemetry_snapshot["context_tokens"] = int(data.get("context_tokens", 0) or 0)
+            self._telemetry_snapshot["context_window"] = int(data.get("context_window", 0) or 0)
+            self._telemetry_snapshot["provider"] = str(data.get("provider", self._telemetry_snapshot.get("provider", "")))
+            self._telemetry_snapshot["model"] = str(data.get("model", self._telemetry_snapshot.get("model", "")))
+        elif event.kind == "model_finished":
+            for key in ("input_tokens", "output_tokens", "total_tokens"):
+                value = data.get(key)
+                if isinstance(value, (int, float)):
+                    self._telemetry_snapshot[key] = int(self._telemetry_snapshot.get(key, 0)) + int(value)
+        elif event.kind == "tool_finished":
+            self._telemetry_snapshot["tool_calls"] = int(self._telemetry_snapshot.get("tool_calls", 0)) + 1
+        elif event.kind == "turn_finished":
+            self._telemetry_snapshot["turns"] = int(self._telemetry_snapshot.get("turns", 0)) + 1
+        def update_status() -> None:
+            if self._status_widget is not None:
+                self._status_widget.set_text(self._status_markup())
+            self._refresh()
+        self._post_ui(update_status)
+
     def _status_markup(self) -> list[Any]:
         model = self.agent.model_name or "unknown model"
         speech = "TTS on" if self.speech and self.speech.enabled else "TTS off"
@@ -610,8 +642,23 @@ class UrwidRepl(Repl):
             ("status-dim", cot),
             ("status-dim", "  │  "),
             ("status", f"{datetime.now().astimezone():%H:%M:%S %Z}"),
-            ("status-dim", "  │  /help"),
+            ("status-dim", "  │  Tok " + str(self._telemetry_snapshot.get("total_tokens", 0))),
+            ("status-dim", "  │  Ctx " + str(self._telemetry_snapshot.get("context_tokens", 0)) + "t/" + str(self._telemetry_snapshot.get("context_window", 0) or "?")),
+            ("status-dim", "  │  /telemetry"),
         ]
+
+    def _paste_clipboard_image(self) -> None:
+        """Handle Ctrl+V as an image-attachment gesture, not binary text paste."""
+        if self.vision_config is None or not bool(getattr(self.vision_config, "enabled", True)):
+            self._remember_command("clipboard", "Vision input is disabled.")
+            return
+        try:
+            from ...services.vision import capture_clipboard
+            attachment = capture_clipboard(self.vision_config)
+            self.agent.attach_image(attachment)
+            self._remember_command("/attach clipboard", "Attached the clipboard image for the next message.")
+        except Exception as exc:
+            self._remember_command("/attach clipboard", f"Clipboard does not contain a usable image: {exc}")
 
     def _submit(self) -> None:
         edit = self._prompt_edit
@@ -676,6 +723,12 @@ class UrwidRepl(Repl):
         original_edit_keypress = prompt_edit.keypress
 
         def on_edit_keypress(size: Any, key: str) -> str | None:
+            if key == "ctrl v":
+                self._paste_clipboard_image()
+                return None
+            if key == "shift insert":
+                self._paste_clipboard_image()
+                return None
             if key == "enter":
                 self._submit()
                 return None
@@ -730,6 +783,8 @@ class UrwidRepl(Repl):
         finally:
             from ...logging.setup import set_console_sink
             set_console_sink(None)
+            if self._telemetry is not None:
+                self._telemetry.remove_listener(self._telemetry_listener)
             self._status_widget = None
             self._loop = None
             try:

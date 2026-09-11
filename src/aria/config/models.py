@@ -7,8 +7,13 @@ from ..config.loader import (
     BrowserConfig,
     CoderConfig,
     DesktopConfig,
+    DockerConfig,
+    GmailConfig,
+    MediaConfig,
+    SystemConfig,
     LifeOSConfig,
     LoggingConfig,
+    TelemetryConfig,
     MemoryConfig,
     NotificationConfig,
     SchedulerConfig,
@@ -19,7 +24,7 @@ from ..config.loader import (
 
 __all__ = [
     "AppConfig", "AutonomyConfig", "BackgroundConfig", "BrowserConfig",
-    "CoderConfig", "DesktopConfig", "LifeOSConfig", "LoggingConfig",
+    "CoderConfig", "DesktopConfig", "DockerConfig", "GmailConfig", "MediaConfig", "SystemConfig", "LifeOSConfig", "LoggingConfig", "TelemetryConfig",
     "MemoryConfig", "NotificationConfig", "SchedulerConfig", "SpeechConfig",
     "VisionConfig", "WebConfig",
 ]

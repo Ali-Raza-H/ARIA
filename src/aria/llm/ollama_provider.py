@@ -32,6 +32,9 @@ class OllamaProvider:
         # assistant's text protocol is therefore the safe default; native
         # tools can be enabled explicitly for models that support them.
         self.native_tools = bool(settings.get("native_tools", False))
+        context_windows = settings.get("context_windows", {})
+        configured_window = context_windows.get(model) if isinstance(context_windows, dict) else None
+        self.context_window = int(configured_window or settings.get("context_window", 0) or 0)
         log_debug(
             f"OllamaProvider: host={host or 'default'} model={model} "
             f"native_tools={self.native_tools}"
@@ -92,6 +95,16 @@ class OllamaProvider:
             raise RuntimeError("Ollama request failed without an exception")
 
         calls: list[ToolCall] = []
+        usage: dict[str, Any] = {}
+        raw_usage = _get(response, "usage", None)
+        if raw_usage is not None:
+            usage.update(self._usage_dict(raw_usage))
+        # Ollama's final stream chunk exposes prompt/eval counters rather than
+        # an OpenAI-style usage object.
+        for source, target in (("prompt_eval_count", "prompt_eval_count"), ("eval_count", "eval_count"), ("prompt_eval_duration", "prompt_eval_duration"), ("eval_duration", "eval_duration")):
+            value = _get(response, source, None)
+            if value is not None:
+                usage[target] = value
         for index, raw_call in enumerate(raw_calls):
             function = _get(raw_call, "function", {})
             arguments = _get(function, "arguments", {})
@@ -109,7 +122,13 @@ class OllamaProvider:
                 )
             )
         log_info(f"OllamaProvider: completed model={self.model}, {len(calls)} tool call(s)")
-        return AssistantMessage("".join(content_parts), calls)
+        return AssistantMessage("".join(content_parts), calls, usage=usage)
+
+    @staticmethod
+    def _usage_dict(raw: Any) -> dict[str, Any]:
+        if isinstance(raw, dict):
+            return dict(raw)
+        return {key: getattr(raw, key) for key in ("prompt_tokens", "completion_tokens", "total_tokens", "input_tokens", "output_tokens") if getattr(raw, key, None) is not None}
 
     @staticmethod
     def _normalize_message(message: dict[str, Any]) -> dict[str, Any]:

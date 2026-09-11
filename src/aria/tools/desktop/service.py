@@ -16,6 +16,7 @@ from typing import Any
 
 from ...config import DesktopConfig
 from ...logging.setup import log_error, log_info
+from ..core.confirmation import ConfirmationManager
 from ..core.base import Tool, ToolContext, ToolResult
 from ..core.registry import ToolRegistry
 
@@ -23,8 +24,14 @@ from ..core.registry import ToolRegistry
 class DesktopToolService:
     """Execute Hyprland operations using configured, auditable backends."""
 
-    def __init__(self, config: DesktopConfig) -> None:
+    def __init__(self, config: DesktopConfig, confirmation: ConfirmationManager | None = None) -> None:
         self.config = config
+        self.confirmation = confirmation
+
+    def _confirmation_error(self, method: str, args: dict[str, Any], description: str, context: ToolContext) -> str | None:
+        if self.confirmation is None:
+            return None
+        return self.confirmation.require(method, args, description, context.user_request)
 
     def _run(self, command: list[str], timeout: float | None = None) -> str:
         if not shutil.which(command[0]) and not Path(command[0]).is_file():
@@ -92,9 +99,17 @@ class DesktopToolService:
         configured = self.config.launchers.get(command.strip())
         if configured is None:
             raise PermissionError(f"launcher is not configured: {command}")
-        output = self._run(list(configured))
-        log_info(f"desktop.launcher name={command.strip()!r}")
-        return output or f"launched {command.strip()}"
+        try:
+            process = subprocess.Popen(
+                list(configured),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+            )
+        except OSError as exc:
+            raise RuntimeError(f"could not launch configured route {command.strip()!r}: {exc}") from exc
+        log_info(f"desktop.launcher name={command.strip()!r} pid={process.pid}")
+        return f"launched {command.strip()} (pid {process.pid})"
 
     def send_input(self, args: dict[str, Any]) -> str:
         backend = self.config.input_backend
@@ -132,6 +147,24 @@ class DesktopToolService:
             key = args.get("key")
             if not isinstance(key, str) or not key:
                 raise ValueError("key is required for key")
+            modifiers = args.get("modifiers", [])
+            if not isinstance(modifiers, list) or not all(isinstance(item, str) and item.strip() for item in modifiers):
+                raise ValueError("modifiers must be an array of key names")
+            # wtype supports a key press but not a held modifier sequence. Use
+            # ydotool for explicit hold/key/release when a chord is requested.
+            if modifiers:
+                # wtype's modifier flags are not consistent across versions.
+                # ydotool's key event protocol explicitly models press and
+                # release, so a chord is sent as one atomic sequence.
+                keycodes = {"CTRL": 29, "ALT": 56, "SHIFT": 42, "SUPER": 125}
+                normalized = [modifier.upper() for modifier in modifiers]
+                if all(modifier in keycodes for modifier in normalized):
+                    events = [f"{keycodes[modifier]}:1" for modifier in normalized]
+                    events.append(f"{key}:1")
+                    events.append(f"{key}:0")
+                    events.extend(f"{keycodes[modifier]}:0" for modifier in reversed(normalized))
+                    return self._run([self.config.ydotool_command, "key", *events])
+                raise ValueError("modifiers must be CTRL, ALT, SHIFT, or SUPER when using the arch backend")
             return self._run([self.config.wtype_command, "-k", key])
         x, y = self._coordinates(args)
         if action == "move":
@@ -252,7 +285,7 @@ def register_desktop_tools(registry: ToolRegistry, service: DesktopToolService) 
     ))
     registry.register(Tool(
         "desktop_input", "Send configured keyboard or mouse input through Arch utilities or PyAutoGUI.",
-        {"type": "object", "properties": {"action": {"type": "string", "enum": ["type", "key", "click", "move"]}, "text": {"type": "string"}, "key": {"type": "string"}, "x": {"type": "integer"}, "y": {"type": "integer"}, "interval": {"type": "number"}}, "required": ["action"], "additionalProperties": False},
+        {"type": "object", "properties": {"action": {"type": "string", "enum": ["type", "key", "click", "move"]}, "text": {"type": "string"}, "key": {"type": "string"}, "modifiers": {"type": "array", "items": {"type": "string"}}, "x": {"type": "integer"}, "y": {"type": "integer"}, "interval": {"type": "number"}}, "required": ["action"], "additionalProperties": False},
         lambda args, ctx: call("send_input", args, ctx),
     ))
     registry.register(Tool(

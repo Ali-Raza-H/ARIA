@@ -49,6 +49,17 @@ class SpeechConfig:
 
 
 @dataclass(frozen=True)
+class TelemetryConfig:
+    """Operational telemetry settings; content capture is intentionally absent."""
+
+    enabled: bool = True
+    database: Path = Path("data/telemetry/telemetry.sqlite3")
+    live: bool = True
+    retention_days: int = 90
+    record_estimates: bool = True
+
+
+@dataclass(frozen=True)
 class LoggingConfig:
     """Rotating file logging settings."""
 
@@ -179,6 +190,64 @@ class VisionConfig:
 
 
 @dataclass(frozen=True)
+class MediaConfig:
+    enabled: bool = False
+    playerctl_command: str = "playerctl"
+    timeout_seconds: float = 10.0
+    players: dict[str, tuple[str, ...]] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class SystemConfig:
+    enabled: bool = False
+    timeout_seconds: float = 15.0
+    systemctl_command: str = "systemctl"
+    journalctl_command: str = "journalctl"
+    free_command: str = "free"
+    df_command: str = "df"
+    vmstat_command: str = "vmstat"
+    sensors_command: str = "sensors"
+    nvidia_smi_command: str = "nvidia-smi"
+    upower_command: str = "upower"
+    ip_command: str = "ip"
+    ps_command: str = "ps"
+
+
+@dataclass(frozen=True)
+class DockerConfig:
+    enabled: bool = False
+    docker_command: str = "docker"
+    timeout_seconds: float = 30.0
+
+
+@dataclass(frozen=True)
+class GmailConfig:
+    """Google official Gmail MCP plus direct API fallback settings.
+
+    Tokens may be supplied through the environment for headless deployments or
+    loaded/refreshed from an OAuth token file for the normal local desktop flow.
+    The OAuth client secret is never stored in this configuration object.
+    """
+
+    enabled: bool = False
+    mcp_url: str = "https://gmailmcp.googleapis.com/mcp/v1"
+    access_token_env: str = "GMAIL_MCP_ACCESS_TOKEN"
+    direct_api_enabled: bool = True
+    direct_api_access_token_env: str = "GMAIL_API_ACCESS_TOKEN"
+    api_base_url: str = "https://gmail.googleapis.com/gmail/v1/users/me"
+    people_api_base_url: str = "https://people.googleapis.com/v1"
+    oauth_client_secrets_path: Path = Path("data/gmail/client-secret.json")
+    oauth_token_path: Path = Path("data/gmail/oauth-token.json")
+    oauth_scopes: tuple[str, ...] = (
+        "https://www.googleapis.com/auth/gmail.modify",
+        "https://www.googleapis.com/auth/gmail.send",
+        "https://www.googleapis.com/auth/gmail.settings.basic",
+        "https://www.googleapis.com/auth/contacts",
+    )
+    timeout_seconds: float = 30.0
+
+
+@dataclass(frozen=True)
 class SchedulerConfig:
     """In-process persistent scheduler settings."""
 
@@ -261,6 +330,7 @@ class AppConfig:
     max_command_output_chars: int | None
     persona: str
     logging: LoggingConfig = field(default_factory=LoggingConfig)
+    telemetry: TelemetryConfig = field(default_factory=TelemetryConfig)
     speech: SpeechConfig = field(default_factory=SpeechConfig)
     coder: CoderConfig = field(default_factory=CoderConfig)
     lifeos: LifeOSConfig = field(default_factory=LifeOSConfig)
@@ -273,6 +343,10 @@ class AppConfig:
     background: BackgroundConfig = field(default_factory=BackgroundConfig)
     vision: VisionConfig = field(default_factory=VisionConfig)
     scheduler: SchedulerConfig = field(default_factory=SchedulerConfig)
+    gmail: GmailConfig = field(default_factory=GmailConfig)
+    media: MediaConfig = field(default_factory=MediaConfig)
+    system: SystemConfig = field(default_factory=SystemConfig)
+    docker: DockerConfig = field(default_factory=DockerConfig)
     show_cot: bool = True
     keep_cot: bool = False
     ui_backend: str = "urwid"
@@ -414,7 +488,7 @@ def _env_path(key: str) -> tuple[str, str] | None:
     suffix = key.removeprefix("ARIA_")
     if suffix == "LOG_DIR":
         return "logging", "directory"
-    sections = {"CODER", "SPEECH", "LIFEOS", "LOGGING", "MEMORY"}
+    sections = {"CODER", "SPEECH", "LIFEOS", "LOGGING", "MEMORY", "UI", "WEB", "DESKTOP", "BROWSER", "VISION", "SCHEDULER", "NOTIFICATIONS", "BACKGROUND", "GMAIL", "MEDIA", "SYSTEM", "DOCKER", "AUTONOMY", "TELEMETRY"}
     first, separator, remainder = suffix.partition("_")
     if separator and first in sections and remainder:
         return first.lower(), remainder.lower()
@@ -537,6 +611,8 @@ def load_config(
     if not isinstance(log_section, dict):
         raise ConfigError("logging must be a YAML object")
     log_directory = Path(str(log_section.get("directory", "data/logs")))
+    if log_directory.as_posix().rstrip("/") != "data/logs":
+        raise ConfigError("logging.directory must be data/logs; ARIA writes runtime logs only there")
     log_max_bytes = log_section.get("max_bytes", 5 * 1024 * 1024)
     log_backup_count = log_section.get("backup_count", 3)
     if not isinstance(log_max_bytes, int) or log_max_bytes <= 0:
@@ -856,6 +932,69 @@ def load_config(
         **interval_values,
     )
 
+    media_section = raw.get("media", {}) or {}
+    if not isinstance(media_section, dict):
+        raise ConfigError("media must be a YAML object")
+    media_timeout = media_section.get("timeout_seconds", 10)
+    if not isinstance(media_timeout, (int, float)) or media_timeout <= 0:
+        raise ConfigError("media.timeout_seconds must be positive")
+    raw_players = media_section.get("players", {}) or {}
+    if not isinstance(raw_players, dict):
+        raise ConfigError("media.players must be a YAML object")
+    players: dict[str, tuple[str, ...]] = {}
+    for name, command in raw_players.items():
+        if not isinstance(name, str) or not isinstance(command, list) or not command or not all(isinstance(item, str) and item for item in command):
+            raise ConfigError("media.players must map names to non-empty command arrays")
+        players[name.strip()] = tuple(command)
+    media_config = MediaConfig(bool(media_section.get("enabled", False)), str(media_section.get("playerctl_command", "playerctl")), float(media_timeout), players)
+
+    system_section = raw.get("system", {}) or {}
+    if not isinstance(system_section, dict):
+        raise ConfigError("system must be a YAML object")
+    system_timeout = system_section.get("timeout_seconds", 15)
+    if not isinstance(system_timeout, (int, float)) or system_timeout <= 0:
+        raise ConfigError("system.timeout_seconds must be positive")
+    system_config = SystemConfig(enabled=bool(system_section.get("enabled", False)), timeout_seconds=float(system_timeout), **{field_name: str(system_section.get(field_name, default)) for field_name, default in (("systemctl_command", "systemctl"), ("journalctl_command", "journalctl"), ("free_command", "free"), ("df_command", "df"), ("vmstat_command", "vmstat"), ("sensors_command", "sensors"), ("nvidia_smi_command", "nvidia-smi"), ("upower_command", "upower"), ("ip_command", "ip"), ("ps_command", "ps"))})
+
+    docker_section = raw.get("docker", {}) or {}
+    if not isinstance(docker_section, dict):
+        raise ConfigError("docker must be a YAML object")
+    docker_timeout = docker_section.get("timeout_seconds", 30)
+    if not isinstance(docker_timeout, (int, float)) or docker_timeout <= 0:
+        raise ConfigError("docker.timeout_seconds must be positive")
+    docker_config = DockerConfig(bool(docker_section.get("enabled", False)), str(docker_section.get("docker_command", "docker")), float(docker_timeout))
+
+    gmail_section = raw.get("gmail", {}) or {}
+    if not isinstance(gmail_section, dict):
+        raise ConfigError("gmail must be a YAML object")
+    gmail_timeout = gmail_section.get("timeout_seconds", 30)
+    if not isinstance(gmail_timeout, (int, float)) or gmail_timeout <= 0:
+        raise ConfigError("gmail.timeout_seconds must be a positive number")
+    oauth_scopes = gmail_section.get("oauth_scopes", list(GmailConfig().oauth_scopes))
+    if not isinstance(oauth_scopes, list) or not oauth_scopes or not all(isinstance(item, str) and item.strip() for item in oauth_scopes):
+        raise ConfigError("gmail.oauth_scopes must be a non-empty list of scope URLs")
+    oauth_client_secrets = Path(str(gmail_section.get("oauth_client_secrets_path", "data/gmail/client-secret.json")))
+    oauth_token = Path(str(gmail_section.get("oauth_token_path", "data/gmail/oauth-token.json")))
+    if not oauth_client_secrets.is_absolute():
+        oauth_client_secrets = root / oauth_client_secrets
+    if not oauth_token.is_absolute():
+        oauth_token = root / oauth_token
+    gmail_config = GmailConfig(
+        enabled=bool(gmail_section.get("enabled", False)),
+        mcp_url=str(gmail_section.get("mcp_url", "https://gmailmcp.googleapis.com/mcp/v1")).strip(),
+        access_token_env=str(gmail_section.get("access_token_env", "GMAIL_MCP_ACCESS_TOKEN")).strip(),
+        direct_api_enabled=bool(gmail_section.get("direct_api_enabled", True)),
+        direct_api_access_token_env=str(gmail_section.get("direct_api_access_token_env", "GMAIL_API_ACCESS_TOKEN")).strip(),
+        api_base_url=str(gmail_section.get("api_base_url", "https://gmail.googleapis.com/gmail/v1/users/me")).strip().rstrip("/"),
+        people_api_base_url=str(gmail_section.get("people_api_base_url", "https://people.googleapis.com/v1")).strip().rstrip("/"),
+        oauth_client_secrets_path=oauth_client_secrets,
+        oauth_token_path=oauth_token,
+        oauth_scopes=tuple(item.strip() for item in oauth_scopes),
+        timeout_seconds=float(gmail_timeout),
+    )
+    if not gmail_config.mcp_url or not gmail_config.access_token_env or not gmail_config.direct_api_access_token_env or not gmail_config.people_api_base_url:
+        raise ConfigError("gmail URLs and token environment variable names must be non-empty")
+
     memory_section = raw.get("memory", {}) or {}
     if not isinstance(memory_section, dict):
         raise ConfigError("memory must be a YAML object")
@@ -944,6 +1083,23 @@ def load_config(
         retry_backoff_seconds=float(backoff) if backoff is not None else 0.4,
     )
 
+    telemetry_section = raw.get("telemetry", {}) or {}
+    if not isinstance(telemetry_section, dict):
+        raise ConfigError("telemetry must be a YAML object")
+    telemetry_retention = telemetry_section.get("retention_days", 90)
+    if not isinstance(telemetry_retention, int) or telemetry_retention < 0:
+        raise ConfigError("telemetry.retention_days must be a non-negative integer")
+    telemetry_database = Path(str(telemetry_section.get("database", "data/telemetry/telemetry.sqlite3")))
+    if not telemetry_database.is_absolute():
+        telemetry_database = root / telemetry_database
+    telemetry_config = TelemetryConfig(
+        enabled=bool(telemetry_section.get("enabled", True)),
+        database=telemetry_database,
+        live=bool(telemetry_section.get("live", True)),
+        retention_days=telemetry_retention,
+        record_estimates=bool(telemetry_section.get("record_estimates", True)),
+    )
+
     log_debug(
         f"Config: provider={provider} model={model} workspace={workspace} "
         f"max_iterations={max_iterations} persona={persona}"
@@ -962,6 +1118,7 @@ def load_config(
         ),
         persona=persona,
         logging=logging_config,
+        telemetry=telemetry_config,
         speech=speech_config,
         coder=coder_config,
         lifeos=lifeos_config,
@@ -974,6 +1131,10 @@ def load_config(
         background=background_config,
         vision=vision_config,
         scheduler=scheduler_config,
+        gmail=gmail_config,
+        media=media_config,
+        system=system_config,
+        docker=docker_config,
         show_cot=show_cot,
         keep_cot=keep_cot,
         ui_backend=ui_backend,

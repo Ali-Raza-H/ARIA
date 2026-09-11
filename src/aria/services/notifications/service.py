@@ -15,13 +15,23 @@ class NotificationService:
 
     def __init__(self, config: NotificationConfig) -> None:
         self.config = config
+        self._chat_callback: Callable[[str, str], None] | None = None
+
+    def set_chat_callback(self, callback: Callable[[str, str], None] | None) -> None:
+        """Set the active-chat sink used for scheduler results."""
+        self._chat_callback = callback
 
     def send(self, title: str, body: str, urgency: str = "normal", tts: Callable[[str], None] | None = None) -> bool:
-        if not self.config.enabled:
-            return False
+        delivered = False
+        if self._chat_callback is not None:
+            try:
+                self._chat_callback(title, body)
+            except Exception as exc:
+                log_error(f"Notification: chat delivery failed: {type(exc).__name__}: {exc}")
         if urgency not in {"low", "normal", "critical"}:
             urgency = self.config.default_urgency
-        delivered = False
+        if not self.config.enabled:
+            return True
         try:
             if self.config.backend == "notify-send":
                 command = self.config.notify_send_command

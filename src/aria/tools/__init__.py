@@ -4,6 +4,8 @@ from .core import CustomToolRouter, RoutedResponse, Tool, ToolContext, ToolRegis
 from .browser import BrowserToolService, register_browser_tools
 from .desktop import DesktopToolService, register_desktop_tools
 from .filesystem import register_filesystem_tools
+from .gmail import GmailToolService, register_gmail_tools
+from .system import SystemToolService, register_system_tools
 from .lifeos import LifeOSTool, register_lifeos_tool
 from ..config import LifeOSConfig
 from .shell import register_shell_tool
@@ -23,6 +25,10 @@ __all__ = [
     "register_browser_tools",
     "register_desktop_tools",
     "register_filesystem_tools",
+    "GmailToolService",
+    "register_gmail_tools",
+    "SystemToolService",
+    "register_system_tools",
     "register_lifeos_tool",
     "register_shell_tool",
     "WebToolService",

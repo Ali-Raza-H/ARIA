@@ -6,7 +6,8 @@ from ..services.speech.controller import (
     KokoroHFBackend,
     KokoroLocalBackend,
     SpeechController,
+    conversationalize_for_speech,
     strip_markdown_for_speech,
 )
 
-__all__ = ["ChatterboxBackend", "KokoroBackend", "KokoroHFBackend", "KokoroLocalBackend", "SpeechController", "strip_markdown_for_speech"]
+__all__ = ["ChatterboxBackend", "KokoroBackend", "KokoroHFBackend", "KokoroLocalBackend", "SpeechController", "conversationalize_for_speech", "strip_markdown_for_speech"]

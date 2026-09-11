@@ -214,39 +214,9 @@ class CandidateMemory:
     value: str = ""
 
 
-_EXTRACTION_PROMPT = """You are a memory extraction system.
+from ..prompts import MEMORY_EXTRACTION_PROMPT
 
-Analyze the conversation and identify information that would be useful to
-remember in future interactions.
-
-Only extract information that is:
-- stable
-- useful
-- user-specific
-- project-specific
-- explicitly stated
-- historically meaningful
-
-Do NOT extract:
-- greetings
-- filler
-- temporary conversation
-- trivial questions
-- ordinary tool output
-
-For every candidate memory return:
-type: one of fact|preference|state|goal|task|episodic|conversation|knowledge|project_context
-content: the memory in one or two sentences
-importance: 0.0-1.0
-confidence: 0.0-1.0
-explicitly_confirmed: true only if the user stated it directly
-topic: short topic label (may be empty)
-key/value: for fact or preference candidates, a structured key and value
-
-Return JSON only: {"memories": [ ... ]}
-
-Conversation:
-"""
+_EXTRACTION_PROMPT = MEMORY_EXTRACTION_PROMPT
 
 
 def _clamp(value: Any, default: float) -> float:
@@ -285,12 +255,11 @@ class MemoryExtractor:
         try:
             data = json.loads(content)
         except json.JSONDecodeError:
-            match = re.search(r"\{.*\}", content, re.DOTALL)
-            if not match:
-                return None
-            try:
-                data = json.loads(match.group(0))
-            except json.JSONDecodeError:
+            # Models often wrap JSON in prose or Markdown fences. Decode the
+            # first balanced object rather than using a greedy regex, which
+            # consumed multiple objects and caused avoidable fallback errors.
+            data = self._decode_embedded_object(content)
+            if data is None:
                 return None
         if not isinstance(data, dict):
             return None
@@ -327,6 +296,38 @@ class MemoryExtractor:
                 )
             )
         return candidates
+
+    @staticmethod
+    def _decode_embedded_object(content: str) -> Any | None:
+        """Extract one balanced JSON object while respecting quoted braces."""
+        start = content.find("{")
+        while start >= 0:
+            depth = 0
+            in_string = False
+            escaped = False
+            for index in range(start, len(content)):
+                character = content[index]
+                if in_string:
+                    if escaped:
+                        escaped = False
+                    elif character == "\\":
+                        escaped = True
+                    elif character == '"':
+                        in_string = False
+                    continue
+                if character == '"':
+                    in_string = True
+                elif character == "{":
+                    depth += 1
+                elif character == "}":
+                    depth -= 1
+                    if depth == 0:
+                        try:
+                            return json.loads(content[start : index + 1])
+                        except json.JSONDecodeError:
+                            break
+            start = content.find("{", start + 1)
+        return None
 
     def _rule_fallback(self, user_text: str, assistant_text: str) -> list[CandidateMemory]:
         """Classify the user's message with rules when the LLM path fails."""

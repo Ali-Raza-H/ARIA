@@ -48,7 +48,8 @@ much larger iteration budget, so ARIA's conversation stays clean.
   Rich full-screen REPL still available via `ui.backend: rich`.
 - **Self-hosted web research** - bounded `web_search` and `open_webpage` tools backed by local SearXNG, with source tracking, citations, extraction, caching, retries, and SSRF protection; no search API key is required.
 - **Playwright browser control** - optional ARIA-only persistent Chromium automation for navigation, tabs, snapshots, clicks, typing, key presses, screenshots, downloads, and uploads. Install the browser binary with `playwright install chromium`.
-- **Hyprland desktop control** - optional ARIA-only desktop tools for monitors, windows, workspaces, keybind inspection, managed dispatch, app launchers, keyboard/mouse input, and screenshots. `desktop.mode: unrestricted` additionally enables raw Hyprland dispatch, marked keybind edits, and arbitrary desktop shell commands.
+- **Hyprland desktop control** - optional ARIA-only desktop tools for monitors, windows, workspaces, keybind inspection, managed dispatch, configured app launchers, keyboard/mouse input, and screenshots. `desktop.mode: unrestricted` additionally enables raw Hyprland dispatch, marked keybind edits, and arbitrary desktop shell commands. Configured launchers are preferred over shell commands.
+- **Gmail, media, and system operations** - optional explicit-schema tools for Google's official Gmail MCP, a separately enabled Gmail API fallback, playerctl media control, native player routes, system metrics, systemd, journal logs, and Docker CLI operations. Consequential actions ask for confirmation unless the current request clearly gives the action and target.
 - **Proactive LifeOS work** - optional in-process cron scheduling with persistent SQLite jobs, morning/afternoon/end-of-day briefings, deadline/goal/calendar/routine checks, conservative calendar-conflict signals, inferred local working-style profiles, configurable LifeOS writes, category allowlists, and an immutable autonomous-action audit log.
 - **Reminders and notifications** - persistent or session-only timers, alarms, pomodoros, stopwatches, pause/resume/restart/finish controls, Dunst-compatible `notify-send` delivery, and optional TTS.
 - **Multimodal input** - ephemeral clipboard/file/screen image attachments, native provider image messages, Ollama image normalization, and a configured visual-model fallback for text-only models. Periodic screen context is separately opt-in.
@@ -199,6 +200,10 @@ image for the next message. Images are ephemeral. Native image-capable models
 receive image parts; text-only models require a configured visual fallback.
 Periodic screen analysis is disabled unless both `vision.periodic_screen_enabled`
 and its scheduler/autonomy settings are enabled.
+
+### Gmail, media, and system operation
+
+Set `gmail.enabled`, `media.enabled`, `system.enabled`, and/or `docker.enabled` in `config.yaml` to expose the corresponding detailed tools. Gmail uses Google's remote MCP endpoint by default (`https://gmailmcp.googleapis.com/mcp/v1`); see [`docs/integrations/GMAIL_SYSTEM_MEDIA.md`](docs/integrations/GMAIL_SYSTEM_MEDIA.md) for OAuth setup and the direct fallback boundary. System and Docker controls use configured CLI executables, not the Docker socket. Read-only inspection is available without confirmation. Service/container changes and direct Gmail actions require confirmation unless the user's current message clearly requests the exact action and target.
 
 ### Browser and desktop operation
 

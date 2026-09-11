@@ -14,8 +14,13 @@ from .models import (
     BrowserConfig,
     CoderConfig,
     DesktopConfig,
+    DockerConfig,
+    GmailConfig,
+    MediaConfig,
+    SystemConfig,
     LifeOSConfig,
     LoggingConfig,
+    TelemetryConfig,
     MemoryConfig,
     NotificationConfig,
     SchedulerConfig,
@@ -27,7 +32,7 @@ from .models import (
 __all__ = [
     "RUNTIME_STATE_RELATIVE_PATH", "AppConfig", "ConfigError", "KNOWN_PROVIDERS",
     "load_config", "save_runtime_state", "AutonomyConfig", "BackgroundConfig",
-    "BrowserConfig", "CoderConfig", "DesktopConfig", "LifeOSConfig", "LoggingConfig",
+    "BrowserConfig", "CoderConfig", "DesktopConfig", "DockerConfig", "GmailConfig", "MediaConfig", "SystemConfig", "LifeOSConfig", "LoggingConfig", "TelemetryConfig",
     "MemoryConfig", "NotificationConfig", "SchedulerConfig", "SpeechConfig",
     "VisionConfig", "WebConfig",
 ]

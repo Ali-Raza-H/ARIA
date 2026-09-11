@@ -14,6 +14,7 @@ from ...memory import MemoryStore, SessionMemory
 from ...tools.core.base import ToolContext, ToolResult
 from ...tools.core.registry import ToolRegistry
 from ...tools.core.router import CustomToolRouter, RoutedResponse
+from ...telemetry import TelemetryRecorder
 
 
 @dataclass(frozen=True)
@@ -37,12 +38,16 @@ class BaseAgent:
         context: ToolContext,
         memory: MemoryStore,
         max_iterations: int = 20,
+        telemetry: TelemetryRecorder | None = None,
+        telemetry_role: str = "aria",
     ) -> None:
         self.provider = provider
         self.registry = registry
         self.context = context
         self.memory = memory
         self.max_iterations = max_iterations
+        self.telemetry = telemetry
+        self.telemetry_role = telemetry_role
         self.router = CustomToolRouter()
         # Optional hook: receives streaming text from sub-agent deployments
         # (set by the UI so the coder's progress can be shown live).
@@ -79,9 +84,15 @@ class BaseAgent:
         if callable(refresh_context):
             refresh_context()
         log_info(f"BaseAgent.run: starting turn with {len(user_text)} chars of user input")
+        telemetry_turn_id = self.telemetry.start_turn(user_text) if self.telemetry else ""
+        telemetry_tool_calls = 0
+        telemetry_error: str | None = None
         prepare_context = getattr(self.memory, "prepare_context", None)
         if callable(prepare_context):
             prepare_context(user_text)
+        # Tool handlers use the current request to distinguish direct user
+        # intent from model-inferred action and to enforce confirmations.
+        object.__setattr__(self.context, "user_request", user_text)
         self.registry.begin_turn()
         self.memory.add({"role": "user", "content": user_text})
         self._active_attachments = []
@@ -133,11 +144,43 @@ class BaseAgent:
                         fallback_provider=image_fallback_provider,
                     )
                 )
-            response = self.provider.complete(
-                request_messages,
-                self.registry.schemas(),
-                on_text=on_provider_text,
-            )
+            model_call_id = ""
+            model_call_started = 0.0
+            if self.telemetry:
+                model_call_id, model_call_started, _ = self.telemetry.start_model_call(
+                    telemetry_turn_id,
+                    provider=str(getattr(self.provider, "name", "unknown")),
+                    model=self.model_name,
+                    role=self.telemetry_role,
+                    iteration=iteration + 1,
+                    messages=request_messages,
+                    tool_count=len(self.registry.schemas()),
+                    context_window=int(getattr(self.provider, "context_window", 0) or 0) or None,
+                )
+            try:
+                response = self.provider.complete(
+                    request_messages,
+                    self.registry.schemas(),
+                    on_text=on_provider_text,
+                )
+            except Exception as exc:
+                if self.telemetry and model_call_id:
+                    self.telemetry.finish_model_call(model_call_id, model_call_started, error=f"{type(exc).__name__}: {exc}")
+                telemetry_error = f"{type(exc).__name__}: {exc}"
+                raise
+            else:
+                if self.telemetry and model_call_id:
+                    self.telemetry.finish_model_call(model_call_id, model_call_started, response=response, usage=response.usage, streamed=bool(on_text))
+                    self.telemetry.emit_live(
+                        "context_update",
+                        {
+                            "provider": str(getattr(self.provider, "name", "unknown")),
+                            "model": self.model_name,
+                            "context_chars": sum(self._message_size(message) for message in request_messages),
+                            "context_tokens": self.telemetry.estimate_tokens(request_messages),
+                            "context_window": int(getattr(self.provider, "context_window", 0) or 0),
+                        },
+                    )
             routed = self.router.parse(response.content)
             calls = [*response.tool_calls, *routed.tool_calls]
             self.memory.add(self._assistant_message(response, routed))
@@ -162,6 +205,8 @@ class BaseAgent:
                 complete_turn = getattr(self.memory, "turn_completed", None)
                 if callable(complete_turn):
                     complete_turn(user_text, final_content)
+                if self.telemetry:
+                    self.telemetry.finish_turn(telemetry_turn_id, response=final_content, iterations=iteration + 1, tool_calls=telemetry_tool_calls, error=telemetry_error)
                 return final_content
 
             native_results: list[dict[str, Any]] = []
@@ -177,7 +222,11 @@ class BaseAgent:
                     )
                 )
                 log_debug(f"BaseAgent.run: executing tool '{call.name}'")
+                tool_started = __import__("time").time()
                 result = self.registry.execute(call.name, call.arguments, self.context)
+                telemetry_tool_calls += 1
+                if self.telemetry:
+                    self.telemetry.record_tool(telemetry_turn_id, name=call.name, arguments=call.arguments, result=result.output, ok=not result.is_error, started=tool_started, error=result.output if result.is_error else None)
                 if self.tool_attachments:
                     self._active_attachments.extend(self.tool_attachments)
                     self.tool_attachments.clear()
@@ -222,6 +271,8 @@ class BaseAgent:
         complete_turn = getattr(self.memory, "turn_completed", None)
         if callable(complete_turn):
             complete_turn(user_text, message)
+        if self.telemetry:
+            self.telemetry.finish_turn(telemetry_turn_id, response=message, iterations=self.max_iterations, tool_calls=telemetry_tool_calls, error=telemetry_error or "iteration_limit")
         self._active_attachments = []
         return message
 
@@ -272,7 +323,7 @@ class BaseAgent:
         """
         messages = self.memory.messages
         if sum(self._message_size(message) for message in messages) <= max_chars:
-            result = list(messages)
+            result = self._sanitize_provider_messages(list(messages))
             if image_content is not None:
                 self._attach_image_content(result, image_content)
             return result
@@ -306,10 +357,38 @@ class BaseAgent:
             kept[:0] = turn
             used += turn_size
             index = turn_start
-        result = [*head, *kept]
+        result = self._sanitize_provider_messages([*head, *kept])
         if image_content is not None:
             self._attach_image_content(result, image_content)
         return result
+
+    @staticmethod
+    def _sanitize_provider_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Remove ARIA-internal message keys before sending to an LLM API.
+
+        Older session files may contain custom protocol bookkeeping fields. The
+        normalized wire format must contain only fields accepted by standard
+        OpenAI-compatible and Ollama chat APIs.
+        """
+        sanitized: list[dict[str, Any]] = []
+        for message in messages:
+            role = message.get("role")
+            if role == "assistant":
+                item = {"role": "assistant", "content": message.get("content", "")}
+                if message.get("tool_calls"):
+                    item["tool_calls"] = message["tool_calls"]
+            elif role == "tool":
+                item = {
+                    "role": "tool",
+                    "content": message.get("content", ""),
+                    "tool_call_id": message.get("tool_call_id", ""),
+                }
+            elif role in {"system", "user"}:
+                item = {"role": role, "content": message.get("content", "")}
+            else:
+                continue
+            sanitized.append(item)
+        return sanitized
 
     @staticmethod
     def _attach_image_content(messages: list[dict[str, Any]], image_content: str | list[dict[str, Any]]) -> None:
@@ -340,15 +419,8 @@ class BaseAgent:
                 }
                 for call in response.tool_calls
             ]
-        if routed.tool_calls or routed.errors:
-            message["custom_tool_calls"] = [
-                {
-                    "id": call.id,
-                    "name": call.name,
-                    "arguments": call.arguments,
-                }
-                for call in routed.tool_calls
-            ]
-            if routed.errors:
-                message["custom_tool_errors"] = routed.errors
+        # Custom-protocol calls remain in assistant.content and are followed by
+        # a user-role tool-result envelope. Do not add private bookkeeping keys
+        # here: OpenAI-compatible APIs reject unknown assistant message fields
+        # such as `custom_tool_calls` with HTTP 422.
         return message

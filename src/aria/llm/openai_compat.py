@@ -56,6 +56,9 @@ class OpenAICompatProvider:
         image_models = settings.get("image_input_models", [])
         self.supports_image_input = model in image_models if isinstance(image_models, list) else False
         self.supports_image_generation = model in (settings.get("image_generation_models", []) or []) if isinstance(settings.get("image_generation_models", []), list) else False
+        context_windows = settings.get("context_windows", {})
+        configured_window = context_windows.get(model) if isinstance(context_windows, dict) else None
+        self.context_window = int(configured_window or settings.get("context_window", 0) or 0)
         log_debug(f"OpenAICompatProvider[{provider_name}]: endpoint={base_url} model={model}")
         self.client = OpenAI(api_key=api_key, base_url=base_url)
 
@@ -73,6 +76,7 @@ class OpenAICompatProvider:
                 "model": self.model,
                 "messages": cast("Any", list(messages)),
                 "stream": True,
+                "stream_options": {"include_usage": True},
             }
             if tools:
                 request["tools"] = cast("Any", list(tools))
@@ -83,7 +87,12 @@ class OpenAICompatProvider:
 
         content_parts: list[str] = []
         calls: dict[int, dict[str, str]] = {}
+        usage: dict[str, Any] = {}
+        metadata: dict[str, Any] = {}
         for chunk in stream:
+            raw_usage = getattr(chunk, "usage", None)
+            if raw_usage is not None:
+                usage.update(self._usage_dict(raw_usage))
             choices = getattr(chunk, "choices", [])
             if not choices:
                 continue
@@ -125,7 +134,22 @@ class OpenAICompatProvider:
                 )
             )
         log_info(f"OpenAICompatProvider[{self.name}]: completed, {len(normalized_calls)} tool call(s)")
-        return AssistantMessage("".join(content_parts), normalized_calls)
+        return AssistantMessage("".join(content_parts), normalized_calls, usage=usage, metadata=metadata)
+
+    @staticmethod
+    def _usage_dict(raw: Any) -> dict[str, Any]:
+        if isinstance(raw, dict):
+            value = dict(raw)
+        else:
+            value = {
+                key: getattr(raw, key)
+                for key in ("prompt_tokens", "completion_tokens", "total_tokens", "input_tokens", "output_tokens")
+                if getattr(raw, key, None) is not None
+            }
+        details = value.get("prompt_tokens_details") or value.get("completion_tokens_details")
+        if details is not None:
+            value["usage_details"] = str(details)
+        return value
 
     def generate_image(self, prompt: str, output_path: str) -> str:
         """Generate one image through an OpenAI-compatible images endpoint."""

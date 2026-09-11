@@ -228,11 +228,13 @@ class SchedulerService:
         autonomy: AutonomyConfig,
         action_runner: Callable[[str, dict[str, Any]], dict[str, Any]],
         notify: Callable[[str, str, str], None],
+        narrate: Callable[[str], str] | None = None,
     ) -> None:
         self.config = config
         self.autonomy = autonomy
         self.action_runner = action_runner
         self.notify = notify
+        self.narrate = narrate
         self.store = SchedulerStore(config.database)
         # Session-owned timers intentionally do not survive an ARIA restart.
         removed = self.store.remove_session_timers()
@@ -357,7 +359,15 @@ class SchedulerService:
         try:
             result = self.action_runner(category, action)
             self.store.audit(category, "job", name, "success", result)
-            message = str(result.get("notification", ""))
+            message = str(result.get("notification") or "")
+            # Briefings deliberately enter the normal conversational agent as
+            # a user turn. This preserves ARIA's persona, memory, tools, and
+            # telemetry and prevents raw source JSON from reaching the UI.
+            agent_input = result.get("agent_input")
+            if not message and isinstance(agent_input, str):
+                if self.narrate is None:
+                    raise RuntimeError("briefing narration is not configured")
+                message = self.narrate(agent_input)
             if message:
                 self.notify(f"ARIA · {name}", message, str(result.get("urgency", "normal")))
         except Exception as exc:

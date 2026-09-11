@@ -20,6 +20,7 @@ from ...memory import SessionMemory
 from ...prompts import build_coder_prompt
 from ...tools.core.base import ToolContext
 from ...tools.core.registry import ToolRegistry
+from ...telemetry import TelemetryRecorder
 from ...tools.filesystem import register_filesystem_tools
 from ...tools.shell import register_shell_tool
 from ...core.agent.base import AgentEvent, BaseAgent
@@ -52,12 +53,13 @@ class CoderAgent(BaseAgent):
         context: ToolContext,
         max_iterations: int = 60,
         user_name: str = "the user",
+        telemetry: TelemetryRecorder | None = None,
     ) -> None:
         registry = ToolRegistry()
         register_filesystem_tools(registry)
         register_shell_tool(registry)
         memory = SessionMemory(Path("data/sessions"), label="aria-coder")  # relative to cwd
-        super().__init__(provider, registry, context, memory, max_iterations)
+        super().__init__(provider, registry, context, memory, max_iterations, telemetry=telemetry, telemetry_role="coder")
         # Replace the default empty system prompt with the coder persona.
         self.memory.messages.clear()
         self.memory.add(
@@ -81,6 +83,7 @@ class CoderService:
         max_iterations: int = 60,
         max_output_chars: int | None = None,
         user_name: str = "the user",
+        telemetry: TelemetryRecorder | None = None,
     ) -> None:
         self.provider_manager = provider_manager
         self.provider_name = provider_name
@@ -88,6 +91,7 @@ class CoderService:
         self.max_iterations = max_iterations
         self.max_output_chars = max_output_chars
         self._user_name = user_name
+        self.telemetry = telemetry
         self._lock = threading.Lock()
         self._active: CoderAgent | None = None
         log_debug(f"CoderService: initialized provider={provider_name} model={model}")
@@ -148,6 +152,7 @@ class CoderService:
                 coder_context,
                 max_iterations=self.max_iterations,
                 user_name=self._user_name,
+                telemetry=self.telemetry,
             )
             self._active = agent
             summary = agent.run(task, on_text=on_text, on_event=on_event)

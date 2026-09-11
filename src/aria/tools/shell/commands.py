@@ -15,6 +15,14 @@ def _run_shell(arguments: dict[str, Any], context: ToolContext) -> ToolResult:
     command = arguments.get("command")
     if not isinstance(command, str) or not command.strip():
         return ToolResult("command must be a non-empty string", is_error=True)
+    blocked = context.blocked_launch_commands
+    first_token = command.strip().split(maxsplit=1)[0]
+    if first_token in blocked:
+        return ToolResult(
+            f"'{first_token}' is a configured desktop launcher. Use desktop_launch "
+            "with its named route instead of run_shell_command.",
+            is_error=True,
+        )
 
     shell_executable = os.environ.get("COMSPEC") if os.name == "nt" else os.environ.get("SHELL")
     # Tools do not need provider credentials. Do not make `env` an API-key
@@ -55,7 +63,11 @@ def _run_shell(arguments: dict[str, Any], context: ToolContext) -> ToolResult:
         )
 
 
-def register_shell_tool(registry: ToolRegistry) -> None:
+def register_shell_tool(registry: ToolRegistry, blocked_launch_commands: tuple[str, ...] = ()) -> None:
+    """Register shell access while reserving configured GUI launch commands."""
+    def handler(arguments: dict[str, Any], context: ToolContext) -> ToolResult:
+        return _run_shell(arguments, context)
+
     registry.register(
         Tool(
             name="run_shell_command",
@@ -66,6 +78,6 @@ def register_shell_tool(registry: ToolRegistry) -> None:
                 "required": ["command"],
                 "additionalProperties": False,
             },
-            handler=_run_shell,
+            handler=handler,
         )
     )

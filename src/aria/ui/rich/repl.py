@@ -68,6 +68,7 @@ HELP_TEXT = """\
   /time                    Show the current local date and time
   /web                     Check local SearXNG web-search health
   /logs                    Show log file locations
+  /telemetry [summary]     Show live token/context/tool telemetry
   /ollama clear-vram       Unload all Ollama models from VRAM
   /quit, /exit             Leave (alias: Ctrl+C, Ctrl+D)
 
@@ -156,6 +157,14 @@ class Repl:
         self._visible_transcript_count = 1  # rendered terminal rows, not messages
         self._max_scroll_offset = 0
         self._tui_screen_active = False
+        self._telemetry = getattr(self.agent, "telemetry", None)
+        self._telemetry_snapshot: dict[str, Any] = (
+            self._telemetry.snapshot() if self._telemetry is not None else {"enabled": False}
+        )
+        self._telemetry_listener = self._on_telemetry_event
+        self._active_live: Live | None = None
+        if self._telemetry is not None:
+            self._telemetry.add_listener(self._telemetry_listener)
 
     def _persist_runtime_state(self) -> None:
         if not self.config:
@@ -238,6 +247,9 @@ class Repl:
             try:
                 self.agent.memory.cleanup()
             finally:
+                telemetry = getattr(self, "_telemetry", None)
+                if telemetry is not None:
+                    telemetry.remove_listener(self._telemetry_listener)
                 self._leave_tui_screen()
 
     def _enter_tui_screen(self) -> None:
@@ -285,6 +297,35 @@ class Repl:
             padding=(0, 1),
         )
 
+    def _on_telemetry_event(self, event: Any) -> None:
+        """Keep a small live aggregate for the status bar without content."""
+        data = event.data if isinstance(getattr(event, "data", None), dict) else {}
+        if event.kind == "context_update":
+            self._telemetry_snapshot["context_chars"] = int(data.get("context_chars", 0) or 0)
+            self._telemetry_snapshot["context_tokens"] = int(data.get("context_tokens", 0) or 0)
+            self._telemetry_snapshot["context_window"] = int(data.get("context_window", 0) or 0)
+            self._telemetry_snapshot["provider"] = str(data.get("provider", self._telemetry_snapshot.get("provider", "")))
+            self._telemetry_snapshot["model"] = str(data.get("model", self._telemetry_snapshot.get("model", "")))
+        elif event.kind == "model_finished":
+            for key in ("input_tokens", "output_tokens", "total_tokens"):
+                value = data.get(key)
+                if isinstance(value, (int, float)):
+                    self._telemetry_snapshot[key] = int(self._telemetry_snapshot.get(key, 0)) + int(value)
+            self._telemetry_snapshot["model_calls"] = int(self._telemetry_snapshot.get("model_calls", 0)) + 1
+        elif event.kind == "tool_finished":
+            self._telemetry_snapshot["tool_calls"] = int(self._telemetry_snapshot.get("tool_calls", 0)) + 1
+        elif event.kind == "turn_finished":
+            self._telemetry_snapshot["turns"] = int(self._telemetry_snapshot.get("turns", 0)) + 1
+        # During a Rich streaming turn the telemetry callback is the only
+        # activity for some providers (notably when no text is emitted yet).
+        # Refresh the frame here so the pinned status bar changes immediately.
+        live = self._active_live
+        if live is not None:
+            try:
+                live.update(self._frame(), refresh=True)
+            except Exception:
+                pass
+
     def _status_bar(self) -> Text:
         model = self.agent.model_name or "unknown model"
         speech = "TTS on" if self.speech and self.speech.enabled else "TTS off"
@@ -300,6 +341,10 @@ class Repl:
             (speech, "bright_black"),
             ("  │  ", "bright_black"),
             (cot, "bright_black"),
+            ("  │  ", "bright_black"),
+            (f"Tok {self._telemetry_snapshot.get('total_tokens', 0)}", "bright_black"),
+            ("  │  ", "bright_black"),
+            (f"Ctx {self._telemetry_snapshot.get('context_tokens', 0)}t/{self._telemetry_snapshot.get('context_window', 0) or '?'}", "bright_black"),
             ("  │  /help", "bright_black"),
         )
 
@@ -434,6 +479,19 @@ class Repl:
         stream.write(f"\r\x1b[{5 + cursor_column}G")
         stream.flush()
 
+    def _paste_clipboard_image(self) -> bool:
+        """Capture an image paste gesture without inserting binary bytes."""
+        if self.vision_config is None or not bool(getattr(self.vision_config, "enabled", True)):
+            return False
+        try:
+            attachment = capture_clipboard(self.vision_config)
+            self.agent.attach_image(attachment)
+            self._remember_command("/attach clipboard", Text("Attached the clipboard image for the next message."))
+            return True
+        except Exception as exc:
+            self._remember_command("/attach clipboard", Text(f"Clipboard does not contain a usable image: {exc}", style="yellow"))
+            return False
+
     def _read_tty_prompt(self) -> str:
         stream = sys.stdout
         input_stream = sys.stdin
@@ -466,6 +524,10 @@ class Repl:
                 if key == "\x03":  # Ctrl+C
                     termios.tcsetattr(fd, termios.TCSADRAIN, original)
                     raise KeyboardInterrupt
+                if key == "\x16":  # Ctrl+V: capture an image clipboard, never paste binary into the prompt
+                    self._paste_clipboard_image()
+                    self._redraw_tty_frame("".join(chars), cursor)
+                    continue
                 if key == "\x04":  # Ctrl+D
                     if not chars:
                         termios.tcsetattr(fd, termios.TCSADRAIN, original)
@@ -509,6 +571,10 @@ class Repl:
                     elif sequence == "[C" and cursor < len(chars):
                         cursor += 1
                         self._draw_input_line("".join(chars), cursor)
+                    elif sequence == "[2":  # Shift+Insert: paste clipboard image without binary insertion
+                        input_stream.read(1)  # trailing '~'
+                        self._paste_clipboard_image()
+                        self._redraw_tty_frame("".join(chars), cursor)
                     elif sequence in {"[5", "[6"}:
                         # PageUp/PageDown are deliberately not transcript
                         # shortcuts; consume the rest of the escape sequence.
@@ -576,6 +642,10 @@ class Repl:
         self._scroll_offset = 0
         self._transcript.append(_aria_panel(body))
 
+    def receive_notification(self, title: str, body: str) -> None:
+        """Append a scheduler result to the active chat transcript."""
+        self._remember_command(title, Text(body))
+
     def _remember_command(self, command: str, output: RenderableType | None = None) -> None:
         self._scroll_offset = 0
         self._transcript.append(
@@ -603,6 +673,7 @@ class Repl:
             refresh_per_second=12,
             transient=True,
         ) as live:
+            self._active_live = live
             def update() -> None:
                 body: RenderableType = self._render_aria_body("".join(chunks))
                 if self.show_cot and steps:
@@ -640,6 +711,7 @@ class Repl:
             finally:
                 if self._deploy_handler:
                     self._deploy_handler.set_stream_hook(None, None)
+                self._active_live = None
                 self._streaming_body = None
 
         self._remember_response(self._render_aria_body(result))
@@ -729,6 +801,7 @@ class Repl:
             "/time": self._cmd_time,
             "/web": self._cmd_web,
             "/logs": self._cmd_logs,
+            "/telemetry": self._cmd_telemetry,
             "/ollama": self._cmd_ollama,
         }
         handler = handlers.get(command)
@@ -1182,6 +1255,15 @@ class Repl:
             f"  Status: {status}\\n  JSON API: {'OK' if online else 'unavailable'}"
         )
         self._remember_command("/web", Text(detail, style="green" if online else "yellow"))
+
+    def _cmd_telemetry(self, _argument: str) -> None:
+        telemetry = getattr(self.agent, "telemetry", None)
+        if telemetry is None:
+            self._remember_command("/telemetry", Text("Telemetry is disabled.", style="yellow"))
+            return
+        snapshot = telemetry.snapshot()
+        lines = "\n".join(f"  {key}: {value}" for key, value in snapshot.items())
+        self._remember_command("/telemetry", Text("Telemetry summary\n" + lines))
 
     def _cmd_logs(self, _argument: str) -> None:
         if not self.config:

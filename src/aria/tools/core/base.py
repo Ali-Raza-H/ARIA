@@ -15,6 +15,9 @@ class ToolContext:
     workspace: Path
     command_timeout_seconds: float | None = None
     max_command_output_chars: int | None = None
+    blocked_launch_commands: tuple[str, ...] = ()
+    confirmation: Any | None = None
+    user_request: str = ""
 
 
 @dataclass(frozen=True)

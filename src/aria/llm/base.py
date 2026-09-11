@@ -18,10 +18,17 @@ class ToolCall:
 
 @dataclass
 class AssistantMessage:
-    """The normalized assistant response from any provider."""
+    """The normalized assistant response from any provider.
+
+    ``usage`` contains provider-reported token counters and other response
+    metadata when available. Adapters may leave it empty; telemetry then uses
+    bounded estimates instead of pretending the values are exact.
+    """
 
     content: str = ""
     tool_calls: list[ToolCall] = field(default_factory=list)
+    usage: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class Provider(Protocol):

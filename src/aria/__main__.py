@@ -26,6 +26,7 @@ from .llm.factory import ProviderManager
 from .logging.setup import configure_logging, log_error, log_info
 from .memory import MemoryManager, MemoryError, MemoryStore, MemorySettings, SessionMemory
 from .memory.tools import register_memory_tools
+from .telemetry import TelemetryRecorder
 from .skills import SkillManager
 from .services.speech import SpeechController
 from .tools import (
@@ -37,6 +38,8 @@ from .tools import (
     register_desktop_tools,
     register_filesystem_tools,
     register_lifeos_tool,
+    register_gmail_tools,
+    register_system_tools,
     register_shell_tool,
     WebToolService,
     register_web_tools,
@@ -132,12 +135,30 @@ def main() -> int:
         style="dim",
     )
 
+    telemetry = TelemetryRecorder(config.telemetry, launch_directory)
+    telemetry.register_model_contexts(config.providers)
+    telemetry.prune()
     # ARIA's own toolset: she converses and delegates; heavy tools belong to the coder.
     # ARIA's toolset: she converses, runs quick commands herself, and
     # delegates heavy work to the independent coder agent.
     registry = ToolRegistry()
+    from .tools.core.confirmation import ConfirmationManager
+    confirmation = ConfirmationManager()
+    if config.gmail.enabled:
+        register_gmail_tools(registry, config.gmail, confirmation)
+    if config.media.enabled or config.system.enabled or config.docker.enabled:
+        register_system_tools(registry, config.system, config.media, config.docker, confirmation)
     register_filesystem_tools(registry)
-    register_shell_tool(registry)
+    # Shell launching is blocked for commands with a configured desktop route;
+    # ARIA must use desktop_launch for those names instead.
+    register_shell_tool(
+        registry,
+        tuple(
+            command[0]
+            for command in config.desktop.launchers.values()
+            if command
+        ),
+    )
     browser_service: BrowserToolService | None = None
     if config.browser.enabled:
         browser_service = BrowserToolService(config.browser, config.workspace)
@@ -190,6 +211,7 @@ def main() -> int:
         model=coder_model,
         max_iterations=config.coder.max_iterations,
         max_output_chars=config.coder.max_output_chars,
+        telemetry=telemetry,
     )
     deploy_handler = register_deploy_coder_tool(registry, coder_service)
 
@@ -263,6 +285,10 @@ def main() -> int:
         workspace=config.workspace,
         command_timeout_seconds=config.command_timeout_seconds,
         max_command_output_chars=config.max_command_output_chars,
+        blocked_launch_commands=tuple(
+            command[0] for command in config.desktop.launchers.values() if command
+        ),
+        confirmation=confirmation,
     )
     speech = SpeechController(config.speech)
     notification_service = NotificationService(config.notifications)
@@ -307,6 +333,9 @@ def main() -> int:
         raise ValueError(f"unsupported autonomous category: {category}")
 
     def notify(title: str, body: str, urgency: str) -> None:
+        # The scheduler has already sent briefing source data through ARIA's
+        # normal conversational agent. This callback is only the parallel
+        # chat/desktop-notification delivery channel.
         notification_service.send(title, body, urgency, tts=speech.say if config.notifications.tts_enabled else None)
 
     scheduler_service = SchedulerService(
@@ -314,8 +343,12 @@ def main() -> int:
         config.autonomy,
         run_autonomous_action,
         notify,
+        narrate=lambda agent_input: agent.run_with_attachments(agent_input),
     ) if config.scheduler.enabled else None
     if scheduler_service is not None:
+        # The UI is created immediately after scheduler startup. It installs
+        # the callback below before the event loop begins, so cron/timer output
+        # appears in chat as well as through the desktop notification backend.
         if config.vision.enabled and config.vision.periodic_screen_enabled:
             # Screen context is deliberately opt-in and uses the same durable
             # scheduler/audit path as every other autonomous analysis.
@@ -331,7 +364,6 @@ def main() -> int:
             )
 
         register_scheduler_tools(registry, scheduler_service)
-        scheduler_service.start()
     skill_manager = SkillManager(launch_directory / "skills")
     skill_manager.ensure_directory()
     agent = AriaAgent(
@@ -343,6 +375,8 @@ def main() -> int:
         persona=config.persona,
         skill_manager=skill_manager,
         profile_path=config.background.profile_path,
+        desktop_routes=tuple(config.desktop.launchers),
+        telemetry=telemetry,
     )
     agent.tool_attachments = pending_image_attachments
     agent.image_fallback_provider = vision_fallback_provider
@@ -362,6 +396,14 @@ def main() -> int:
     )
     try:
         repl = create_repl(agent, console, **repl_kwargs)
+        notification_service.set_chat_callback(
+            lambda title, body: getattr(repl, "receive_notification", lambda *_: None)(title, body)
+        )
+        # Start background work only after ARIA and the active chat sink exist.
+        # This prevents a fast first scheduler tick from racing agent
+        # construction or disappearing before it can reach the transcript.
+        if scheduler_service is not None:
+            scheduler_service.start()
         try:
             repl.run()
         except Exception as exc:
@@ -386,6 +428,7 @@ def main() -> int:
         memory.cleanup()
         if browser_service is not None:
             browser_service.close()
+        telemetry.close()
     log_info("ARIA shut down cleanly")
     return 0
 

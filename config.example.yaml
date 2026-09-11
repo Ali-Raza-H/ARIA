@@ -1,76 +1,144 @@
-# Copy this file to config.yaml and set what ARIA should use.
+# ═══════════════════════════════════════════════════════════════════════════
+# ARIA — Adaptive Reasoning and Intelligence Assistant
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Copy this file from config.example.yaml and keep only the sections you use.
+# Secrets (API keys, tokens) live in .env — never paste them here.
+#
+# Runtime changes you make inside the TUI (/provider, /model, /workspace,
+# /iterations, /agent, /tts, /trace) are persisted to data/state/aria-state.yaml,
+# a file that is git-ignored. This config.yaml is the static source of truth
+# and is NEVER rewritten by the running assistant.
+# ═══════════════════════════════════════════════════════════════════════════
 
-# --- The assistant you talk to -------------------------------------------
-provider: gemini          # cerebras | gemini | groq | nvidia | openrouter | openai | mistral | zai | ollama
-model: gemini-2.5-flash
-persona: jarvis           # ARIA's personality (see src/aria/prompts.py)
 
-# --- Providers ------------------------------------------------------------
-# Every OpenAI-compatible provider needs base_url plus separate keys for ARIA
-# and the coder. The keys themselves live in .env (never in this file).
-# Each provider keeps its own model list; /models shows it, /model switches.
+
+
+
+# ── The assistant you talk to ───────────────────────────────────────────────
+# provider  : which provider block below to use by default
+# model     : the model name within that provider
+# persona   : personality preset defined in src/aria/prompts.py (jarvis, …)
+provider: ollama
+model: gemma2:9b
+persona: jarvis
+
+
+
+
+
+
+# ── Providers ────────────────────────────────────────────────────────────────
+# Every OpenAI-compatible provider needs a base_url plus separate env-vars for
+# ARIA and for the independent coding agent. The keys themselves live in .env.
+#
+# environment-variable naming convention:
+#   aria_api_key_env  → env var holding ARIA's key for this provider
+#   coder_api_key_env → env var holding the coder's key for this provider
+#
+# Each provider keeps its own model list. Use /models to refresh the list and
+# /model <name> to switch at runtime. The list here is the static fallback.
+#
+# ── tips for picking a provider ─────────────────────────────────────────────
+#  • cerebras  – fast, large open-weight models (qwen-3.8-27b, gpt-oss-120b)
+#  • gemini    – Google's models, strong multimodal when you enable images
+#  • groq      – very low latency for Llama and GPT-OSS family
+#  • nvidia    – NIM-hosted Llama 3.3 70B
+#  • openrouter– many providers behind one API; good for one-key multi-model
+#  • openai    – the reference GPT-4.1 family
+#  • mistral   – Mistral Large/Small/Codestral
+#  • zai       – GLM-4.7 / GLM-4.6 / GLM-4.5-Air (Zhipu)
+#  • ollama    – fully local; set host and pull models with `ollama pull …`
+#
+
 providers:
   cerebras:
     aria_api_key_env: ARIA_CEREBRAS_API_KEY
     coder_api_key_env: CODER_CEREBRAS_API_KEY
     base_url: https://api.cerebras.ai/v1
     models: [qwen-3.8-27b, gpt-oss-120b]
+    context_windows: {qwen-3.8-27b: 131072, gpt-oss-120b: 131072}
   gemini:
     aria_api_key_env: ARIA_GEMINI_API_KEY
     coder_api_key_env: CODER_GEMINI_API_KEY
     base_url: https://generativelanguage.googleapis.com/v1beta/openai/
     models: [gemini-2.5-flash, gemini-2.5-pro]
+    context_windows: {gemini-2.5-flash: 1048576, gemini-2.5-pro: 1048576}
   groq:
     aria_api_key_env: ARIA_GROQ_API_KEY
     coder_api_key_env: CODER_GROQ_API_KEY
     base_url: https://api.groq.com/openai/v1
     models: [llama-3.1-8b-instant, openai/gpt-oss-120b]
+    context_windows: {llama-3.1-8b-instant: 131072, openai/gpt-oss-120b: 131072}
   nvidia:
     aria_api_key_env: ARIA_NVIDIA_API_KEY
     coder_api_key_env: CODER_NVIDIA_API_KEY
     base_url: https://integrate.api.nvidia.com/v1
     models: [meta/llama-3.3-70b-instruct]
+    context_windows: {meta/llama-3.3-70b-instruct: 131072}
   openrouter:
     aria_api_key_env: ARIA_OPENROUTER_API_KEY
     coder_api_key_env: CODER_OPENROUTER_API_KEY
     base_url: https://openrouter.ai/api/v1
     models: [anthropic/claude-sonnet-4.5, openai/gpt-4.1-mini]
+    context_windows: {anthropic/claude-sonnet-4.5: 200000, openai/gpt-4.1-mini: 1048576}
   openai:
     aria_api_key_env: ARIA_OPENAI_API_KEY
     coder_api_key_env: CODER_OPENAI_API_KEY
     base_url: https://api.openai.com/v1
     models: [gpt-4.1, gpt-4.1-mini]
+    context_windows: {gpt-4.1: 1048576, gpt-4.1-mini: 1048576}
   mistral:
     aria_api_key_env: ARIA_MISTRAL_API_KEY
     coder_api_key_env: CODER_MISTRAL_API_KEY
     base_url: https://api.mistral.ai/v1
     models: [mistral-large-latest, mistral-small-latest, codestral-latest]
+    context_windows: {mistral-large-latest: 128000, mistral-small-latest: 128000, codestral-latest: 256000}
   zai:
     aria_api_key_env: ARIA_ZAI_API_KEY
     coder_api_key_env: CODER_ZAI_API_KEY
     base_url: https://api.z.ai/api/paas/v4
     models: [glm-4.7, glm-4.6, glm-4.7-flash, glm-4.5-air]
+    context_windows: {glm-4.7: 128000, glm-4.6: 128000, glm-4.7-flash: 128000, glm-4.5-air: 128000}
   ollama:
     host: http://127.0.0.1:11434
-    # Most Ollama models do not support native tools; ARIA's custom
-    # <tool_call> protocol is used by default. Set true only when supported.
     native_tools: false
     models: [gemma2:9b, qwen2.5-coder:7b]
+    context_windows: {gemma2:9b: 8192, qwen2.5-coder:7b: 32768}
 
-# --- The independent coding agent -----------------------------------------
-# ARIA deploys it via the deploy_coder tool. It runs with its own memory,
-# its own model session, and a much higher iteration budget so massive
-# multi-file operations don't bloat ARIA's conversational context.
+
+
+# ── The independent coding agent ─────────────────────────────────────────────
+# ARIA deploys this agent through the deploy_coder tool. It runs in its own
+# session with its own memory file, its own provider/model, and a much higher
+# iteration budget so large multi-file operations don't bloat ARIA's context.
+#
+# Either value can be omitted. Behaviour:
+#   • both omitted        → coder uses ARIA's provider + model
+#   • only provider set   → coder uses that provider and its first listed model
+#   • both set            → coder uses the specified provider + model
+#
+# The coder never falls back to ARIA's API key. If you want the coder to use a
+# hosted provider you MUST set coder_api_key_env for that provider above and
+# the matching key in .env.
+
 coder:
   provider: ollama        # optional; defaults to ARIA's provider above
   model: qwen2.5-coder:7b # optional; defaults to ARIA's model above
   max_iterations: 60      # coding agent gets a far bigger budget than ARIA
   max_output_chars: 12000 # per-command output cap inside deployments
 
-# --- Browser automation (ARIA only) --------------------------------------
-# Playwright uses a persistent Chromium profile. Run `playwright install chromium`
-# after syncing dependencies. This is intentionally opt-in because cookies,
+
+
+
+
+# ── Browser automation (ARIA only) ───────────────────────────────────────────
+# Playwright persistent Chromium profile. Run `uv run playwright install chromium`
+# after installing dependencies. This is intentionally opt-in because cookies,
 # downloads, uploads, and form actions can affect real accounts.
+#
+# ⚠️  Do NOT point profile_directory at a profile used by your everyday browser.
+
 browser:
   enabled: false
   headless: false
@@ -83,11 +151,26 @@ browser:
   viewport_height: 900
   launch_args: []
 
-# --- Hyprland desktop control (ARIA only) -------------------------------
-# managed validates dispatchers and only launches named commands below.
-# unrestricted additionally exposes raw hyprctl dispatch, marked keybind
-# editing, and desktop_shell. Use only when you explicitly accept full local
-# desktop control.
+
+
+
+# ── Hyprland desktop control (ARIA only) ────────────────────────────────────
+# managed    → ARIA validates dispatchers, only launches named launchers,
+#              sends input via wtype/ydotool, captures screenshots via grim
+# unrestricted → additionally exposes raw hyprctl dispatch, marked keybind
+#                editing (desktop_set_keybind), and arbitrary desktop_shell
+#
+# ⚠️  Set unrestricted ONLY when you accept full local desktop control.
+# The current implementation does NOT ask for confirmation before clicks,
+# typing, downloads, uploads, input, window changes, app launch/close, or
+# unrestricted commands. Treat this as a trusted-local-agent capability.
+#
+# Arch wayland input utilities (install with pacman):
+#   sudo pacman -S hyprland wtype ydotool grim slurp
+# These require the permissions/setup appropriate to your Wayland session.
+# If they do not work for you, set input_backend: pyautogui and install the
+# desktop extra:  uv sync --extra desktop
+# (PyAutoGUI has its own Wayland limitations and is not a universal replacement.)
 desktop:
   enabled: true
   mode: managed             # managed | unrestricted
@@ -99,18 +182,92 @@ desktop:
   hyprland_config_path: "" # required only for desktop_set_keybind
   command_timeout_seconds: 15
   launchers:
+    # Named native application routes. Use desktop_launch with these names;
+    # do not launch GUI programs through run_shell_command.
     terminal: [kitty]
-    browser: [firefox, zen]
+    browser: [firefox]
+    # editor: [code]
 
-# --- Web search (local SearXNG) ------------------------------------------
-# Start the bundled deployment from infrastructure/searxng with:
-#   docker compose up -d
-# start_backend: opt-in — when true, ARIA may run that docker compose command
-# itself (with a 30 s probe) when SearXNG is unreachable at startup. When
-# false (default), startup never touches Docker and continues without web
-# search, printing a warning with the recovery command.
-# Webpage fetching blocks private/local destinations by default. Add exact
-# hostnames only when you intentionally need an internal source.
+
+
+
+# ── Gmail, media, system monitoring, systemd, and Docker ────────────────────
+# Google endpoint: https://gmailmcp.googleapis.com/mcp/v1
+# Official MCP covers search/read/drafts/labels. Direct API fallback covers
+# send/reply/forward/trash/delete/settings when enabled; those actions require
+# confirmation unless the user's current request directly asks for them.
+# Gmail official MCP is Developer Preview. Direct API fallback is used only
+# for operations not provided by the official MCP and asks for confirmation
+# unless the current request clearly gives the action.
+gmail:
+  enabled: false
+  mcp_url: https://gmailmcp.googleapis.com/mcp/v1
+  access_token_env: GMAIL_MCP_ACCESS_TOKEN
+  direct_api_enabled: true
+  direct_api_access_token_env: GMAIL_API_ACCESS_TOKEN
+  api_base_url: https://gmail.googleapis.com/gmail/v1/users/me
+  people_api_base_url: https://people.googleapis.com/v1
+  oauth_client_secrets_path: data/gmail/client-secret.json
+  oauth_token_path: data/gmail/oauth-token.json
+  # Direct fallback scopes; the official MCP itself requires gmail.readonly and gmail.compose.
+  oauth_scopes:
+    - https://www.googleapis.com/auth/gmail.modify
+    - https://www.googleapis.com/auth/gmail.send
+    - https://www.googleapis.com/auth/gmail.settings.basic
+    - https://www.googleapis.com/auth/contacts
+  timeout_seconds: 30
+
+
+media:
+  enabled: false
+  playerctl_command: playerctl
+  timeout_seconds: 10
+  # Launch values are argv arrays, never shell strings.
+  players:
+    yt: [mpv, "https://www.youtube.com"]
+    spotify: [spotify]
+    termusic: [termusic]
+
+
+system:
+  enabled: false
+  timeout_seconds: 15
+  systemctl_command: systemctl
+  journalctl_command: journalctl
+  free_command: free
+  df_command: df
+  vmstat_command: vmstat
+  sensors_command: sensors
+  nvidia_smi_command: nvidia-smi
+  upower_command: upower
+  ip_command: ip
+  ps_command: ps
+
+
+docker:
+  enabled: false
+  docker_command: docker
+  timeout_seconds: 30
+
+
+
+
+
+# ── Web search (local SearXNG) ────────────────────────────────────────────────
+# Start the bundled deployment with:
+#   cd infrastructure/searxng && docker compose up -d
+# (requires Docker; on Arch: sudo pacman -S docker docker-compose && sudo systemctl enable --now docker)
+#
+# start_backend: let ARIA run `docker compose up -d` itself when SearXNG is not
+# reachable at startup (opt-in; adds up to ~30 s while it polls). When false —
+# the default — ARIA never touches Docker and continues without web search,
+# printing a warning; the web tools surface per-call errors until the backend
+# is up.
+#
+# Webpage fetching blocks private/local destinations by default (RFC1918, link-
+# local, loopback, …). Add exact hostnames to allowed_hosts only when you
+# intentionally need an internal source.
+
 web:
   enabled: true
   start_backend: false
@@ -130,115 +287,63 @@ web:
   allowed_hosts: []
   user_agent: ARIA/1.0
 
-# The user's tasks, projects, goals, habits, calendar, journal, health, gym,
-# finance, and more. Requires LIFEOS_API_KEY in .env; left unconfigured ARIA
-# simply answers "not configured" instead of failing.
-lifeos:
-  enabled: true
-  base_url: ""             # e.g. http://127.0.0.1:5000
-  api_key_env: LIFEOS_API_KEY
-  timeout_seconds: 15
-  max_retries: 1           # extra attempts on 5xx/network errors
-  retry_backoff_seconds: 0.4
-
-# --- Proactive work and autonomy ------------------------------------------
-# Background work is in-process: it runs only while ARIA is open. Every
-# scheduled action is written to scheduler.sqlite3 before/after execution.
-# Keep autonomy disabled until you have reviewed the category allowlist.
 
 
-autonomy:
-  enabled: false
-  allowed_categories: []   # analysis | lifeos_writes | notifications | computer_control | timers
-  lifeos_write_operations: [] # explicit operation names, e.g. [create_task]
-
-background:
-  enabled: true
-  provider: null            # dedicated provider; null disables model analysis
-  model: null
-  api_key_env: ""          # optional hosted-provider key override
-  profile_path: data/proactive-profile.json
-  max_output_chars: 8000
 
 
-notifications:
-  enabled: true
-  backend: notify-send     # Dunst normally receives notify-send messages; dbus is also supported
-  notify_send_command: notify-send
-  dbus_command: gdbus
-  app_name: ARIA
-  default_urgency: normal
-  default_timeout_ms: 10000
-  tts_enabled: true
 
-scheduler:
-  enabled: true
-  analysis_enabled: true              # read-only briefings/checks do not require autonomy
-  database: data/scheduler/scheduler.sqlite3
-  workflow_directory: workflows
-  poll_seconds: 15
-  default_workflows: true
-  timezone: system
-  default_misfire_policy: skip # skip | run_once
-  briefing_times: ["08:00", "13:00", "18:00"]
-  deadline_check_minutes: 30
-  goal_check_minutes: 120
-  calendar_check_minutes: 60
-  briefing_web_queries: ["Weather in Bolton", "Latest AI News", "XAUUSD Market news including news that may affect price of Gold"]   # e.g. ["weather in my city", "technology news about ..."]
 
-# Images are ephemeral by default. Native image models receive image parts;
-# otherwise ARIA sends them to the configured visual fallback for a textual
-# description. Periodic screen context is deliberately opt-in.
-vision:
-  enabled: true
-  fallback_provider: null
-  fallback_model: null
-  fallback_api_key_env: ""
-  max_image_bytes: 10485760
-  clipboard_backend: auto   # auto | wl-paste | xclip | python
-  screenshot_command: grim
-  retain_images: false
-  periodic_screen_enabled: false
-  periodic_screen_cron: "*/15 * * * *"
-
-# --- Speech (text-to-speech) ----------------------------------------------
-# Choose kokoro_hf for Hugging Face-hosted inference or kokoro_local for the
-# local KPipeline backend. Install --extra voice or --extra voice-local.
-# chatterbox runs locally for custom voice cloning.
-speech:
-  enabled: false          # /tts on|off at runtime
-  engine: kokoro_hf      # kokoro_hf | kokoro_local | chatterbox
-  voice: af_sarah         # Kokoro voice, or an audio path for chatterbox
-  speed: 1.0
-  lang_code: a            # Kokoro language code ('a' = American English)
-  hf_api_key_env: HF_TOKEN
-  hf_model: hexgrad/Kokoro-82M
-  hf_provider: auto       # or a specific inference provider (novita, fal-ai, ...)
-
-# --- Logging ---------------------------------------------------------------
-# aria.log contains all levels (DEBUG through CRITICAL) in one rotating file.
-logging:
-  directory: data/logs
-  console_level: WARNING
-  max_bytes: 5242880      # 5 MiB per file before rotation
-  backup_count: 3
-
-# --- Hybrid memory (SQLite + Chroma RAG) ------------------------------------
-# SQLite stores what ARIA needs to know exactly (facts, preferences, projects,
-# goals, tasks + a memory registry and event log). Chroma stores what ARIA may
-# want to remember semantically (conversation, episodic, knowledge, project
-# context collections under data/memory/chroma). Chroma is required.
+# ── Hybrid memory (SQLite + Chroma RAG) ──────────────────────────────────────
+# SQLite stores what ARIA must know exactly: hard facts, preferences, projects,
+# goals, tasks, plus a memory registry and event log.
 #
-# Retrieval is query-aware: structured questions hit SQLite, historical
-# questions hit Chroma, and hybrid questions combine both. Results are ranked
-# by similarity/importance/confidence/recency/access and injected into the
-# system prompt as a delimited <assistant_memory> block (treated as context,
-# never as instructions).
+# Chroma stores what ARIA may want to remember semantically: conversation,
+# episodic, knowledge, and project-context collections under data/memory/chroma.
+# Chroma is required; the package is installed with `uv sync`.
 #
-# The optional OpenAI-compatible endpoint is tried first. If it is absent or
-# unavailable, ARIA tries the Ollama models below in order. Install Ollama and
-# pull at least one model before starting ARIA:
+# Retrieval is query-aware and token-bounded:
+#   structured questions  → SQLite
+#   historical questions  → Chroma
+#   hybrid questions      → both, merged & ranked
+#
+# Results are injected into the system prompt as a delimited <assistant_memory>
+# block (context only, never treated as instructions).
+#
+# Embedding setup is local-first:
+#   1. optional OpenAI-compatible endpoint (embedding_base_url + embedding_model)
+#   2. if absent/unavailable, Ollama fallback models in this order
+# Install Ollama separately and pull at least one model before starting ARIA:
 #   ollama pull qwen3-embedding:0.6b
+#
+# Remote embedding requests receive redacted text: likely credentials, bearer
+# tokens, API keys, and machine-specific paths are stripped before transmission.
+#
+# If every embedding backend is unavailable, ARIA starts in a degraded memory
+# mode: one warning at startup, structured facts/preferences keep working, and
+# semantic (vector) writes/recall are skipped quietly with a 5-minute retry
+# backoff instead of an error per turn.
+#
+# Retention (0 days = never expires):
+#   • confirmed & important memories are never auto-deleted purely for age
+#   • stale low-value memories decay in importance before removal
+#   • structured facts are retained until explicitly wiped
+#
+# Commands (in the TUI):
+#   /memory                         → status
+#   /memory facts                   → list active hard facts
+#   /memory search <text>           → search Tier 2 + Tier 3
+#   /memory summarize               → process pending summaries/promotions now
+#   /memory promote                 → alias for the above
+#   /memory retention               → apply retention immediately
+#   /memory wipe session DELETE     → delete current session's persistent records
+#   /memory wipe 1 DELETE           → delete Tier 1 facts
+#   /memory wipe 2 DELETE           → delete Tier 2 summaries
+#   /memory wipe 3 DELETE           → delete Tier 3 history
+#   /memory wipe all DELETE         # delete everything
+#   /clear                          → clear current session only, keep facts
+#
+# Every destructive wipe requires the exact uppercase DELETE confirmation.
+
 memory:
   enabled: true
   directory: data/memory              # SQLite lives at <directory>/assistant.db
@@ -267,6 +372,225 @@ memory:
   conversation_retention_days: 365
   knowledge_retention_days: 0
 
+
+
+
+
+
+# ── Vision / multimodal input ────────────────────────────────────────────────
+# Images are ephemeral by default. Native image-capable models receive image
+# parts directly; otherwise ARIA sends them to the configured visual fallback
+# (embedding_base_url / embedding_model) for a textual description.
+#
+# Ephemeral image sources (in the TUI):
+#   /attach clipboard     → grab the current clipboard image
+#   /attach /path/to.png  → attach a file
+#   /screen               → capture a screenshot (uses screenshot_command)
+#
+# Periodic screen context is deliberately opt-in. Both the scheduler/autonomy
+# setting AND this flag must be enabled for it to run.
+
+vision:
+  enabled: true
+  fallback_provider: null
+  fallback_model: null
+  fallback_api_key_env: ""
+  max_image_bytes: 10485760
+  clipboard_backend: auto   # auto | wl-paste | xclip | python
+  screenshot_command: grim
+  retain_images: false
+  periodic_screen_enabled: false
+  periodic_screen_cron: "*/15 * * * *"
+
+
+
+
+# ── Speech (text-to-speech) ──────────────────────────────────────────────────
+# off by default; toggle at runtime with /tts on|off|kokoro_hf|kokoro_local|chatterbox
+#
+# Engines:
+#   kokoro_hf    → Hugging Face-hosted Kokoro inference (needs HF_TOKEN in .env)
+#   kokoro_local → local KPipeline; needs espeak-ng on the host OS
+#                   (Arch: sudo pacman -S espeak-ng)
+#   chatterbox    → local custom voice cloning
+#
+# Python extras (pick what you use):
+#   uv sync --extra voice          # hosted Kokoro + sounddevice playback
+#   uv sync --extra voice-local    # local Kokoro + sounddevice playback
+#   uv sync --extra voice-chatterbox  # Chatterbox TTS
+#
+# Host packages for sounddevice playback (Arch):
+#   sudo pacman -S portaudio pipewire pipewire-alsa pipewire-pulse
+
+speech:
+  enabled: false          # /tts on|off at runtime
+  engine: kokoro_hf      # kokoro_hf | kokoro_local | chatterbox
+  voice: af_sarah         # Kokoro voice, or an audio path for chatterbox
+  speed: 1.0
+  lang_code: a            # Kokoro language code ('a' = American English)
+  hf_api_key_env: HF_TOKEN
+  hf_model: hexgrad/Kokoro-82M
+  hf_provider: auto       # or a specific inference provider (novita, fal-ai, ...)
+
+
+
+
+
+
+# ── LifeOS (personal-life API, ported from CIEL) ─────────────────────────────
+# Talks to LifeOS for tasks, projects, goals, habits, calendar, notes, journal,
+# health, diet, gym, finance, events, …
+#
+# Setup:
+#   1. lifeos.base_url  → e.g. http://127.0.0.1:5000
+#   2. LIFEOS_API_KEY   → put in .env
+#
+# Left unconfigured (empty base_url) the tool simply answers "not configured"
+# instead of breaking the conversation.
+
+lifeos:
+  enabled: true
+  base_url: ""             # e.g. http://127.0.0.1:5000
+  api_key_env: LIFEOS_API_KEY
+  timeout_seconds: 15
+  max_retries: 1           # extra attempts on 5xx/network errors
+  retry_backoff_seconds: 0.4
+
+
+
+
+# ── Notifications ─────────────────────────────────────────────────────────────
+# Dunst-compatible notify-send delivery; dbus is also supported.
+# TTS can optionally read notifications aloud (respects /tts state).
+
+notifications:
+  enabled: true
+  backend: notify-send     # Dunst normally receives notify-send messages; dbus is also supported
+  notify_send_command: notify-send
+  dbus_command: gdbus
+  app_name: ARIA
+  default_urgency: normal
+  default_timeout_ms: 10000
+  tts_enabled: true
+
+
+
+
+# ── Proactive work, scheduling, and autonomy ─────────────────────────────────
+# The scheduler is intentionally IN-PROCESS: jobs and timers are persisted in
+# SQLite, but NO work runs while ARIA is closed. Enable it only after reviewing
+# autonomy.allowed_categories — each scheduled attempt (including blocked/failed
+# actions) is recorded in scheduler.sqlite3.
+#
+# workflows/  → drop additional YAML workflows here. See workflows/README.md.
+#
+# Timers (in the TUI or via model tools):
+#   /timer create focus pomodoro 1500
+#   /timer start <id>
+#   /timer pause <id>
+#   /timer resume <id>
+#   /timer restart <id>
+#   /timer finish <id>
+#   /timer list
+
+scheduler:
+  enabled: true
+  analysis_enabled: true              # read-only briefings/checks do not require autonomy
+  database: data/scheduler/scheduler.sqlite3
+  workflow_directory: workflows
+  poll_seconds: 15
+  default_workflows: true
+  timezone: system
+  default_misfire_policy: skip # skip | run_once
+  briefing_times: ["08:00", "13:00", "18:00"]
+  deadline_check_minutes: 30
+  goal_check_minutes: 120
+  calendar_check_minutes: 60
+  briefing_web_queries: ["Weather in Bolton", "Latest AI News", "XAUUSD Market news including news that may affect price of Gold"]   # e.g. ["weather in my city", "technology news about ..."]
+
+# Autonomy: allow the assistant to take actions without asking first.
+# ⚠️  Keep enabled: false until you have reviewed allowed_categories.
+# Every autonomous action (including blocked & failed ones) is written to the
+# immutable audit log in scheduler.sqlite3.
+autonomy:
+  enabled: false
+  allowed_categories: []   # analysis | lifeos_writes | notifications | computer_control | timers
+  lifeos_write_operations: [] # explicit operation names, e.g. [create_task]
+
+# Background model analysis (used by proactive checks & briefings).
+# provider/model/api_key_env can be null to disable model analysis while still
+# running the deterministic scheduling bits.
+background:
+  enabled: true
+  provider: null            # dedicated provider; null disables model analysis
+  model: null
+  api_key_env: ""          # optional hosted-provider key override
+  profile_path: data/proactive-profile.json
+  max_output_chars: 8000
+
+
+
+
+
+# ── Telemetry ─────────────────────────────────────────────────────────────────
+# Operational metrics only: provider/model, timings, context size, estimated
+# and provider-reported tokens, tool latency/outcomes, and errors. Prompt and
+# response contents are not stored. Use /telemetry in chat for a summary.
+telemetry:
+  enabled: true
+  database: data/telemetry/telemetry.sqlite3
+  live: true
+  retention_days: 90
+  record_estimates: true
+
+
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+# One rotating log file, 5 MiB, 3 backups:
+#   data/logs/aria.log    → DEBUG through CRITICAL
+#
+# Secrets are redacted before anything hits disk.
+
+logging:
+  directory: data/logs
+  console_level: WARNING
+  max_bytes: 5242880      # 5 MiB per file before rotation
+  backup_count: 3
+
+
+
+
+# ── UI ────────────────────────────────────────────────────────────────────────
+# backend   : urwid (modern TUI, install with `uv sync --extra tui`) or
+#             rich (legacy full-screen REPL)
+# show_cot  : live execution trace (tool calls/results) while ARIA works
+# keep_cot  : also keep the finished execution trace in the transcript
+# backend: urwid (modern TUI, install --extra tui) or rich (legacy full-screen)
+# show_cot: live execution trace (tool calls/results) while ARIA works
+# keep_cot: also keep the finished execution trace in the transcript
+ui:
+  backend: urwid
+  show_cot: true
+  keep_cot: false
+
+
+
+
+
+workspace: .
+max_iterations: 20      # The conversational loop stops after this many model/tool rounds as an emergency guard.
+# Leave these null for no subprocess timeout/output truncation.
+command_timeout_seconds: null
+max_command_output_chars: null
+
+
+# --- Skills ----------------------------------------------------------------
+# Drop Markdown files into skills/ (created on first run) to shape ARIA's
+# behavior, personality, and workflows. Files are re-read every turn; front-
+# matter name/priority is optional. See skills/README.md.
+
+
+
 # --- YAML autonomous workflows --------------------------------------------
 # Put additional workflows in workflows/*.yaml. See workflows/README.md.
 # Example:
@@ -284,25 +608,3 @@ memory:
 # All paths are resolved from the directory where aria starts.
 # Runtime changes made with /provider, /model, /workspace, /iterations, /agent,
 # /tts and /trace are saved separately in data/state/aria-state.yaml.
-workspace: .
-
-# --- UI --------------------------------------------------------------------
-# backend: urwid (modern TUI, install --extra tui) or rich (legacy full-screen)
-# show_cot: live execution trace (tool calls/results) while ARIA works
-# keep_cot: also keep the finished execution trace in the transcript
-ui:
-  backend: urwid
-  show_cot: true
-  keep_cot: false
-
-# --- Skills ----------------------------------------------------------------
-# Drop Markdown files into skills/ (created on first run) to shape ARIA's
-# behavior, personality, and workflows. Files are re-read every turn; front-
-# matter name/priority is optional. See skills/README.md.
-
-# The conversational loop stops after this many model/tool rounds as an emergency guard.
-max_iterations: 20
-
-# Leave these null for no subprocess timeout/output truncation.
-command_timeout_seconds: null
-max_command_output_chars: null

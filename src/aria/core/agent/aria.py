@@ -97,12 +97,15 @@ class AriaAgent(BaseAgent):
         user_name: str = "the user",
         skill_manager: SkillManager | None = None,
         profile_path: Path | None = None,
+        desktop_routes: tuple[str, ...] = (),
+        telemetry: Any | None = None,
     ) -> None:
-        super().__init__(provider, registry, context, memory, max_iterations)
+        super().__init__(provider, registry, context, memory, max_iterations, telemetry=telemetry, telemetry_role="aria")
         self.persona = persona
         self.user_name = user_name
         self.skill_manager = skill_manager
         self.profile_path = profile_path
+        self.desktop_routes = desktop_routes
         self.image_fallback_provider: Provider | None = None
         self.pending_attachments: list[ImageAttachment] = []
         if not self.memory.messages:
@@ -116,7 +119,7 @@ class AriaAgent(BaseAgent):
 
     def _compose_system_prompt(self, persona: str, user_name: str) -> str:
         """Persona prompt + custom tool protocol + active skills."""
-        prompt = build_system_prompt(persona, user_name) + self.router.format_tool_instructions(
+        prompt = build_system_prompt(persona, user_name, self.desktop_routes) + self.router.format_tool_instructions(
             self.registry.schemas()
         )
         profile = self.profile_text()
